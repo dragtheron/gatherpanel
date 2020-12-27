@@ -1,0 +1,232 @@
+<Ui>
+    <Script file="GatherPanel.lua"/>
+
+    <Button name="GatherBarTemplate" virtual="true">
+        <Size x="295" y="20"/>
+        <Layers>
+            <Layer level="ARTWORK">
+                <Texture name="$parentBackground" file="Interface\PaperDollInfoFrame\UI-Character-ReputationBar">
+                    <Size x="0" y="21"/>
+                    <Anchors>
+                        <Anchor point="LEFT">
+                            <Offset x="0" y="0"/>
+                        </Anchor>
+                    </Anchors>
+                    <TexCoords left="0.0" right="0.7578125" top="0.0" bottom="0.328125"/>
+                </Texture>
+            </Layer>
+            <Layer level="OVERLAY">
+                <FontString name="$parentItemName" inherits="GameFontHighlightSmall" justifyH="LEFT" text="Item">
+                    <Size x="135" y="10"/>
+                </FontString>
+            </Layer>
+        </Layers>
+        <Frames>
+            <StatusBar name="$parentItemBar" drawLayer="BACKGROUND" minValue="0" maxValue="1" defaultValue="1">
+                <Size x="96" y="13"/>
+                <Anchors>
+                    <Anchor point="RIGHT" x="0" y="0"/>
+                </Anchors>
+                <Layers>
+                    <Layer level="ARTWORK">
+                        <Texture name="$parentLeftTexture" file="Interface\PaperDollInfoFrame\UI-Character-ReputationBar">
+                            <Size x="60" y="21"/>
+                            <Anchors>
+                                <Anchor point="LEFT" x="0" y="0"/>
+                            </Anchors>
+                            <TexCoords left="0.7578" right="1.0" top="0.0" bottom="0.3281"/>
+                        </Texture>
+                        <Texture name="$parentRightTexture" file="Interface\PaperDollInfoFrame\UI-Character-ReputationBar">
+                            <Size x="41" y="21"/>
+                            <Anchors>
+                                <Anchor point="LEFT" relativeTo="$parentLeftTexture" relativePoint="RIGHT" x="0" y="0"/>
+                            </Anchors>
+                            <TexCoords left="0.0" right="0.1664" top="0.3475" bottom="0.671"/>
+                        </Texture>
+                        <FontString name="$parentPercentage" inherits="GameFontHighlightSmall" text="100 %">
+                            <Anchors>
+                                <Anchor point="CENTER" x="0" y="0"/>
+                            </Anchors>
+                        </FontString>
+                    </Layer>
+                    <Layer level="OVERLAY">
+                        <Texture name="$parentHighlight2" file="Interface\PaperDollInfoFrame\UI-Character-ReputationBar-Highlight" alphaMode="ADD" hidden="true">
+                            <Size x="17" y="28"/>
+                            <Anchors>
+                                <Anchor point="RIGHT">
+                                    <Offset x="4" y="0"/>
+                                </Anchor>
+                            </Anchors>
+                            <TexCoords left="0" right="0.06640625" top="0.4375" bottom="0.875"/>
+                        </Texture>
+                        <Texture name="$parentHighlight1" file="Interface\PaperDollInfoFrame\UI-Character-ReputationBar-Highlight" alphaMode="ADD" hidden="true">
+                            <Size x="0" y="28"/>
+                            <Anchors>
+                                <Anchor point="RIGHT" relativeTo="$parentHighlight2" relativePoint="LEFT"/>
+                            </Anchors>
+                            <TexCoords left="0" right="1" top="0" bottom="0.4375"/>
+                        </Texture>
+                    </Layer>
+                </Layers>
+                <BarTexture file="Interface\PaperDollInfoFrame\UI-Character-Skills-Bar"/>
+                <BarColor r="0" g="0.6" b="0.1"/>
+            </StatusBar>
+        </Frames>
+        <Scripts>
+            <OnLoad>
+                _G[self:GetName().."Background"]:SetPoint("TOPRIGHT", self:GetName().."ItemBarLeftTexture", "TOPLEFT", 0, 0);
+            </OnLoad>
+            <OnEnter>
+                GatherPanel_Bar_OnEnter(self)
+            </OnEnter>
+            <OnLeave>
+                GatherPanel_Bar_OnLeave(self)
+            </OnLeave>
+        </Scripts>
+    </Button>
+    <Frame name="GatherPanel" inherits="PortraitFrameTemplate" toplevel="true" parent="UIParent" enableMouse="true" movable="true" hidden="true">
+        <Size x="338" y="455"/>
+        <Anchors>
+            <Anchor point="CENTER" relativeTo="UIParent" />
+        </Anchors>
+        <Layers>
+            <Layer level="OVERLAY">
+                <FontString inherits="GameFontNormal" text="Gather Panel">
+                    <Size x="250" y="16"/>
+                    <Anchors>
+                        <Anchor point="TOP" x="3" y="-4"/>
+                    </Anchors>
+                </FontString>
+            </Layer>
+<!--            <Layer level="ARTWORK">-->
+<!--                <Texture parentKey="TabardBackground" file="Interface\GuildFrame\GuildFrame">-->
+<!--                    <Size x="62" y="62"/>-->
+<!--                    <Anchors>-->
+<!--                        <Anchor point="TOPLEFT" x="-6" y="7"/>-->
+<!--                    </Anchors>-->
+<!--                    <TexCoords left="0.63183594" right="0.69238281" top="0.61914063" bottom="0.74023438"/>-->
+<!--                </Texture>-->
+<!--            </Layer>-->
+<!--            <Layer level="ARTWORK" textureSubLevel="1">-->
+<!--                <Texture parentKey="TabardEmblem" file="Interface\GuildFrame\GuildEmblemsLG_01">-->
+<!--                    <Size x="56" y="64"/>-->
+<!--                    <Anchors>-->
+<!--                        <Anchor point="CENTER" relativeKey="$parent" relativePoint="TOPLEFT" x="24" y="-24"/>-->
+<!--                    </Anchors>-->
+<!--                </Texture>-->
+<!--            </Layer>-->
+            <Layer level="ARTWORK" textureSubLevel="2">
+                <Texture parentKey="TabardBorder" file="Interface\GuildFrame\GuildFrame">
+                    <Size x="61" y="60"/>
+                    <Anchors>
+                        <Anchor point="TOPLEFT" x="-6" y="7"/>
+                    </Anchors>
+                    <TexCoords left="0.63183594" right="0.69238281" top="0.74414063" bottom="0.86523438"/>
+                </Texture>
+            </Layer>
+        </Layers>
+
+        <Frames>
+            <CheckButton parentKey="ShowOfflineButton" inherits="UICheckButtonTemplate">
+                <Anchors>
+                    <Anchor point="TOPLEFT" x="70" y="-26"/>
+                </Anchors>
+                <Scripts>
+                    <OnLoad>
+                        self.text:SetText("Include other characters");
+                    </OnLoad>
+                    <OnClick>
+                        PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
+                        GatherPanel_SetAllCharacters(self:GetChecked());
+                    </OnClick>
+                </Scripts>
+            </CheckButton>
+            <Frame name="GatherFrame" setAllPoints="true" enableMouse="true" useParentLevel="true" id="2">
+                <Layers>
+                    <Layer level="ARTWORK">
+                        <FontString name="GatherFrameFactionLabel" inherits="GameFontHighlight" text="Item">
+                            <Anchors>
+                                <Anchor point="TOPLEFT" x="20" y="-62"/>
+                            </Anchors>
+                        </FontString>
+                        <FontString name="GatherFrameStandingLabel" inherits="GameFontHighlight" text="Stock">
+                            <Anchors>
+                                <Anchor point="TOPLEFT" x="215" y="-62"/>
+                            </Anchors>
+                        </FontString>
+                    </Layer>
+                </Layers>
+                <Frames>
+                    <Frame name="GatherPanelInset" parentKey="GatherPanelInset" useParentLevel="true" inherits="InsetFrameTemplate">
+                        <Size x="330" y="355"/>
+                        <Anchors>
+                            <Anchor point="TOPRIGHT" x="-6" y="-80" />
+                        </Anchors>
+                        <Frames>
+                            <!-- Buttons inserted via Lua -->
+                            <Button name="GatherBar1" inherits="GatherBarTemplate">
+                                <Anchors>
+                                    <Anchor point="TOPRIGHT" x="-10" y="-6"/>
+                                </Anchors>
+                            </Button>
+                            <ScrollFrame name="GatherFrameScrollFrame" inherits="FauxScrollFrameTemplate">
+                                <Anchors>
+                                    <Anchor point="TOPLEFT" relativeKey="$parent.Inset" x="0" y="-4"/>
+                                    <Anchor point="BOTTOMRIGHT" relativeKey="$parent.Inset" x="-27" y="2"/>
+                                </Anchors>
+                                <Layers>
+                                    <Layer level="BACKGROUND">
+                                        <Texture file="Interface\PaperDollInfoFrame\UI-Character-ScrollBar">
+                                            <Size x="31" y="256"/>
+                                            <Anchors>
+                                                <Anchor point="TOPLEFT" relativePoint="TOPRIGHT" x="-2" y="5"/>
+                                            </Anchors>
+                                            <TexCoords left="0" right="0.484375" top="0" bottom="1.0"/>
+                                        </Texture>
+                                        <Texture file="Interface\PaperDollInfoFrame\UI-Character-ScrollBar">
+                                            <Size x="31" y="108"/>
+                                            <Anchors>
+                                                <Anchor point="BOTTOMLEFT" relativePoint="BOTTOMRIGHT" x="-2" y="-4"/>
+                                            </Anchors>
+                                            <TexCoords left="0.515625" right="1.0" top="0" bottom="0.421875"/>
+                                        </Texture>
+                                    </Layer>
+                                </Layers>
+                                <Scripts>
+                                    <OnVerticalScroll>
+                                        FauxScrollFrame_OnVerticalScroll(self, offset, GATHERPANEL_ITEMBAR_HEIGHT, GatherPanel_Update);
+                                    </OnVerticalScroll>
+                                    <OnShow>
+                                        GatherBar1:SetPoint("TOPRIGHT", GatherPanelInset, "TOPRIGHT", -50, -6);
+                                    </OnShow>
+                                    <OnHide>
+                                        GatherBar1:SetPoint("TOPRIGHT", GatherPanelInset, "TOPRIGHT", -26, -6);
+                                    </OnHide>
+                                </Scripts>
+                            </ScrollFrame>
+                        </Frames>
+                    </Frame>
+                </Frames>
+            </Frame>
+        </Frames>
+        <Scripts>
+            <OnHide>GatherPanel_OnHide()</OnHide>
+            <OnShow>GatherPanel_OnShow()</OnShow>
+            <OnLoad>
+                self:SetPortraitToAsset("Interface\\Icons\\inv_misc_treasurechest05c");
+                self:RegisterForDrag("LeftButton");
+                self:RegisterEvent("BAG_UPDATE_DELAYED");
+                GatherPanel_OnLoad();
+            </OnLoad>>
+            <OnDragStart>
+                self:StartMoving();
+            </OnDragStart>
+            <OnDragStop>
+                self:StopMovingOrSizing();
+            </OnDragStop>
+            <OnEvent>
+                GatherPanel_OnEvent(event);
+            </OnEvent>
+        </Scripts>
+    </Frame>
+</Ui>

@@ -1,0 +1,10 @@
+## Interface: 90002
+## Title: GatherPanel
+## Notes: Centralized item count tracking
+## Author: Tobias Stettner
+## Version: 0.1
+
+## OptionalDeps: DataStore, DataStore_Containers
+
+GatherPanel.lua
+GatherPanel.xml
