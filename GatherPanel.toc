@@ -1,8 +1,11 @@
-## Interface: 90002
+## Interface: 90005
 ## Title: GatherPanel
 ## Notes: Centralized item count tracking
 ## Author: Tobias Stettner
-## Version: 0.1
+## Version: 1.0.0
+
+## SavedVariables: GATHERPANEL_ITEMS
+## SavedVariablesPerCharacter: GATHERPANEL_ALL_CHARACTERS
 
 ## OptionalDeps: DataStore, DataStore_Containers
 

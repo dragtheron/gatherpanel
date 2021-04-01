@@ -3,43 +3,18 @@ NUM_ITEMS_DISPLAYED = 15;
 NUM_TRACKERS_ENABLED = 0;
 NUM_TRACKERS_CREATED = 1;
 GATHERPANEL_ALL_CHARACTERS = false;
-GATHERPANEL_ITEMS = {
-    -- Herbalism
-    { id=169701, max=2400, min=800 }, -- Death Blossom
-    { id=168586, max=1200, min=400 }, -- Rising Glory
-    { id=168589, max=1200, min=400 }, -- Marrowrot
-    { id=170554, max=1200, min=400 }, -- Vigil's Torch
-    { id=168583, max=1200, min=400 }, -- Widowbloom
-    { id=171315, max=400, min=100 }, -- Nightshade
+GATHERPANEL_ITEMS = {};
 
-    -- Mining
-    { id=171829, max=1600, min=800 }, -- Solenium Ore
-    { id=171830, max=1600, min=800 }, -- Oxxein Ore
-    { id=171831, max=1600, min=800 }, -- Phaedrum Ore
-    { id=171832, max=1600, min=800 }, -- Sinvyr Ore
-    { id=171833, max=1600, min=800 }, -- Elethium Ore
-    { id=171828, max=2400, min=800 }, -- Lasestrite Ore
 
-    -- Cooking
-    { id=173032, max=400, min=200 }, -- Lost Sole
-    { id=173033, max=400, min=200 }, -- Iridescent Amberjack
-    { id=172053, max=400, min=200 }, -- Tenebrous Ribs
-    { id=179314, max=400, min=200 }, -- Creeping Crawler Meat
 
-    -- Raiding
-    { id=172347, max=40, min=20 }, -- Heavy Desolate Armor Kit
-    { id=171285, max=100, min=50 }, -- Shadowcore Oil
-    { id=172049, max=80, min=40 }, -- Iridescent Ravioli with Apple Sauce
-    { id=172045, max=80, min=40 }, -- Tenebrous Crown Roast Aspic
-    { id=171267, max=160, min=80 }, -- Spiritual Healing Potion
-    { id=171349, max=160, min=80 }, -- Potion of Phantom Fire
-    { id=171275, max=160, min=80 }, -- Potion of Spectral Strength
-    { id=181468, max=20 }, -- Veiled Augment Rune
-    { id=171266, max=40, min=20 }, -- Potion of the Hidden Spirit
-    { id=171370, max=40, min=20 }, -- Potion of the Specter Swiftness
-    { id=171264, max=40, min=20 }, -- Potion of Shaded Sight
-    { id=171276, max=40, min=20 }, -- Spectral Flask of Power
-};
+function GatherPanel_AddItem(itemId, min, max)
+    GATHERPANEL_ITEMS[#GATHERPANEL_ITEMS] = {
+        id = itemId,
+        min = min,
+        max = max
+    };
+end
+
 
 function GatherPanel_OnShow()
     PlaySound(SOUNDKIT.UI_PROFESSIONS_WINDOW_OPEN);
@@ -70,6 +45,11 @@ function GatherPanel_OnLoad()
         _G["GatherBar"..i.."ItemBarHighlight1"]:SetPoint("TOPLEFT", "GatherBar"..i, "TOPLEFT", -2, 4);
         _G["GatherBar"..i.."ItemBarHighlight1"]:SetPoint("BOTTOMRIGHT","GatherBar"..i, "BOTTOMRIGHT", -10, -4);
     end
+    _G['ItemDetailDeleteButton']:SetText('Remove');
+    _G['ItemDetailUpdateButton']:SetText('Update');
+    _G['ItemDetailUpdateButton']:Disable();
+    PanelTemplates_SetNumTabs(_G['GatherPanel'], 2);
+    PanelTemplates_SetTab(_G['GatherPanel'], 1);
     GatherPanel_InitItems();
     GatherPanel_UpdateItems();
     GatherPanel_Update();
@@ -79,7 +59,8 @@ function GatherPanel_InitItems()
     for i, item in ipairs(GATHERPANEL_ITEMS) do
         item.itemName, _, _, _, _, _,
         _, _, _, item.itemTexture, _ = GetItemInfo(item.id);
-        print(item.itemName);
+        item.tracked = false;
+        item.hovered = false;
     end
 end
 
@@ -90,7 +71,6 @@ function GatherPanel_UpdateItems()
             -- retry, sometimes heavy load
             item.itemName, _, _, _, _, _,
             _, _, _, item.itemTexture, _ = GetItemInfo(item.id);
-            print(item.itemName);
         end
         if (IsAddOnLoaded("DataStore_Containers") and GATHERPANEL_ALL_CHARACTERS) then
             for characterName, character in pairs(DataStore:GetCharacters()) do
@@ -123,6 +103,7 @@ function GatherPanel_UpdateItems()
 end
 
 function GatherPanel_Update()
+    _G['GatherPanel_Panel1'].ShowOfflineButton:SetChecked(GATHERPANEL_ALL_CHARACTERS);
     local numItems = #GATHERPANEL_ITEMS;
     if (not FauxScrollFrame_Update(GatherFrameScrollFrame, numItems, NUM_ITEMS_DISPLAYED, GATHERPANEL_ITEMBAR_HEIGHT)) then
         GatherFrameScrollFrameScrollBar:SetValue(0);
@@ -143,7 +124,7 @@ function GatherPanel_Update()
             end
             _G["GatherBar"..i.."ItemName"]:SetText(item.itemName);
 
-            if (itemRow.hovered or item.selected) then
+            if (itemRow.hovered or item == _G['ItemDetailFrame'].item) then
                 _G["GatherBar"..i.."ItemBarHighlight1"]:Show();
                 _G["GatherBar"..i.."ItemBarHighlight2"]:Show();
             else
@@ -250,8 +231,24 @@ end
 
 function GatherPanel_Bar_OnClick(frame)
     local item = GATHERPANEL_ITEMS[frame.itemIndex];
-    if (item.selected) then
-        item.selected = false;
+    _G['ItemDetailFrame'].item = item;
+    GatherPanel_UpdateItemDetails();
+    _G['ItemDetailFrame']:Show();
+end
+
+
+function GatherPanel_UpdateItemDetails()
+    local frame = _G['ItemDetailFrame'];
+    _G['ItemDetailTrackerCheckBox']:SetChecked(frame.item.tracked);
+    _G['ItemName']:SetText(frame.item.itemName);
+    _G['ItemDetailMin']:SetText(frame.item.min);
+    _G['ItemDetailMax']:SetText(frame.item.max);
+end
+
+
+function GatherPanel_TrackItem(item)
+    if (item.tracked) then
+        item.tracked = false;
         item.tracker = nil;
         -- Rearrange trackers
         local newTracker = 0;
@@ -278,7 +275,7 @@ function GatherPanel_Bar_OnClick(frame)
         _G["GatherPanel_Tracker"..item.tracker].icon = item.itemTexture;
         _G["GatherPanel_Tracker"..item.tracker].Bar.Icon:SetTexture(item.itemTexture);
         _G["GatherPanel_Tracker"..item.tracker]:Show();
-        item.selected = true;
+        item.tracked = true;
     end
     GatherPanel_UpdateItems();
     GatherPanel_Update();
@@ -289,4 +286,152 @@ function GatherPanel_SetAllCharacters(checked)
     GATHERPANEL_ALL_CHARACTERS = checked;
     GatherPanel_UpdateItems();
     GatherPanel_Update();
+end
+
+
+function GatherPanel_SetPanel(id)
+    _G['GatherPanel_Panel'.._G['GatherPanel'].selectedTab]:Hide();
+    _G['GatherPanel_Panel'..id]:Show();
+end
+
+
+function GatherPanel_Tab_OnClick(tab)
+    GatherPanel_SetPanel(tab:GetID());
+    PanelTemplates_SetTab(_G['GatherPanel'], tab:GetID());
+	PlaySound(SOUNDKIT.IG_CHARACTER_INFO_TAB);
+end
+
+
+function GatherPanel_ItemDetailUpdateButton_OnClick(frame)
+    local item = frame:GetParent().item;
+    item.min = tonumber(_G['ItemDetailMin']:GetText());
+    item.max = tonumber(_G['ItemDetailMax']:GetText());
+    GatherPanel_ItemDetailUpdateButton_Update();
+    GatherPanel_UpdateItems();
+    GatherPanel_Update();
+end
+
+function GatherPanel_ItemDetailMin_OnEnter(frame)
+    GatherPanel_ItemDetailMin_Update(frame);
+    frame:ClearFocus();
+end
+
+function GatherPanel_ItemDetailMin_OnTab(frame)
+    GatherPanel_ItemDetailMin_Update(frame);
+    frame:ClearFocus();
+    _G['ItemDetailMax']:SetFocus();
+end
+
+function GatherPanel_ItemDetailMax_OnEnter(frame)
+    GatherPanel_ItemDetailMax_Update(frame);
+    frame:ClearFocus();
+end
+
+function GatherPanel_ItemDetailMax_OnTab(frame)
+    GatherPanel_ItemDetailMax_Update(frame);
+    frame:ClearFocus();
+end
+
+function GatherPanel_ItemDetailMin_Update(frame)
+    local amount = tonumber(frame:GetText());
+    frame:SetText(amount);
+    GatherPanel_ItemDetailUpdateButton_Update();
+end
+
+function GatherPanel_ItemDetailMax_Update(frame)
+    local amount = tonumber(frame:GetText());
+    frame:SetText(amount);
+    GatherPanel_ItemDetailUpdateButton_Update();
+end
+
+
+function GatherPanel_ItemDetailUpdateButton_Update()
+    local item = _G['ItemDetailFrame'].item;
+    if (item.max == tonumber(_G['ItemDetailMax']:GetText()) and item.min == tonumber(_G['ItemDetailMin']:GetText())) then
+        _G['ItemDetailUpdateButton']:Disable();
+    else
+        _G['ItemDetailUpdateButton']:Enable();
+    end
+end
+
+function GatherPanel_NewItem_CreateButton_OnClick()
+    local itemID = tonumber(_G['GatherPanel_NewItem_Id']:GetText());
+    local min = tonumber(_G['GatherPanel_NewItem_Min']:GetText());
+    if (min == nil or min < 0) then
+        min = 0;
+    end
+    local max = tonumber(_G['GatherPanel_NewItem_Max']:GetText());
+    if (max == nil or max < min) then
+        max = min;
+    end
+    table.insert(GATHERPANEL_ITEMS, {
+        id = itemID,
+        min = min,
+        max = max
+    });
+    GatherPanel_UpdateItems();
+    GatherPanel_Update();
+    _G['GatherPanel_NewItem_CreateButton']:Disable();
+    _G['GatherPanel_NewItem_Id']:SetText('');
+    _G['GatherPanel_NewItem_Min']:SetText('');
+    _G['GatherPanel_NewItem_Max']:SetText('');
+    _G['GatherPanel_Label_ItemName']:SetText('Drag item into Item ID field.');
+end
+
+function GatherPanel_NewItem_Id_OnReceive(frame)
+    local infoType, itemID, itemLink = GetCursorInfo();
+    if (infoType == 'item') then
+        frame:SetText(tonumber(itemID));
+        itemName = GetItemInfo(itemID);
+        _G['GatherPanel_Label_ItemName']:SetText(itemName);
+        ClearCursor();
+        frame:ClearFocus();
+        _G['GatherPanel_NewItem_Min']:SetFocus();
+    end
+end
+
+function GatherPanel_NewItem_Id_CheckItem(frame)
+    local itemID = tonumber(frame:GetText(itemID));
+    if (itemID) then
+        frame:SetText(itemID);
+        itemName = GetItemInfo(itemID);
+        if (itemName) then
+            _G['GatherPanel_Label_ItemName']:SetText(itemName);
+
+            for i, item in ipairs(GATHERPANEL_ITEMS) do
+                if (item.id == itemID) then
+                    _G['GatherPanel_Label_Status']:SetText('Item already added to the list!');
+                    _G['GatherPanel_NewItem_CreateButton']:Disable();
+                    return;
+                end
+            end
+            _G['GatherPanel_Label_Status']:SetText('');
+            ClearCursor();
+            frame:ClearFocus();
+            _G['GatherPanel_NewItem_Min']:SetFocus();
+            frame:SetTextColor(1,1,1);
+            _G['GatherPanel_NewItem_CreateButton']:Enable();
+
+            return
+        end
+    end
+    _G['GatherPanel_Label_ItemName']:SetText('Invalid Item ID');
+    frame:SetTextColor(1,0,0);
+end
+
+
+function GatherPanel_ItemDetailDeleteButton_OnClick(frame)
+    local itemID = frame:GetParent().item.id;
+
+    for i, item in ipairs(GATHERPANEL_ITEMS) do
+        if (item.id == itemID) then
+            table.remove(GATHERPANEL_ITEMS, i);
+            PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
+            frame:GetParent().item = nil;
+            GatherPanel_UpdateItems();
+            GatherPanel_Update();
+            HideParentPanel(frame);
+            return;
+        end
+    end
 end
