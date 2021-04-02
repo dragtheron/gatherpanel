@@ -4,6 +4,7 @@ NUM_TRACKERS_ENABLED = 0;
 NUM_TRACKERS_CREATED = 1;
 GATHERPANEL_ALL_CHARACTERS = false;
 GATHERPANEL_ITEMS = {};
+GATHERPANEL_LOADED = false;
 
 
 
@@ -48,6 +49,7 @@ function GatherPanel_OnLoad()
     _G['ItemDetailDeleteButton']:SetText('Remove');
     _G['ItemDetailUpdateButton']:SetText('Update');
     _G['ItemDetailUpdateButton']:Disable();
+
     PanelTemplates_SetNumTabs(_G['GatherPanel'], 2);
     PanelTemplates_SetTab(_G['GatherPanel'], 1);
     GatherPanel_InitItems();
@@ -210,8 +212,18 @@ end
 
 
 function GatherPanel_OnEvent(event)
-    GatherPanel_UpdateItems();
-    GatherPanel_Update();
+    if event == 'ADDON_LOADED' and not GATHERPANEL_LOADED then
+        for i, item in ipairs(GATHERPANEL_ITEMS) do
+            if item.tracked == true then
+                GatherPanel_CreateTrackerForItem(item)
+            end
+        end
+        GATHERPANEL_LOADED = true;
+    end
+    if GATHERPANEL_LOADED == true then
+        GatherPanel_UpdateItems();
+        GatherPanel_Update();
+    end
 end
 
 function GatherPanel_Bar_OnEnter(frame)
@@ -263,22 +275,27 @@ function GatherPanel_TrackItem(item)
         _G["GatherPanel_Tracker"..NUM_TRACKERS_ENABLED]:Hide();
         NUM_TRACKERS_ENABLED = NUM_TRACKERS_ENABLED - 1;
     else
-        -- Enable Tracker
-        if (NUM_TRACKERS_ENABLED == NUM_TRACKERS_CREATED) then
-            local tracker = CreateFrame("Frame", "GatherPanel_Tracker"..NUM_TRACKERS_CREATED+1, _G["GatherPanel_Tracker"], "GatherPanel_Tracker_Template");
-            tracker:SetPoint("TOPLEFT", "GatherPanel_Tracker"..NUM_TRACKERS_CREATED, "BOTTOMLEFT", 0, 5);
-            tracker.animValue = nil;
-            NUM_TRACKERS_CREATED = NUM_TRACKERS_CREATED + 1;
-        end
-        NUM_TRACKERS_ENABLED = NUM_TRACKERS_ENABLED + 1;
-        item.tracker = NUM_TRACKERS_ENABLED;
-        _G["GatherPanel_Tracker"..item.tracker].icon = item.itemTexture;
-        _G["GatherPanel_Tracker"..item.tracker].Bar.Icon:SetTexture(item.itemTexture);
-        _G["GatherPanel_Tracker"..item.tracker]:Show();
-        item.tracked = true;
+        GatherPanel_CreateTrackerForItem(item)
     end
     GatherPanel_UpdateItems();
     GatherPanel_Update();
+end
+
+
+function GatherPanel_CreateTrackerForItem(item)
+    -- Enable Tracker
+    if (NUM_TRACKERS_ENABLED == NUM_TRACKERS_CREATED) then
+        local tracker = CreateFrame("Frame", "GatherPanel_Tracker"..NUM_TRACKERS_CREATED+1, _G["GatherPanel_Tracker"], "GatherPanel_Tracker_Template");
+        tracker:SetPoint("TOPLEFT", "GatherPanel_Tracker"..NUM_TRACKERS_CREATED, "BOTTOMLEFT", 0, 5);
+        tracker.animValue = nil;
+        NUM_TRACKERS_CREATED = NUM_TRACKERS_CREATED + 1;
+    end
+    NUM_TRACKERS_ENABLED = NUM_TRACKERS_ENABLED + 1;
+    item.tracker = NUM_TRACKERS_ENABLED;
+    _G["GatherPanel_Tracker"..item.tracker].icon = item.itemTexture;
+    _G["GatherPanel_Tracker"..item.tracker].Bar.Icon:SetTexture(item.itemTexture);
+    _G["GatherPanel_Tracker"..item.tracker]:Show();
+    item.tracked = true;
 end
 
 

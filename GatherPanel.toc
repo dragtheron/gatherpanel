@@ -2,7 +2,7 @@
 ## Title: GatherPanel
 ## Notes: Centralized item count tracking
 ## Author: Tobias Stettner
-## Version: 1.0.0
+## Version: 1.0.1
 
 ## SavedVariables: GATHERPANEL_ITEMS
 ## SavedVariablesPerCharacter: GATHERPANEL_ALL_CHARACTERS
