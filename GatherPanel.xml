@@ -36,6 +36,11 @@
                                 <Anchor point="CENTER" relativeKey="$parent.BarFrame"/>
                             </Anchors>
                         </Texture>
+                        <Texture parentKey="CheckMarkTexture" atlas="worldquest-tracker-checkmark" useAtlasSize="true" hidden="true">
+                            <Anchors>
+                                <Anchor point="RIGHT" relativeKey="$parent.BarFrame" x="0" y="0"/>
+                            </Anchors>
+                        </Texture>
                     </Layer>
                     <Layer level="ARTWORK" textureSubLevel="2">
                         <Texture parentKey="BarFrame3" alpha="0" alphaMode="ADD" atlas="bonusobjectives-bar-frame" useAtlasSize="true">
@@ -46,7 +51,7 @@
                     </Layer>
                     <Layer level="BACKGROUND" textureSubLevel="-1">
                         <Texture parentKey="BarBG">
-                            <Color r="0.04" g="0.07" b="0.18"/>
+                            <Color r="0.2" g="0.2" b="0.2"/>
                         </Texture>
                         <Texture parentKey="Icon">
                             <Size x="32" y="32"/>
@@ -123,6 +128,9 @@
                 self.Bar.Icon:SetMask("Interface\\CharacterFrame\\TempPortraitAlphaMask");
                 self.Bar.BarGlow:SetAtlas("bonusobjectives-bar-glow-ring", true);
             </OnLoad>
+            <OnMouseDown function="GatherPanel_TrackerX_OnMouseDown"/>
+            <OnEnter function="GatherPanel_TrackerX_OnEnter"/>
+            <OnLeave function="GatherPanel_TrackerX_OnLeave"/>
         </Scripts>
     </Frame>
 
@@ -147,7 +155,7 @@
             </Layer>
         </Layers>
         <Frames>
-            <StatusBar name="$parentItemBar" drawLayer="BACKGROUND" minValue="0" maxValue="1" defaultValue="1">
+            <StatusBar name="$parentItemBar" parentKey="ItemBar" drawLayer="BACKGROUND" minValue="0" maxValue="1" defaultValue="1">
                 <Size x="96" y="13"/>
                 <Anchors>
                     <Anchor point="RIGHT" x="0" y="0"/>
@@ -168,7 +176,7 @@
                             </Anchors>
                             <TexCoords left="0.0" right="0.1664" top="0.3475" bottom="0.671"/>
                         </Texture>
-                        <FontString name="$parentPercentage" inherits="GameFontHighlightSmall" text="100 %">
+                        <FontString parentKey="Percentage" inherits="GameFontHighlightSmall" text="100 %">
                             <Anchors>
                                 <Anchor point="CENTER" x="0" y="0"/>
                             </Anchors>
@@ -213,7 +221,7 @@
         </Scripts>
     </Button>
     <Frame name="GatherPanel" inherits="PortraitFrameTemplate" toplevel="true" parent="UIParent" enableMouse="true" movable="true" hidden="true">
-        <Size x="338" y="455"/>
+        <Size x="338" y="485"/>
         <Anchors>
             <Anchor point="CENTER" relativeTo="UIParent" />
         </Anchors>
@@ -295,17 +303,38 @@
             </Button>
             <Frame name="GatherPanel_Panel1" setAllPoints="true" enableMouse="true" useParentLevel="true">
                 <Frames>
+
+                    <Frame name="GatherPanel_ItemlistSelection" inherits="UIDropDownMenuTemplate">
+                        <Anchors>
+                            <Anchor point="TOPLEFT" x="50" y="-26"/>
+                        </Anchors>
+                    </Frame>
+
                     <CheckButton parentKey="ShowOfflineButton" inherits="UICheckButtonTemplate">
                         <Anchors>
-                            <Anchor point="TOPLEFT" x="70" y="-26"/>
+                            <Anchor point="BOTTOMLEFT" x="230" y="10"/>
                         </Anchors>
                         <Scripts>
                             <OnLoad>
-                                self.text:SetText("Include other characters");
+                                self.text:SetText("Total Stock");
                             </OnLoad>
                             <OnClick>
                                 PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
                                 GatherPanel_SetAllCharacters(self:GetChecked());
+                            </OnClick>
+                        </Scripts>
+                    </CheckButton>
+                    <CheckButton parentKey="IncludeCurrentCharacterButton" inherits="UICheckButtonTemplate">
+                        <Anchors>
+                            <Anchor point="BOTTOMLEFT" x="10" y="10"/>
+                        </Anchors>
+                        <Scripts>
+                            <OnLoad>
+                                self.text:SetText("Include Current Character");
+                            </OnLoad>
+                            <OnClick>
+                                PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
+                                GatherPanel_SetIncludeCurrentCharacter(self:GetChecked());
                             </OnClick>
                         </Scripts>
                     </CheckButton>
@@ -314,12 +343,12 @@
                             <Layer level="ARTWORK">
                                 <FontString name="GatherFrameFactionLabel" inherits="GameFontHighlight" text="Item">
                                     <Anchors>
-                                        <Anchor point="TOPLEFT" x="20" y="-62"/>
+                                        <Anchor point="TOPLEFT" x="23" y="-62"/>
                                     </Anchors>
                                 </FontString>
                                 <FontString name="GatherFrameStandingLabel" inherits="GameFontHighlight" text="Stock">
                                     <Anchors>
-                                        <Anchor point="TOPLEFT" x="215" y="-62"/>
+                                        <Anchor point="TOPLEFT" x="260" y="-62"/>
                                     </Anchors>
                                 </FontString>
                             </Layer>
@@ -546,7 +575,20 @@
             </Frame>
             <Frame name="GatherPanel_Panel2" setAllPoints="true" hidden="true">
                 <Frames>
-                    <Frame name="GatherPanelInset" parentKey="GatherPanelInset" useParentLevel="true" inherits="InsetFrameTemplate">
+                    <CheckButton parentKey="ShowTrackerButton" inherits="UICheckButtonTemplate">
+                        <Anchors>
+                            <Anchor point="BOTTOMLEFT" x="10" y="10"/>
+                        </Anchors>
+                        <Scripts>
+                            <OnLoad>
+                                self.text:SetText("Show Tracker");
+                            </OnLoad>
+                            <OnClick>
+                                GatherPanel_ToggleTracker();
+                            </OnClick>
+                        </Scripts>
+                    </CheckButton>
+                    <Frame parentKey="Inset" useParentLevel="true" inherits="InsetFrameTemplate">
                         <Size x="330" y="355"/>
                         <Anchors>
                             <Anchor point="TOPRIGHT" x="-6" y="-80" />
@@ -689,6 +731,7 @@
         <Scripts>
             <OnLoad>
                 self:RegisterForDrag("LeftButton");
+                GatherPanel_Tracker_OnLoad();
             </OnLoad>>
             <OnDragStart>
                 self:StartMoving();
