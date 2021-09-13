@@ -250,7 +250,7 @@ end
 function GatherPanel_Update()
     _G['GatherPanel_Panel1'].ShowOfflineButton:SetChecked(GATHERPANEL_ALL_CHARACTERS);
     _G['GatherPanel_Panel1'].IncludeCurrentCharacterButton:SetChecked(GATHERPANEL_INCLUDE_CURRENT_CHARACTER);
-    _G['GatherPanel_Panel2'].Inset.ShowTrackerButton:SetChecked(GATHERPANEL_TRACKER_VISIBLE);
+    _G['GatherPanel_Panel2'].ShowTrackerButton:SetChecked(GATHERPANEL_TRACKER_VISIBLE);
     local numItems = getItemlistLength();
 
     if (not FauxScrollFrame_Update(GatherFrameScrollFrame, numItems, NUM_ITEMS_DISPLAYED, GATHERPANEL_ITEMBAR_HEIGHT)) then

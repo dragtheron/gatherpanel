@@ -2,7 +2,7 @@
 ## Title: Gather Panel
 ## Notes: Helps keeping track of item counts and gathering goals across multiple characters.
 ## Author: Tobias Stettner (Dragtheron)
-## Version: 2.0.0
+## Version: 2.0.1
 
 ## SavedVariables: GATHERPANEL_ITEMS, GATHERPANEL_ITEMLISTS
 ## SavedVariablesPerCharacter: GATHERPANEL_ALL_CHARACTERS, GATHERPANEL_TRACKER_VISIBLE, GATHERPANEL_ITEMS_CHARACTER
