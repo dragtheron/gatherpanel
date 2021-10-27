@@ -138,7 +138,7 @@
         <Size x="295" y="20"/>
         <Layers>
             <Layer level="ARTWORK">
-                <Texture name="$parentBackground" file="Interface\PaperDollInfoFrame\UI-Character-ReputationBar">
+                <Texture name="$parentBackground" parentKey="Background" file="Interface\PaperDollInfoFrame\UI-Character-ReputationBar">
                     <Size x="0" y="21"/>
                     <Anchors>
                         <Anchor point="LEFT">
@@ -149,12 +149,38 @@
                 </Texture>
             </Layer>
             <Layer level="OVERLAY">
-                <FontString name="$parentItemName" inherits="GameFontHighlightSmall" justifyH="LEFT" text="Item">
+                <FontString name="$parentItemName" parentKey="ItemName" inherits="GameFontHighlightSmall" justifyH="LEFT" text="Item">
                     <Size x="135" y="10"/>
                 </FontString>
             </Layer>
         </Layers>
         <Frames>
+			<Button name="$parentExpandOrCollapseButton" parentKey="ExpandOrCollapseButton">
+				<Size x="13" y="13"/>
+				<Anchors>
+					<Anchor point="LEFT" x="3" y="0"/>
+				</Anchors>
+				<HitRectInsets>
+					<AbsInset left="1" right="-4" top="-2" bottom="-2"/>
+				</HitRectInsets>
+                <Scripts>
+                    <OnClick>
+                        GatherPanel_Bar_ExpandOrCollapse_OnClick(self);
+                    </OnClick>
+                </Scripts>
+				<NormalTexture file="Interface\Buttons\UI-MinusButton-UP">
+					<Size x="16" y="16"/>
+					<Anchors>
+						<Anchor point="LEFT" x="3" y="0"/>
+					</Anchors>
+				</NormalTexture>
+				<HighlightTexture name="$parentHighlight" file="Interface\Buttons\UI-PlusButton-Hilight" alphaMode="ADD">
+					<Size x="16" y="16"/>
+					<Anchors>
+						<Anchor point="LEFT" x="3" y="0"/>
+					</Anchors>
+				</HighlightTexture>
+			</Button>
             <StatusBar name="$parentItemBar" parentKey="ItemBar" drawLayer="BACKGROUND" minValue="0" maxValue="1" defaultValue="1">
                 <Size x="96" y="13"/>
                 <Anchors>
@@ -183,7 +209,7 @@
                         </FontString>
                     </Layer>
                     <Layer level="OVERLAY">
-                        <Texture name="$parentHighlight2" file="Interface\PaperDollInfoFrame\UI-Character-ReputationBar-Highlight" alphaMode="ADD" hidden="true">
+                        <Texture name="$parentHighlight2" parentKey="Highlight2" file="Interface\PaperDollInfoFrame\UI-Character-ReputationBar-Highlight" alphaMode="ADD" hidden="true">
                             <Size x="17" y="28"/>
                             <Anchors>
                                 <Anchor point="RIGHT">
@@ -192,7 +218,7 @@
                             </Anchors>
                             <TexCoords left="0" right="0.06640625" top="0.4375" bottom="0.875"/>
                         </Texture>
-                        <Texture name="$parentHighlight1" file="Interface\PaperDollInfoFrame\UI-Character-ReputationBar-Highlight" alphaMode="ADD" hidden="true">
+                        <Texture name="$parentHighlight1" parentKey="Highlight1" file="Interface\PaperDollInfoFrame\UI-Character-ReputationBar-Highlight" alphaMode="ADD" hidden="true">
                             <Size x="0" y="28"/>
                             <Anchors>
                                 <Anchor point="RIGHT" relativeTo="$parentHighlight2" relativePoint="LEFT"/>
@@ -220,6 +246,7 @@
             </OnClick>
         </Scripts>
     </Button>
+    <Frame name=""></Frame>
     <Frame name="GatherPanel" inherits="PortraitFrameTemplate" toplevel="true" parent="UIParent" enableMouse="true" movable="true" hidden="true">
         <Size x="338" y="485"/>
         <Anchors>
@@ -234,23 +261,6 @@
                     </Anchors>
                 </FontString>
             </Layer>
-<!--            <Layer level="ARTWORK">-->
-<!--                <Texture parentKey="TabardBackground" file="Interface\GuildFrame\GuildFrame">-->
-<!--                    <Size x="62" y="62"/>-->
-<!--                    <Anchors>-->
-<!--                        <Anchor point="TOPLEFT" x="-6" y="7"/>-->
-<!--                    </Anchors>-->
-<!--                    <TexCoords left="0.63183594" right="0.69238281" top="0.61914063" bottom="0.74023438"/>-->
-<!--                </Texture>-->
-<!--            </Layer>-->
-<!--            <Layer level="ARTWORK" textureSubLevel="1">-->
-<!--                <Texture parentKey="TabardEmblem" file="Interface\GuildFrame\GuildEmblemsLG_01">-->
-<!--                    <Size x="56" y="64"/>-->
-<!--                    <Anchors>-->
-<!--                        <Anchor point="CENTER" relativeKey="$parent" relativePoint="TOPLEFT" x="24" y="-24"/>-->
-<!--                    </Anchors>-->
-<!--                </Texture>-->
-<!--            </Layer>-->
             <Layer level="ARTWORK" textureSubLevel="2">
                 <Texture parentKey="TabardBorder" file="Interface\GuildFrame\GuildFrame">
                     <Size x="61" y="60"/>
@@ -407,7 +417,7 @@
                     </Frame>
                     <Frame name="ItemDetailFrame" enableMouse="true" hidden="true">
                         <Frame parentKey="Border" inherits="DialogBorderDarkTemplate"/>
-                        <Size x="212" y="273"/>
+                        <Size x="212" y="303"/>
                         <Anchors>
                             <Anchor point="TOPLEFT" relativeTo="GatherPanel_Panel1" relativePoint="TOPRIGHT" x="0" y="-28"/>
                         </Anchors>
@@ -525,6 +535,12 @@
                                     <OnTabPressed function="GatherPanel_ItemDetailMax_OnTab"/>
                                 </Scripts>
                             </EditBox>
+
+                            <Frame name="GatherPanel_ItemDetails_ParentSelection" inherits="UIDropDownMenuTemplate">
+                                <Anchors>
+                                    <Anchor point="TOPLEFT" relativeTo="ItemDetailMax" relativePoint="BOTTOMLEFT" x="0" y="0"/>
+                                </Anchors>
+                            </Frame>
 
                             <Button name="ItemDetailUpdateButton" inherits="UIPanelButtonTemplate">
                                 <Size x="95" y="22"/>
@@ -687,6 +703,31 @@
                                         self:SetText('Add Item');
                                     </OnLoad>
                                     <OnClick function="GatherPanel_NewItem_CreateButton_OnClick"/>
+                                </Scripts>
+                            </Button>
+
+                            <Button name="GatherPanel_NewGroup_CreateButton" inherits="UIPanelButtonTemplate">
+                                <Size x="95" y="22"/>
+                                <Anchors>
+                                    <Anchor point="BOTTOMLEFT" x="0" y="0"/>
+                                </Anchors>
+                                <Layers>
+                                    <Layer level="BACKGROUND">
+                                        <Texture name="$parentBorder" file="Interface\Buttons\UI-Button-Borders">
+                                            <Size x="106" y="26"/>
+                                            <Anchors>
+                                                <Anchor point="TOPLEFT" x="-10" y="1"/>
+                                                <Anchor point="BOTTOMRIGHT" x="1" y="-3"/>
+                                            </Anchors>
+                                            <TexCoords left="0.58203125" right="1.0" top="0.0" bottom="0.40625"/>
+                                        </Texture>
+                                    </Layer>
+                                </Layers>
+                                <Scripts>
+                                    <OnLoad>
+                                        self:SetText('Add Group');
+                                    </OnLoad>
+                                    <OnClick function="GatherPanel_Group_CreateButton_OnClick"/>
                                 </Scripts>
                             </Button>
                         </Frames>
