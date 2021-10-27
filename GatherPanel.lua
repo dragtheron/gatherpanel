@@ -315,7 +315,7 @@ function GatherPanel_InitializeSortedItemList()
     ]] --
   local items = getItemlist();
   sortedHierarchy = {};
-  local linearizedHierarchy = flatToHierarchy(items, "parent");
+  local linearizedHierarchy = flatToHierarchy(items);
   for _, element in ipairs(linearizedHierarchy) do
     table.insert(sortedHierarchy, element);
   end
