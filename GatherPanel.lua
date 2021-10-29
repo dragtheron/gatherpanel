@@ -685,20 +685,22 @@ function GatherPanel_UpdatePanel(initDropdowns)
     local element = elements[elementKey];
     if elementKey == 0 then
       defaultGroup.isCollapsed = GATHERPANEL_DEFAULT_GROUP_COLLAPSED;
-      processedRows = processedRows + 1;
-      if (processedRows > itemOffset and renderedRows < NUM_ITEMS_DISPLAYED) then
-        local itemRow = _G["GatherBar" .. renderedRows+1];
-        local itemBar = _G["GatherBar" .. renderedRows+1 .. "ItemBar"];
-        itemRow.item = nil;
-        itemRow.itemKey = 0;
-        renderItemGroup(itemRow, defaultGroup, level, initDropdowns);
-        renderedRows = renderedRows + 1;
-        itemRow:Show();
-      end
-      if defaultGroup.isCollapsed then
-        collapsedLevel = 0;
-      else
-        collapsedLevel = 999;
+      if i+1 < #sortedHierarchy and elements[sortedHierarchy[i+1].id].parent ~= 0 then
+        processedRows = processedRows + 1;
+        if (processedRows > itemOffset and renderedRows < NUM_ITEMS_DISPLAYED) then
+          local itemRow = _G["GatherBar" .. renderedRows+1];
+          local itemBar = _G["GatherBar" .. renderedRows+1 .. "ItemBar"];
+          itemRow.item = nil;
+          itemRow.itemKey = 0;
+          renderItemGroup(itemRow, defaultGroup, level, initDropdowns);
+          renderedRows = renderedRows + 1;
+          itemRow:Show();
+        end
+        if defaultGroup.isCollapsed then
+          collapsedLevel = 0;
+        else
+          collapsedLevel = 999;
+        end
       end
     else
       if element.type == "GROUP" then
