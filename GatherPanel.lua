@@ -977,12 +977,18 @@ function GatherPanel_Bar_OnClick(frame, button)
     GatherPanel_UpdateItemDetails();
     _G['ItemDetailFrame']:Show();
   elseif frame.item and frame.item.type == "GROUP" then
-    if frame.itemKey ~= 0 then
-      if button == "RightButton" then
+    if button == "RightButton" then
+      if frame.itemKey ~= 0 then
         ToggleDropDownMenu(1, nil, frame.Context);
-      elseif button == "LeftButton" then
-        item_ExpandOrCollapse(frame.item);
       end
+    elseif button == "LeftButton" then
+      item_ExpandOrCollapse(frame.item);
+    end
+  else
+    -- presumably the default category...
+    -- should set a flag or something hovered
+    if button == "LeftButton" then
+      item_ExpandOrCollapse(nil);
     end
   end
 end
