@@ -596,9 +596,9 @@ local function renderItemGroup(itemRow, group, level, initDropdowns)
   end
 
   if (itemRow.hovered) then
-    itemRow.ItemName:SetFontObject(GameFontHighlightLeft);
+    itemRow.ItemName:SetTextColor(1, 1, 1);
   else
-    itemRow.ItemName:SetFontObject(GameFontNormalLeft);
+    itemRow.ItemName:SetTextColor(defaultColor.r, defaultColor.g, defaultColor.b);
   end
 
   itemRow:Show();
