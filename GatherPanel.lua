@@ -78,6 +78,10 @@ local function flatToHierarchy(objects)
       roots[objectId] = element;
     else
       local parent = elements[object.parent];
+      if parent == nil then
+        parent = elements[0]
+        object.parent = 0;
+      end
       if parent.children == nil then
         parent.children = {};
       end
@@ -224,10 +228,183 @@ StaticPopupDialogs["GATHERPANEL_GROUP_EDIT_NAME"] = {
   hasEditBox = 1
 }
 
+
+
+local function AddCharacter()
+  local realm = GetRealmName();
+  local player = UnitName("player");
+  if GATHERPANEL_ITEMLISTS[realm][player] == nil then
+    GATHERPANEL_ITEMLISTS[realm][player] = {};
+  end
+end
+
+local function SelectParentGroup(self, parentId)
+  local item = _G["ItemDetailFrame"].item;
+  item.parent = parentId;
+  GatherPanel_InitializeSortedItemList();
+  GatherPanel_ItemDetailUpdateButton_Update();
+  GatherPanel_UpdateItems();
+  GatherPanel_UpdatePanel();
+end
+
+local function SelectItemlist(self, itemListId)
+  GATHERPANEL_ITEM_LIST_SELECTION = itemListId;
+
+  -- Check if id exists. gets reset if not.
+  setItemList();
+
+  if GATHERPANEL_ITEM_LIST_SELECTION == GetItemlistId("X-Internal", "Combined") then
+    -- disable all item list manipulations
+    GatherPanel_NewItem_CreateButton:Disable();
+    ItemDetailMin:Disable();
+    ItemDetailMax:Disable();
+    ItemDetailDeleteButton:Disable()
+  else
+    GatherPanel_NewItem_CreateButton:Enable();
+    ItemDetailMin:Enable();
+    ItemDetailMax:Enable();
+    ItemDetailDeleteButton:Enable();
+  end
+  realm, characterName = decodeItemListId(GATHERPANEL_ITEM_LIST_SELECTION);
+  UIDropDownMenu_SetText(GatherPanel_ItemlistSelection, characterName);
+  CloseDropDownMenus();
+  GatherPanel_InitializeSortedItemList();
+  GatherPanel_ReloadTracker();
+  GatherPanel_UpdateItems();
+  GatherPanel_UpdatePanel();
+end
+
+local function trackItem(self, item)
+  GatherPanel_TrackItem(item);
+end
+
+local function group_ShowEditPopup(self, item)
+  StaticPopup_Show("GATHERPANEL_GROUP_EDIT_NAME", item.name, nil, item);
+end
+
+
+
+function GatherPanel_ItemDetailDeleteButton_OnClick(frame)
+  local itemID = frame:GetParent().item.id;
+
+  for i, item in pairs(getItemlist()) do
+    if (item.id == itemID) then
+      getItemlist()[i] = nil;
+      PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
+      frame:GetParent().item = nil;
+      GatherPanel_InitializeSortedItemList();
+      GatherPanel_UpdateItems();
+      GatherPanel_UpdatePanel();
+      HideParentPanel(frame);
+      return;
+    end
+  end
+end
+
+function GatherPanel_Context_ItemDelete(self, itemKey)
+  local items = getItemlist();
+  items[itemKey] = nil;
+  item = nil;
+  PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
+  GatherPanel_InitializeSortedItemList();
+  GatherPanel_UpdateItems();
+  GatherPanel_UpdatePanel();
+end
+
+
+local function initDropdownOptions_TrackerBarContext(self)
+  local info = UIDropDownMenu_CreateInfo();
+  info.text = "Untrack";
+  info.func = trackItem;
+  info.notCheckable = true;
+  info.arg1 = self:GetParent().item;
+  UIDropDownMenu_AddButton(info);
+end
+
+
+local function initDropdownOptions_GroupEdit(self)
+  local info = UIDropDownMenu_CreateInfo();
+  info.text = "Change Name";
+  info.func = group_ShowEditPopup;
+  info.arg1 = self:GetParent().item;
+  info.notCheckable = true;
+  UIDropDownMenu_AddButton(info);
+  info = UIDropDownMenu_CreateInfo();
+  info.text = "Remove";
+  info.func = GatherPanel_Context_ItemDelete;
+  info.notCheckable = true;
+  info.arg1 = self:GetParent().itemKey;
+  UIDropDownMenu_AddButton(info);
+end
+
+
+local function InitParentSelectionOptions(self)
+  local defaultGroupInfo = UIDropDownMenu_CreateInfo();
+  defaultGroupInfo.text = defaultGroup.name;
+  defaultGroupInfo.isNotRadio = false;
+  defaultGroupInfo.func = SelectParentGroup;
+  defaultGroupInfo.arg1 = 0;
+  UIDropDownMenu_AddButton(defaultGroupInfo);
+  local items = GatherPanel_GetItemList();
+  for itemId, item in pairs(items) do
+    local info = UIDropDownMenu_CreateInfo();
+    if item.type == "GROUP" then
+      info.text = item.name;
+      info.isNotRadio = false;
+      info.func = SelectParentGroup;
+      info.arg1 = itemId;
+      UIDropDownMenu_AddButton(info);
+    end
+  end
+end
+
+
+local function InitListOptions(self)
+  local info = UIDropDownMenu_CreateInfo();
+  info.keepShownOnClick = 1;
+
+  info.text = "Combined";
+  info.isNotRadio = false;
+  info.func = SelectItemlist;
+  local itemListId = GetItemlistId("X-Internal", "Combined");
+  info.arg1 = itemListId;
+  if GATHERPANEL_ITEM_LIST_SELECTION == itemListId then
+    info.checked = 1
+  else
+    info.checked = nil;
+  end
+  UIDropDownMenu_AddButton(info);
+
+  for realm, characterTable in pairs(GATHERPANEL_ITEMLISTS) do
+    if realm == GetRealmName() then
+
+      local characterKeys = {};
+      for characterName, character in pairs(characterTable) do
+        table.insert(characterKeys, characterName);
+      end
+      table.sort(characterKeys);
+
+      for i, characterName in ipairs(characterKeys) do
+        local itemListId = GetItemlistId(realm, characterName)
+        info.text = characterName;
+        info.isNotRadio = false;
+        info.func = SelectItemlist;
+        info.arg1 = itemListId;
+        if GATHERPANEL_ITEM_LIST_SELECTION == itemListId then
+          info.checked = 1
+        else
+          info.checked = nil;
+        end
+        UIDropDownMenu_AddButton(info);
+      end
+    end
+  end
+end
+
 function GatherPanel_OnShow()
   PlaySound(SOUNDKIT.UI_PROFESSIONS_WINDOW_OPEN);
   GatherPanel_UpdateItems();
-  GatherPanel_Update();
+  GatherPanel_UpdatePanel();
 end
 
 function GatherPanel_OnHide()
@@ -244,7 +421,7 @@ function GatherPanel_ToggleTracker()
   -- Hide Tracker
   GatherPanel_Tracker_Update();
   -- Check UI Toggle
-  GatherPanel_Update();
+  GatherPanel_UpdatePanel();
 end
 
 function GatherPanel_TrackAll()
@@ -301,8 +478,7 @@ end
 function GatherPanel_InitItems()
   for itemId, item in pairs(getItemlist()) do
     if item.type == "ITEM" then
-      item.itemName, _, _, _, _, _, _, _, _, item.itemTexture, _ = GetItemInfo(item.id);
-      item.tracked = false;
+      item.itemName, _, item.itemQuality, _, _, _, _, _, _, item.itemTexture, _ = GetItemInfo(item.id);
       item.hovered = false;
     end
   end
@@ -323,16 +499,17 @@ end
 
 function GatherPanel_UpdateItems()
   local items = getItemlist();
+  local locale = GetLocale();
   for i, item in pairs(items) do
     if item.type == "ITEM" then
       local itemCount = 0;
       if item.updated == nil then
         item.updated = 0;
       end
-      if item.itemName == nil or item.itlemTexture == nil or item.updated < time() + 300 then
+      if item.itemName == nil or item.itemTexture == nil or item.itemQuality == nil or item.locale ~= locale then
         -- retry, sometimes heavy load
-        item.itemName, _, _, _, _, _, _, _, _, item.itemTexture, _ = GetItemInfo(item.id);
-        item.updated = time()
+        item.itemName, _, item.itemQuality, _, _, _, _, _, _, item.itemTexture, _ = GetItemInfo(item.id);
+        item.locale = locale;
       end
       local characterItemCount = 0;
       if IsAddOnLoaded("DataStore_Containers") then
@@ -390,13 +567,17 @@ function GatherPanel_UpdateItems()
   end
 end
 
-local function renderItemGroup(itemRow, group, level)
+local function renderItemGroup(itemRow, group, level, initDropdowns)
 
   itemRow.ItemName:SetText(group.name);
   itemRow.ItemName:SetPoint("LEFT", itemRow.ExpandOrCollapseButton, "RIGHT", 10, 0);
   itemRow.ItemName:SetPoint("RIGHT", itemRow, "RIGHT", -3, 0);
   itemRow.ItemName:SetFontObject(GameFontNormalLeft);
+  local defaultColor = {};
+  defaultColor.r, defaultColor.g, defaultColor.b = GameFontNormalLeft:GetTextColor();
+  itemRow.ItemName:SetTextColor(defaultColor.r, defaultColor.g, defaultColor.b);
 
+  itemRow.TrackerCheck:Hide();
   itemRow.ExpandOrCollapseButton:Show();
   if group.isCollapsed then
     itemRow.ExpandOrCollapseButton:SetNormalTexture("Interface\\Buttons\\UI-PlusButton-Up");
@@ -405,11 +586,20 @@ local function renderItemGroup(itemRow, group, level)
   end
 
   itemRow.ItemBar:Hide();
-  itemRow.itemKey = nil;
 
   itemRow.Background:Hide();
 
-  itemRow:SetPoint("LEFT", "GatherPanelInset", "LEFT", 34 * level, 0);
+  itemRow:SetPoint("LEFT", "GatherPanelInset", "LEFT", 46 * level, 0);
+
+  if initDropdowns and itemRow.item ~= nil then
+    UIDropDownMenu_Initialize(itemRow.Context, initDropdownOptions_GroupEdit, "MENU");
+  end
+
+  if (itemRow.hovered) then
+    itemRow.ItemName:SetFontObject(GameFontHighlightLeft);
+  else
+    itemRow.ItemName:SetFontObject(GameFontNormalLeft);
+  end
 
   itemRow:Show();
 
@@ -419,9 +609,21 @@ local function renderItemBar(itemRow, item, level)
 
   itemRow.ItemName:SetText(item.itemName);
   itemRow.ItemName:SetPoint("LEFT", itemRow, "LEFT", 10, 0);
-  itemRow.ItemName:SetPoint("RIGHT", itemRow.ItemBar, "LEFT", -3, 0);
+  itemRow.ItemName:SetPoint("RIGHT", itemRow, "RIGHT", -3, 0);
   itemRow.ItemName:SetFontObject(GameFontHighlightSmall);
+  
+  if item.itemQuality ~= nil then
+    itemRow.ItemName:SetTextColor(
+      ITEM_QUALITY_COLORS[item.itemQuality].r, 
+      ITEM_QUALITY_COLORS[item.itemQuality].g, 
+      ITEM_QUALITY_COLORS[item.itemQuality].b
+    );
+  else
+    itemRow.ItemName:SetTextColor(1, 1, 1);
+  end
 
+  itemRow.TrackerCheck:Show();
+  itemRow.TrackerCheck:SetChecked(item.tracked);
   itemRow.ExpandOrCollapseButton:Hide();
 
   itemRow.ItemBar:Show();
@@ -459,12 +661,12 @@ local function renderItemBar(itemRow, item, level)
 
   itemRow.Background:Show();
 
-  itemRow:SetPoint("LEFT", "GatherPanelInset", "LEFT", 34 * level, 0);
+  itemRow:SetPoint("LEFT", "GatherPanelInset", "LEFT", 46 * level, 0);
 
   itemRow:Show();
 end
 
-function GatherPanel_Update()
+function GatherPanel_UpdatePanel(initDropdowns)
   _G['GatherPanel_Panel1'].ShowOfflineButton:SetChecked(GATHERPANEL_ALL_CHARACTERS);
   _G['GatherPanel_Panel1'].IncludeCurrentCharacterButton:SetChecked(GATHERPANEL_INCLUDE_CURRENT_CHARACTER);
   _G['GatherPanel_Panel2'].ShowTrackerButton:SetChecked(GATHERPANEL_TRACKER_VISIBLE);
@@ -487,11 +689,11 @@ function GatherPanel_Update()
       if (processedRows > itemOffset and renderedRows < NUM_ITEMS_DISPLAYED) then
         local itemRow = _G["GatherBar" .. renderedRows+1];
         local itemBar = _G["GatherBar" .. renderedRows+1 .. "ItemBar"];
-        renderItemGroup(itemRow, defaultGroup, level);
-        renderedRows = renderedRows + 1;
-        itemRow:Show();
         itemRow.item = nil;
         itemRow.itemKey = nil;
+        renderItemGroup(itemRow, defaultGroup, level, initDropdowns);
+        renderedRows = renderedRows + 1;
+        itemRow:Show();
       end
       if defaultGroup.isCollapsed then
         collapsedLevel = 0;
@@ -507,7 +709,7 @@ function GatherPanel_Update()
             local itemBar = _G["GatherBar" .. renderedRows+1 .. "ItemBar"];
             itemRow.item = element;
             itemRow.itemKey = elementKey;
-            renderItemGroup(itemRow, element, level);
+            renderItemGroup(itemRow, element, level, initDropdowns);
             renderedRows = renderedRows + 1;
             itemRow:Show();
           end
@@ -544,6 +746,12 @@ function GatherPanel_Update()
   end
 
 end
+
+
+function GatherPanel_UpdatePanelItems()
+  GatherPanel_UpdatePanel(true);
+end
+
 
 function GatherPanel_Tracker_Update()
   if GATHERPANEL_TRACKER_VISIBLE then
@@ -618,114 +826,6 @@ function GatherPanel_Tracker_PlayFlareAnim(progressBar, delta, sparkHorizontalOf
 
   if (barFlare) then
     barFlare.FlareAnim:Play();
-  end
-end
-
-local function AddCharacter()
-  local realm = GetRealmName();
-  local player = UnitName("player");
-  if GATHERPANEL_ITEMLISTS[realm][player] == nil then
-    GATHERPANEL_ITEMLISTS[realm][player] = {};
-  end
-end
-
-local function SelectParentGroup(self, parentId)
-  local item = _G["ItemDetailFrame"].item;
-  item.parent = parentId;
-  GatherPanel_InitializeSortedItemList();
-  GatherPanel_ItemDetailUpdateButton_Update();
-  GatherPanel_UpdateItems();
-  GatherPanel_Update();
-end
-
-local function SelectItemlist(self, itemListId)
-  GATHERPANEL_ITEM_LIST_SELECTION = itemListId;
-
-  -- Check if id exists. gets reset if not.
-  setItemList();
-
-  if GATHERPANEL_ITEM_LIST_SELECTION == GetItemlistId("X-Internal", "Combined") then
-    -- disable all item list manipulations
-    GatherPanel_NewItem_CreateButton:Disable();
-    ItemDetailMin:Disable();
-    ItemDetailMax:Disable();
-    ItemDetailDeleteButton:Disable()
-  else
-    GatherPanel_NewItem_CreateButton:Enable();
-    ItemDetailMin:Enable();
-    ItemDetailMax:Enable();
-    ItemDetailDeleteButton:Enable();
-  end
-  realm, characterName = decodeItemListId(GATHERPANEL_ITEM_LIST_SELECTION);
-  UIDropDownMenu_SetText(GatherPanel_ItemlistSelection, characterName);
-  CloseDropDownMenus();
-  GatherPanel_InitializeSortedItemList();
-  GatherPanel_ReloadTracker();
-  GatherPanel_UpdateItems();
-  GatherPanel_Update();
-end
-
-
-local function InitParentSelectionOptions(self)
-  local defaultGroupInfo = UIDropDownMenu_CreateInfo();
-  defaultGroupInfo.text = defaultGroup.name;
-  defaultGroupInfo.isNotRadio = false;
-  defaultGroupInfo.func = SelectParentGroup;
-  defaultGroupInfo.arg1 = 0;
-  UIDropDownMenu_AddButton(defaultGroupInfo);
-  local items = GatherPanel_GetItemList();
-  for itemId, item in pairs(items) do
-    local info = UIDropDownMenu_CreateInfo();
-    if item.type == "GROUP" then
-      info.text = item.name;
-      info.isNotRadio = false;
-      info.func = SelectParentGroup;
-      info.arg1 = itemId;
-      UIDropDownMenu_AddButton(info);
-    end
-  end
-end
-
-
-local function InitListOptions(self)
-  local info = UIDropDownMenu_CreateInfo();
-  info.keepShownOnClick = 1;
-
-  info.text = "Combined";
-  info.isNotRadio = false;
-  info.func = SelectItemlist;
-  local itemListId = GetItemlistId("X-Internal", "Combined");
-  info.arg1 = itemListId;
-  if GATHERPANEL_ITEM_LIST_SELECTION == itemListId then
-    info.checked = 1
-  else
-    info.checked = nil;
-  end
-  UIDropDownMenu_AddButton(info);
-
-  for realm, characterTable in pairs(GATHERPANEL_ITEMLISTS) do
-    if realm == GetRealmName() then
-
-      local characterKeys = {};
-      for characterName, character in pairs(characterTable) do
-        table.insert(characterKeys, characterName);
-      end
-      table.sort(characterKeys);
-
-      for i, characterName in ipairs(characterKeys) do
-        local itemListId = GetItemlistId(realm, characterName)
-        info.text = characterName;
-        info.isNotRadio = false;
-        info.func = SelectItemlist;
-        info.arg1 = itemListId;
-        if GATHERPANEL_ITEM_LIST_SELECTION == itemListId then
-          info.checked = 1
-        else
-          info.checked = nil;
-        end
-        UIDropDownMenu_AddButton(info);
-      end
-    end
   end
 end
 
@@ -813,6 +913,7 @@ end
 
 function GatherPanel_OnEvent(event)
   if event == 'ADDON_LOADED' and not GATHERPANEL_LOADED then
+    GATHERPANEL_LOADED = true;
 
     doMigrations();
     -- save current data version
@@ -825,20 +926,20 @@ function GatherPanel_OnEvent(event)
     GATHERPANEL_VERSION.minor = tonumber(minor);
     GATHERPANEL_VERSION.patch = tonumber(patch);
 
-    SelectItemlist(GATHERPANEL_ITEM_LIST_SELECTION);
+    SelectItemlist(nil, GATHERPANEL_ITEM_LIST_SELECTION);
     UIDropDownMenu_Initialize(GatherPanel_ItemlistSelection, InitListOptions);
     UIDropDownMenu_Initialize(GatherPanel_ItemDetails_ParentSelection, InitParentSelectionOptions);
     GatherPanel_InitItems();
 
-    GATHERPANEL_LOADED = true;
     -- Run Tracker Update once addon loaded saved variable
     GatherPanel_Tracker_Update();
+    GatherPanel_UpdatePanel(true);
   end
 
   if GATHERPANEL_LOADED == true then
     -- Run Item and Bar Updates every event (as most commonly the character received a new item)
     GatherPanel_UpdateItems();
-    GatherPanel_Update();
+    GatherPanel_UpdatePanel();
   end
 end
 
@@ -850,16 +951,26 @@ function GatherPanel_Bar_OnEnter(frame)
     GameTooltip:SetItemByID(frame.item.id);
     GameTooltip:Show();
   end
-  GatherPanel_Update();
+  GatherPanel_UpdatePanel();
 end
 
 function GatherPanel_Bar_OnLeave(frame)
   frame.hovered = false;
   GameTooltip_Hide();
-  GatherPanel_Update();
+  GatherPanel_UpdatePanel();
 end
 
-function GatherPanel_Bar_OnClick(frame)
+local function item_ExpandOrCollapse(item)
+  if item == nil then
+    -- Default category does not carry a real data set and thus get not assigned.
+    GATHERPANEL_DEFAULT_GROUP_COLLAPSED = not GATHERPANEL_DEFAULT_GROUP_COLLAPSED;
+  else
+    item.isCollapsed = not item.isCollapsed
+  end
+  GatherPanel_UpdatePanel();
+end
+
+function GatherPanel_Bar_OnClick(frame, button)
   if frame.item and frame.item.type == "ITEM" then
     local item = frame.item;
     _G['ItemDetailFrame'].item = item;
@@ -867,19 +978,17 @@ function GatherPanel_Bar_OnClick(frame)
     _G['ItemDetailFrame']:Show();
   elseif frame.item and frame.item.type == "GROUP" then
     if frame.itemKey ~= 0 then
-      StaticPopup_Show("GATHERPANEL_GROUP_EDIT_NAME", frame.item.name, nil, frame.item);
+      if button == "RightButton" then
+        ToggleDropDownMenu(1, nil, frame.Context);
+      elseif button == "LeftButton" then
+        item_ExpandOrCollapse(frame.item);
+      end
     end
   end
 end
 
 function GatherPanel_Bar_ExpandOrCollapse_OnClick(self)
-  if self:GetParent().item == nil then
-    -- Default category does not carry a real data set and thus get not assigned.
-    GATHERPANEL_DEFAULT_GROUP_COLLAPSED = not GATHERPANEL_DEFAULT_GROUP_COLLAPSED;
-  else
-    self:GetParent().item.isCollapsed = not self:GetParent().item.isCollapsed
-  end
-  GatherPanel_Update();
+  item_ExpandOrCollapse(self:GetParent().item);
 end
 
 function GatherPanel_UpdateItemDetails()
@@ -945,15 +1054,16 @@ function GatherPanel_TrackItem(item)
     end
     _G["GatherPanel_Tracker" .. NUM_TRACKERS_ENABLED]:Hide();
     NUM_TRACKERS_ENABLED = NUM_TRACKERS_ENABLED - 1;
-  else
+  elseif item ~= nil then
     GatherPanel_CreateTrackerForItem(item)
   end
   GatherPanel_UpdateItems();
-  GatherPanel_Update();
+  GatherPanel_UpdatePanel();
 end
 
 function GatherPanel_CreateTrackerForItem(item)
   -- Enable Tracker
+  local tracker;
   if (NUM_TRACKERS_ENABLED == NUM_TRACKERS_CREATED) then
     local tracker = CreateFrame("Frame", "GatherPanel_Tracker" .. NUM_TRACKERS_CREATED + 1, _G["GatherPanel_Tracker"],
         "GatherPanel_Tracker_Template");
@@ -963,28 +1073,30 @@ function GatherPanel_CreateTrackerForItem(item)
   end
   NUM_TRACKERS_ENABLED = NUM_TRACKERS_ENABLED + 1;
   item.tracker = NUM_TRACKERS_ENABLED;
-  _G["GatherPanel_Tracker" .. item.tracker].icon = item.itemTexture;
-  _G["GatherPanel_Tracker" .. item.tracker].item = item;
-  _G["GatherPanel_Tracker" .. item.tracker].Bar.Icon:SetTexture(item.itemTexture);
+  tracker = _G["GatherPanel_Tracker" .. item.tracker];
+  tracker.icon = item.itemTexture;
+  tracker.item = item;
+  tracker.Bar.Icon:SetTexture(item.itemTexture);
   if (item.goal <= item.itemCount) then
-    _G["GatherPanel_Tracker" .. item.tracker].Bar.CheckMarkTexture:Show();
+    tracker.Bar.CheckMarkTexture:Show();
   else
-    _G["GatherPanel_Tracker" .. item.tracker].Bar.CheckMarkTexture:Hide();
+    tracker.Bar.CheckMarkTexture:Hide();
   end
-  _G["GatherPanel_Tracker" .. item.tracker]:Show();
+  tracker:Show();
   item.tracked = true;
+  UIDropDownMenu_Initialize(tracker.Context, initDropdownOptions_TrackerBarContext, "MENU");
 end
 
 function GatherPanel_SetAllCharacters(checked)
   GATHERPANEL_ALL_CHARACTERS = checked;
   GatherPanel_UpdateItems();
-  GatherPanel_Update();
+  GatherPanel_UpdatePanel();
 end
 
 function GatherPanel_SetIncludeCurrentCharacter(checked)
   GATHERPANEL_INCLUDE_CURRENT_CHARACTER = checked;
   GatherPanel_UpdateItems();
-  GatherPanel_Update();
+  GatherPanel_UpdatePanel();
 end
 
 function GatherPanel_SetPanel(id)
@@ -1004,7 +1116,7 @@ function GatherPanel_ItemDetailUpdateButton_OnClick(frame)
   item.max = tonumber(_G['ItemDetailMax']:GetText());
   GatherPanel_ItemDetailUpdateButton_Update();
   GatherPanel_UpdateItems();
-  GatherPanel_Update();
+  GatherPanel_UpdatePanel();
 end
 
 function GatherPanel_ItemDetailMin_OnEnter(frame)
@@ -1049,14 +1161,14 @@ function GatherPanel_ItemDetailUpdateButton_Update()
   end
 end
 
-function GatherPanel_NewItem_CreateButton_OnClick()
+function GatherPanel_NewItem_CreateButton_OnClick(frame)
   local items = getItemlist();
-  local itemID = tonumber(_G['GatherPanel_NewItem_Id']:GetText());
-  local min = tonumber(_G['GatherPanel_NewItem_Min']:GetText());
+  local itemID = tonumber(frame:GetParent().ItemIdInput:GetText());
+  local min = tonumber(frame:GetParent().MinQuantityInput:GetText());
   if (min == nil or min < 0) then
     min = 0;
   end
-  local max = tonumber(_G['GatherPanel_NewItem_Max']:GetText());
+  local max = tonumber(frame:GetParent().MaxQuantityInput:GetText());
   if (max == nil or max < min) then
     max = min;
   end
@@ -1069,13 +1181,16 @@ function GatherPanel_NewItem_CreateButton_OnClick()
   GatherPanel_InitializeSortedItemList();
   GatherPanel_ReloadTracker();
   GatherPanel_UpdateItems();
-  GatherPanel_Update();
+  GatherPanel_UpdatePanel();
   GatherPanel_TrackItem(items[itemID]);
-  _G['GatherPanel_NewItem_CreateButton']:Disable();
-  _G['GatherPanel_NewItem_Id']:SetText('');
-  _G['GatherPanel_NewItem_Min']:SetText('');
-  _G['GatherPanel_NewItem_Max']:SetText('');
-  _G['GatherPanel_Label_ItemName']:SetText('Drag item into Item ID field.');
+  frame:GetParent().CreateButton:Disable();
+  frame:GetParent().ItemIdInput:SetText('');
+  frame:GetParent().MinQuantityInput:SetText('');
+  frame:GetParent().MaxQuantityInput:SetText('');
+  
+  frame:GetParent().ItemButton.Icon:SetTexture("Interface\\PaperDoll\\UI-Backpack-EmptySlot");
+  frame:GetParent().ItemButton.Name:SetText('');
+  frame:GetParent().LabelInstructions:SetText('Drag item into Item ID field.');
 end
 
 function GatherPanel_EditGroup(group, newName)
@@ -1084,7 +1199,7 @@ function GatherPanel_EditGroup(group, newName)
     group = nil;
   end
   GatherPanel_InitializeSortedItemList();
-  GatherPanel_Update();
+  GatherPanel_UpdatePanel();
 end
 
 function GatherPanel_CreateGroup(groupName) 
@@ -1103,80 +1218,142 @@ function GatherPanel_CreateGroup(groupName)
     isCollapsed = false
   }
   GatherPanel_InitializeSortedItemList();
-  GatherPanel_Update();
+  GatherPanel_UpdatePanel();
 end
 
 function GatherPanel_Group_CreateButton_OnClick()
   StaticPopup_Show("GATHERPANEL_CREATE_GROUP")
 end
 
-function GatherPanel_NewItem_Id_OnReceive(frame)
-  local infoType, itemID, itemLink = GetCursorInfo();
+function GatherPanel_NewItem_ItemButton_OnReceive(frame)
+  local infoType, itemId, itemLink = GetCursorInfo();
+  frame:GetParent().LabelInstructions:SetText("Drag item into Item ID field.");
+  frame:GetParent().LabelInstructions:SetTextColor(1, 1, 1);
+  -- frame:GetParent().ItemIdInput:SetText("");
+  frame:GetParent().MinQuantityInput:SetText("");
+  frame:GetParent().MaxQuantityInput:SetText("");
   if (infoType == 'item') then
-    frame:SetText(tonumber(itemID));
-    itemName = GetItemInfo(itemID);
-    _G['GatherPanel_Label_ItemName']:SetText(itemName);
+    frame:SetText(tonumber(itemId));
+    local itemName, _, itemQuality, _, _, _, _, _, _, itemTexture, _, _, _, _, _, _, _ = GetItemInfo(itemId);
+    frame.Name:SetText(itemName);
+    frame.Name:SetTextColor(ITEM_QUALITY_COLORS[itemQuality].r, ITEM_QUALITY_COLORS[itemQuality].g, ITEM_QUALITY_COLORS[itemQuality].b);
+    frame.Icon:SetTexture(itemTexture);
+    frame:GetParent().ItemIdInput:SetText(itemId);
     ClearCursor();
-    frame:ClearFocus();
-    _G['GatherPanel_NewItem_Min']:SetFocus();
-    GatherPanel_NewItem_Id_CheckItem(frame);
+    frame:GetParent().MinQuantityInput:SetFocus();
+    if GatherPanel_NewItem_IsAlreadyAdded(itemId) then
+      frame:GetParent().LabelInstructions:SetTextColor(1, 0, 0);
+      frame:GetParent().LabelInstructions:SetText("This item is already on the list.");
+      frame:GetParent().CreateButton:Disable();
+      frame:GetParent().MinQuantityInput:Disable();
+      frame:GetParent().MinQuantityInput.Label:SetTextColor(0.6, 0.6, 0.6);
+      frame:GetParent().MaxQuantityInput:Disable();
+      frame:GetParent().MaxQuantityInput.Label:SetTextColor(0.6, 0.6, 0.6);
+    else
+      frame:GetParent().LabelInstructions:SetTextColor(1, 1, 1);
+      frame:GetParent().LabelInstructions:SetText("Please define your stock goals.");
+      frame:GetParent().CreateButton:Enable();
+      frame:GetParent().MinQuantityInput:Enable();
+      frame:GetParent().MinQuantityInput.Label:SetTextColor(1, 0.82, 0);
+      frame:GetParent().MaxQuantityInput:Enable();
+      frame:GetParent().MaxQuantityInput.Label:SetTextColor(1, 0.82, 0);
+    end
   end
+end
+
+function GatherPanel_NewItem_Id_OnReceive(frame)
+  GatherPanel_NewItem_ItemButton_OnReceive(frame:GetParent().ItemButton);
+end
+
+function GatherPanel_NewItem_IsAlreadyAdded(newItemId)
+  for itemId, item in pairs(getItemlist()) do
+    if (itemId == newItemId) then
+      return true;
+    end
+  end
+  return false;
 end
 
 function GatherPanel_NewItem_Id_CheckItem(frame)
-  local itemID = tonumber(frame:GetText(itemID));
-  if (itemID) then
-    frame:SetText(itemID);
-    itemName = GetItemInfo(itemID);
-    if (itemName) then
-      _G['GatherPanel_Label_ItemName']:SetText(itemName);
+  frame:GetParent().LabelInstructions:SetText("Drag item into Item ID field.");
+  frame:GetParent().LabelInstructions:SetTextColor(1, 1, 1);
+  frame:GetParent().MinQuantityInput:SetText("");
+  frame:GetParent().MaxQuantityInput:SetText("");
+  local itemId = tonumber(frame:GetText());
+  if (itemId) then
+    frame:GetParent().ItemButton.Name:SetTextColor(1, 1, 1);
+    local itemName, _, itemQuality, _, _, _, _, _, _, itemTexture, _, _, _, _, _, _, _ = GetItemInfo(itemId);
+    if itemName then
+      frame:GetParent().ItemButton.Name:SetText(itemName);
+      frame:GetParent().ItemButton.Name:SetTextColor(
+        ITEM_QUALITY_COLORS[itemQuality].r, 
+        ITEM_QUALITY_COLORS[itemQuality].g, 
+        ITEM_QUALITY_COLORS[itemQuality].b
+      );
+      frame:GetParent().ItemButton.Icon:SetTexture(itemTexture);
+      frame:GetParent().ItemIdInput:SetText(itemId);
+      frame:GetParent().ItemButton.Name:SetText(itemName);
 
-      for itemId, item in pairs(getItemlist()) do
-        if (item.id == itemID) then
-          _G['GatherPanel_Label_Status']:SetText('Item already added to the list!');
-          _G['GatherPanel_NewItem_CreateButton']:Disable();
-          return;
-        end
+      if GatherPanel_NewItem_IsAlreadyAdded(itemId) then
+        frame:GetParent().LabelInstructions:SetTextColor(1, 0, 0);
+        frame:GetParent().LabelInstructions:SetText("This item is already on the list.");
+        frame:GetParent().CreateButton:Disable();
+        frame:GetParent().MinQuantityInput:Disable();
+        frame:GetParent().MinQuantityInput.Label:SetTextColor(0.6, 0.6, 0.6);
+        frame:GetParent().MaxQuantityInput:Disable();
+        frame:GetParent().MaxQuantityInput.Label:SetTextColor(0.6, 0.6, 0.6);
+      else
+        frame:GetParent().LabelInstructions:SetTextColor(1, 1, 1);
+        frame:GetParent().LabelInstructions:SetText("Please define your stock goals.");
+        frame:GetParent().CreateButton:Enable();
+        frame:GetParent().MinQuantityInput:Enable();
+        frame:GetParent().MinQuantityInput.Label:SetTextColor(1, 0.82, 0);
+        frame:GetParent().MaxQuantityInput:Enable();
+        frame:GetParent().MaxQuantityInput.Label:SetTextColor(1, 0.82, 0);
+        ClearCursor();
+        frame:ClearFocus();
+        frame:GetParent().MinQuantityInput:SetFocus();
       end
-      _G['GatherPanel_Label_Status']:SetText('');
-      ClearCursor();
-      frame:ClearFocus();
-      _G['GatherPanel_NewItem_Min']:SetFocus();
-      frame:SetTextColor(1, 1, 1);
-      _G['GatherPanel_NewItem_CreateButton']:Enable();
-
       return
     end
   end
-  _G['GatherPanel_Label_ItemName']:SetText('Invalid Item ID');
-  frame:SetTextColor(1, 0, 0);
+  frame:GetParent().ItemButton.Name:SetTextColor(1, 0, 0);
+  frame:GetParent().ItemButton.Name:SetText("Invalid Item ID");
+  frame:GetParent().ItemButton.Icon:SetTexture("Interface\\ICONS\\inv_misc_questionmark");
 end
 
-function GatherPanel_ItemDetailDeleteButton_OnClick(frame)
-  local itemID = frame:GetParent().item.id;
-
-  for i, item in pairs(getItemlist()) do
-    if (item.id == itemID) then
-      getItemlist()[i] = nil;
-      PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
-      frame:GetParent().item = nil;
-      GatherPanel_UpdateItems();
-      GatherPanel_Update();
-      HideParentPanel(frame);
-      return;
-    end
-  end
-end
-
-function GatherPanel_TrackerX_OnMouseDown(self, button)
+function GatherPanel_TrackerX_OnMouseUp(self, button)
   if button == "RightButton" then
-    GatherPanel_TrackItem(self.item);
+    ToggleDropDownMenu(1, nil, self.Context);
   end
 end
 
 function GatherPanel_TrackerX_OnEnter(self)
   self.Bar.Label:SetText(self.item.itemCount .. '/' .. self.item.goal);
-  GameTooltip:SetOwner(self, "ANCHOR_LEFTTOP");
+  local x, y = GetCursorPosition();
+  x = x / UIParent:GetEffectiveScale();
+  y = y / UIParent:GetEffectiveScale();
+  local width = UIParent:GetWidth();
+  local height = UIParent:GetHeight();
+  local relX = x/width;
+  local relY = y/height;
+
+  local anchor;
+  if (relX < 0.5) then
+    if (relY < 0.5) then
+      anchor = "ANCHOR_TOPLEFT";
+    else
+      anchor = "ANCHOR_BOTTOMRIGHT";
+    end
+  else
+    if (relY < 0.5) then
+      anchor = "ANCHOR_TOPRIGHT";
+    else
+      anchor = "ANCHOR_BOTTOMLEFT";
+    end
+  end
+
+  GameTooltip:SetOwner(self, anchor);
   GameTooltip:SetItemByID(self.item.id);
   GameTooltip:Show();
 end
