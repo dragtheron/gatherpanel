@@ -993,16 +993,18 @@ end
 
 function GatherPanel_UpdateItemDetails()
   local frame = _G['ItemDetailFrame'];
-  _G['ItemDetailTrackerCheckBox']:SetChecked(frame.item.tracked);
-  _G['ItemName']:SetText(frame.item.itemName);
-  _G['ItemDetailMin']:SetText(frame.item.min);
-  _G['ItemDetailMax']:SetText(frame.item.max);
-  local items = getItemlist();
-  local parent = items[frame.item.parent];
-  if parent == nil then
-    UIDropDownMenu_SetText(GatherPanel_ItemDetails_ParentSelection, defaultGroup.name);
-  else
-    UIDropDownMenu_SetText(GatherPanel_ItemDetails_ParentSelection, parent.name);
+  if frame:IsShown() and frame.item ~= nil then
+    _G['ItemDetailTrackerCheckBox']:SetChecked(frame.item.tracked);
+    _G['ItemName']:SetText(frame.item.itemName);
+    _G['ItemDetailMin']:SetText(frame.item.min);
+    _G['ItemDetailMax']:SetText(frame.item.max);
+    local items = getItemlist();
+    local parent = items[frame.item.parent];
+    if parent == nil then
+      UIDropDownMenu_SetText(GatherPanel_ItemDetails_ParentSelection, defaultGroup.name);
+    else
+      UIDropDownMenu_SetText(GatherPanel_ItemDetails_ParentSelection, parent.name);
+    end
   end
 end
 
