@@ -294,7 +294,7 @@ function GatherPanel_ItemDetailDeleteButton_OnClick(frame)
       frame:GetParent().item = nil;
       GatherPanel_InitializeSortedItemList();
       GatherPanel_UpdateItems();
-      GatherPanel_UpdatePanel();
+      GatherPanel_UpdatePanelItems();
       HideParentPanel(frame);
       return;
     end
@@ -308,7 +308,7 @@ function GatherPanel_Context_ItemDelete(self, itemKey)
   PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
   GatherPanel_InitializeSortedItemList();
   GatherPanel_UpdateItems();
-  GatherPanel_UpdatePanel();
+  GatherPanel_UpdatePanelItems();
 end
 
 
@@ -967,7 +967,7 @@ local function item_ExpandOrCollapse(item)
   else
     item.isCollapsed = not item.isCollapsed
   end
-  GatherPanel_UpdatePanel();
+  GatherPanel_UpdatePanelItems();
 end
 
 function GatherPanel_Bar_OnClick(frame, button)
