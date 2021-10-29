@@ -690,7 +690,7 @@ function GatherPanel_UpdatePanel(initDropdowns)
         local itemRow = _G["GatherBar" .. renderedRows+1];
         local itemBar = _G["GatherBar" .. renderedRows+1 .. "ItemBar"];
         itemRow.item = nil;
-        itemRow.itemKey = nil;
+        itemRow.itemKey = 0;
         renderItemGroup(itemRow, defaultGroup, level, initDropdowns);
         renderedRows = renderedRows + 1;
         itemRow:Show();
@@ -984,7 +984,7 @@ function GatherPanel_Bar_OnClick(frame, button)
     elseif button == "LeftButton" then
       item_ExpandOrCollapse(frame.item);
     end
-  else
+  elseif frame.itemKey == 0 then
     -- presumably the default category...
     -- should set a flag or something hovered
     if button == "LeftButton" then
