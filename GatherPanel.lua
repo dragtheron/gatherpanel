@@ -479,6 +479,7 @@ function GatherPanel_InitItems()
   for itemId, item in pairs(getItemlist()) do
     if item.type == "ITEM" then
       item.itemName, _, item.itemQuality, _, _, _, _, _, _, item.itemTexture, _ = GetItemInfo(item.id);
+      item.locale = GetLocale();
       item.hovered = false;
     end
   end
@@ -497,71 +498,79 @@ function GatherPanel_InitializeSortedItemList()
   end
 end
 
-function GatherPanel_UpdateItems()
+function GatherPanel_InitItem(item)
+  local itemCount = 0;
+  if item.updated == nil then
+    item.updated = 0;
+  end
+  if item.itemName == nil or item.itemTexture == nil or item.itemQuality == nil or item.locale ~= locale then
+    -- retry, sometimes heavy load
+    item.itemName, _, item.itemQuality, _, _, _, _, _, _, item.itemTexture, _ = GetItemInfo(item.id);
+    item.locale = locale;
+  end
+  local characterItemCount = 0;
+  if IsAddOnLoaded("DataStore_Containers") then
+    -- only load count from character who is owner of the list, i.e. what is this character missing
+    realm, selectedCharacter = decodeItemListId(GATHERPANEL_ITEM_LIST_SELECTION);
+    for characterName, character in pairs(DataStore:GetCharacters()) do
+      if (characterName == selectedCharacter and characterName ~= UnitName("player")) then
+        bagCount, bankCount, voidCount, reagentBankCount = DataStore:GetContainerItemCount(character, item.id);
+        characterItemCount = bagCount + bankCount + voidCount + reagentBankCount;
+      end
+    end
+  end
+
+  if GATHERPANEL_INCLUDE_CURRENT_CHARACTER then
+    characterItemCount = characterItemCount + GetItemCount(item.id, true)
+  end
+
+  if GATHERPANEL_ALL_CHARACTERS then
+    if IsAddOnLoaded("Altoholic") then
+      local altoholic = _G["Altoholic"]
+      item.itemCount = altoholic:GetItemCount(item.id)
+    else
+      if IsAddOnLoaded("DataStore_Containers") then
+        for characterName, character in pairs(DataStore:GetCharacters()) do
+          if (characterName ~= UnitName("player")) then
+            bagCount, bankCount, voidCount, reagentBankCount = DataStore:GetContainerItemCount(character, item.id);
+            itemCount = itemCount + bagCount + bankCount + voidCount + reagentBankCount;
+          end
+        end
+      end
+      item.itemCount = itemCount + characterItemCount
+    end
+  else
+    item.itemCount = characterItemCount
+  end
+  local goal = 0;
+  if (item.min > 0) then
+    if (item.itemCount < item.min) then
+      item.goal = item.min;
+      item.goalType = 'min';
+    else
+      item.goal = item.max;
+      item.goalType = 'max';
+    end
+  else
+    item.goal = item.max
+    item.goalType = 'max';
+  end
+  item.progressPercentage = item.itemCount / item.goal;
+  item.progressPercentageMax = item.itemCount / item.max;
+  item.progressPercentageInteger = math.floor(item.progressPercentage * 100);
+end
+
+function GatherPanel_UpdateItems(animate)
+  if animate == nil then
+    animate = true;
+  end
   local items = getItemlist();
   local locale = GetLocale();
   for i, item in pairs(items) do
     if item.type == "ITEM" then
-      local itemCount = 0;
-      if item.updated == nil then
-        item.updated = 0;
-      end
-      if item.itemName == nil or item.itemTexture == nil or item.itemQuality == nil or item.locale ~= locale then
-        -- retry, sometimes heavy load
-        item.itemName, _, item.itemQuality, _, _, _, _, _, _, item.itemTexture, _ = GetItemInfo(item.id);
-        item.locale = locale;
-      end
-      local characterItemCount = 0;
-      if IsAddOnLoaded("DataStore_Containers") then
-        -- only load count from character who is owner of the list, i.e. what is this character missing
-        realm, selectedCharacter = decodeItemListId(GATHERPANEL_ITEM_LIST_SELECTION);
-        for characterName, character in pairs(DataStore:GetCharacters()) do
-          if (characterName == selectedCharacter and characterName ~= UnitName("player")) then
-            bagCount, bankCount, voidCount, reagentBankCount = DataStore:GetContainerItemCount(character, item.id);
-            characterItemCount = bagCount + bankCount + voidCount + reagentBankCount;
-          end
-        end
-      end
-
-      if GATHERPANEL_INCLUDE_CURRENT_CHARACTER then
-        characterItemCount = characterItemCount + GetItemCount(item.id, true)
-      end
-
-      if GATHERPANEL_ALL_CHARACTERS then
-        if IsAddOnLoaded("Altoholic") then
-          local altoholic = _G["Altoholic"]
-          item.itemCount = altoholic:GetItemCount(item.id)
-        else
-          if IsAddOnLoaded("DataStore_Containers") then
-            for characterName, character in pairs(DataStore:GetCharacters()) do
-              if (characterName ~= UnitName("player")) then
-                bagCount, bankCount, voidCount, reagentBankCount = DataStore:GetContainerItemCount(character, item.id);
-                itemCount = itemCount + bagCount + bankCount + voidCount + reagentBankCount;
-              end
-            end
-          end
-          item.itemCount = itemCount + characterItemCount
-        end
-      else
-        item.itemCount = characterItemCount
-      end
-      local goal = 0;
-      if (item.min > 0) then
-        if (item.itemCount < item.min) then
-          item.goal = item.min;
-          item.goalType = 'min';
-        else
-          item.goal = item.max;
-          item.goalType = 'max';
-        end
-      else
-        item.goal = item.max
-        item.goalType = 'max';
-      end
-      item.progressPercentage = item.itemCount / item.goal;
-      item.progressPercentageInteger = math.floor(item.progressPercentage * 100);
+      GatherPanel_InitItem(item);
       if (item.tracker) then
-        GatherPanel_Tracker_UpdateItem(item);
+        GatherPanel_Tracker_UpdateItem(item, animate);
       end
     end
   end
@@ -766,18 +775,18 @@ function GatherPanel_Tracker_Update()
   end
 end
 
-function GatherPanel_Tracker_UpdateItem(item)
+function GatherPanel_Tracker_UpdateItem(item, animate)
   local tracker = _G["GatherPanel_Tracker" .. item.tracker];
   if (item.goalType == 'min') then
-    tracker.Bar:SetStatusBarColor(0.9, 0.7, 0);
+    tracker.Bar:SetStatusBarAtlas("ui-frame-bar-fill-yellow");
     tracker.Bar.BarBG:SetVertexColor(0.9, 0.7, 0);
   end
   if (item.goalType == 'max') then
     if (item.goal <= item.itemCount) then
-      tracker.Bar:SetStatusBarColor(0, 0.6, 0.1);
+      tracker.Bar:SetStatusBarAtlas("ui-frame-bar-fill-green");
       tracker.Bar.BarBG:SetVertexColor(0, 0.6, 0.1);
     else
-      tracker.Bar:SetStatusBarColor(0.26, 0.42, 1);
+      tracker.Bar:SetStatusBarAtlas("ui-frame-bar-fill-blue");
       tracker.Bar.BarBG:SetVertexColor(0.26, 0.42, 1);
     end
   end
@@ -786,25 +795,36 @@ function GatherPanel_Tracker_UpdateItem(item)
   else
     tracker.Bar.CheckMarkTexture:Hide();
   end
-  if (tracker.AnimValue) then
-    local delta = item.progressPercentage * 100 - tracker.AnimValue;
+  if (item.min > item.itemCount and item.min ~= item.max) then
+    tracker.Bar.Checkpoint:Show()
+    tracker.Bar.Checkpoint:SetPoint("CENTER", tracker.Bar, "LEFT", item.min/item.max * tracker.Bar:GetWidth(), -1.5);
+  else
+    tracker.Bar.Checkpoint:Hide()
+  end
+  if (tracker.AnimValue and animate) then
+    local delta = item.progressPercentageMax * 100 - tracker.AnimValue;
+    if tracker.AnimValue < 100 and item.progressPercentageMax >= 1.0 then
+      PlaySound(SOUNDKIT.IG_QUEST_LIST_COMPLETE)
+    end
     GatherPanel_Tracker_PlayFlareAnim(tracker, delta, sparkHorizontalOffset);
   end
-  tracker.AnimValue = item.progressPercentage * 100;
-  tracker.Bar:SetValue(item.progressPercentage * 100);
-  tracker.Bar.Label:SetFormattedText(PERCENTAGE_STRING, item.progressPercentage * 100);
+  tracker.AnimValue = item.progressPercentageMax * 100;
+  tracker.Bar:SetValue(item.progressPercentageMax * 100);
+  tracker.Bar.Label:SetFormattedText(PERCENTAGE_STRING, item.progressPercentageMax * 100);
 end
 
 function GatherPanel_Tracker_PlayFlareAnim(progressBar, delta, sparkHorizontalOffset)
-  if (progressBar.AnimValue >= 100 or delta == 0) then
+  if (progressBar.AnimValue >= 100 or delta <= 0) then
     return;
   end
 
+  local deltaWidth = progressBar.Bar:GetWidth() * (progressBar.AnimValue / 100);
+
   animOffset = animOffset or 12;
-  local offset = progressBar.Bar:GetWidth() * (progressBar.AnimValue / 100) - animOffset;
+  local offset = deltaWidth - animOffset;
 
   local prefix = overridePrefix or "";
-  if (delta < 10 and not overridePrefix) then
+  if (delta < 5 and not overridePrefix) then
     prefix = "Small";
   end
 
@@ -1039,6 +1059,7 @@ function GatherPanel_ReloadTracker()
     local item = items[itemKeys[i]];
     item.tracker = nil;
     if item.tracked == true then
+      GatherPanel_InitItem(item)
       GatherPanel_CreateTrackerForItem(item)
       GatherPanel_Tracker_UpdateItem(item)
     end
@@ -1047,6 +1068,9 @@ end
 
 function GatherPanel_TrackItem(item)
   if (item.tracked) then
+    if item.itemCount < item.max then  
+      PlaySound(SOUNDKIT.IG_QUEST_LOG_ABANDON_QUEST);
+    end
     item.tracked = false;
     item.tracker = nil;
     -- Rearrange trackers
@@ -1055,22 +1079,25 @@ function GatherPanel_TrackItem(item)
       if (item.tracker) then
         newTracker = newTracker + 1;
         item.tracker = newTracker;
-        _G["GatherPanel_Tracker" .. newTracker].icon = item.itemTexture;
-        _G["GatherPanel_Tracker" .. newTracker].item = item;
-        _G["GatherPanel_Tracker" .. newTracker].Bar.Icon:SetTexture(item.itemTexture);
+        local tracker = _G["GatherPanel_Tracker" .. newTracker];
+        tracker.icon = item.itemTexture;
+        tracker.item = item;
+        tracker.AnimValue = item.progressPercentageMax * 100;
+        tracker.Bar.Icon:SetTexture(item.itemTexture);
         if (item.goal <= item.itemCount) then
-          _G["GatherPanel_Tracker" .. newTracker].Bar.CheckMarkTexture:Show();
+          tracker.Bar.CheckMarkTexture:Show();
         else
-          _G["GatherPanel_Tracker" .. newTracker].Bar.CheckMarkTexture:Hide();
+          tracker.Bar.CheckMarkTexture:Hide();
         end
       end
     end
     _G["GatherPanel_Tracker" .. NUM_TRACKERS_ENABLED]:Hide();
     NUM_TRACKERS_ENABLED = NUM_TRACKERS_ENABLED - 1;
   elseif item ~= nil then
+    PlaySound(618);
     GatherPanel_CreateTrackerForItem(item)
   end
-  GatherPanel_UpdateItems();
+  GatherPanel_UpdateItems(false);
   GatherPanel_UpdatePanel();
 end
 
@@ -1090,6 +1117,12 @@ function GatherPanel_CreateTrackerForItem(item)
   tracker.icon = item.itemTexture;
   tracker.item = item;
   tracker.Bar.Icon:SetTexture(item.itemTexture);
+  if item.min ~= item.max and item.min > item.itemCount then
+    tracker.Bar.Checkpoint:Show();
+    tracker.Bar.Checkpoint:SetPoint("CENTER", tracker.Bar, "LEFT", item.min/item.max * tracker.Bar:GetWidth(), -1.5);
+  else
+    tracker.Bar.Checkpoint:Hide();
+  end
   if (item.goal <= item.itemCount) then
     tracker.Bar.CheckMarkTexture:Show();
   else
@@ -1342,7 +1375,7 @@ function GatherPanel_TrackerX_OnMouseUp(self, button)
 end
 
 function GatherPanel_TrackerX_OnEnter(self)
-  self.Bar.Label:SetText(self.item.itemCount .. '/' .. self.item.goal);
+  self.Bar.Label:SetText(self.item.itemCount .. '/' .. self.item.max);
   local x, y = GetCursorPosition();
   x = x / UIParent:GetEffectiveScale();
   y = y / UIParent:GetEffectiveScale();
@@ -1372,6 +1405,6 @@ function GatherPanel_TrackerX_OnEnter(self)
 end
 
 function GatherPanel_TrackerX_OnLeave(self)
-  self.Bar.Label:SetFormattedText(PERCENTAGE_STRING, self.item.progressPercentage * 100);
+  self.Bar.Label:SetFormattedText(PERCENTAGE_STRING, self.item.progressPercentageMax * 100);
   GameTooltip_Hide();
 end

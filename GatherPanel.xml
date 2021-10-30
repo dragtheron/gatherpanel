@@ -15,23 +15,50 @@
                 </Anchors>
                 <Layers>
                     <Layer level="ARTWORK">
-                        <Texture parentKey="BarFrame" atlas="bonusobjectives-bar-frame" useAtlasSize="true">
-                            <Anchors>
-                                <Anchor point="LEFT" x="-8" y="-1"/>
-                            </Anchors>
-                        </Texture>
-                        <Texture parentKey="IconBG" atlas="bonusobjectives-bar-ring" useAtlasSize="true">
-                            <Anchors>
-                                <Anchor point="RIGHT" relativeKey="$parent.BarFrame" x="0" y="0"/>
-                            </Anchors>
-                        </Texture>
-                        <FontString parentKey="Label" inherits="GameFontHighlightMedium" justifyH="CENTER">
-                            <Anchors>
-                                <Anchor point="CENTER" x="-1" y="-1"/>
-                            </Anchors>
-                        </FontString>
+
+						<Texture parentKey="BarFrameLeft" atlas="ui-frame-bar-borderleft" useAtlasSize="true">
+							<Anchors>
+								<Anchor point="LEFT" x="-8" y="-1"/>
+							</Anchors>
+						</Texture>
+						
+						<Texture parentKey="BarFrameCenter" atlas="ui-frame-bar-bordercenter" useAtlasSize="false">
+                            <Size x="135" y="31"/>
+							<Anchors>
+								<Anchor point="LEFT" relativeKey="$parent.BarFrameLeft" relativePoint="RIGHT" x="0" y="0"/>
+							</Anchors>
+						</Texture>
+						<Texture parentKey="BarFrameRight" atlas="ui-frame-bar-borderright" useAtlasSize="true">
+							<Anchors>
+								<Anchor point="LEFT" relativeKey="$parent.BarFrameCenter" relativePoint="RIGHT" x="0" y="0"/>
+							</Anchors>
+						</Texture>
+
+						<Texture parentKey="BarFrame" atlas="bonusobjectives-bar-frame-5" useAtlasSize="true" hidden="true">
+							<Anchors>
+								<Anchor point="LEFT" x="-8" y="-1"/>
+							</Anchors>
+						</Texture>
+						<Texture parentKey="IconBG" atlas="bonusobjectives-bar-ring" useAtlasSize="true">
+							<Anchors>
+								<Anchor point="LEFT" relativeKey="$parent.BarFrameCenter" relativePoint="RIGHT" x="-11" y="0"/>
+							</Anchors>
+						</Texture>
+
+						<FontString parentKey="Label" inherits="GameFontHighlight" justifyH="CENTER">
+						  <Anchors>
+							<Anchor point="CENTER" relativeKey="$parentBarFrameCenter" relativePoint="CENTER" x="0" y="-1"/>
+						  </Anchors>
+						</FontString>
                     </Layer>
                     <Layer level="ARTWORK" textureSubLevel="1">
+                        
+						
+                        <Texture parentKey="Checkpoint" atlas="ui-frame-bar-bordertick" useAtlasSize="true" hidden="true">
+                            <Anchors>
+                                <Anchor point="CENTER" relativeTo="$parent" relativePoint="LEFT" x="0" y="-4"/>
+                            </Anchors>
+                        </Texture>
                         <Texture parentKey="BarFrame2" alpha="0" alphaMode="ADD" atlas="bonusobjectives-bar-frame" useAtlasSize="true">
                             <Anchors>
                                 <Anchor point="CENTER" relativeKey="$parent.BarFrame"/>
@@ -39,7 +66,7 @@
                         </Texture>
                         <Texture parentKey="CheckMarkTexture" atlas="worldquest-tracker-checkmark" useAtlasSize="true" hidden="true">
                             <Anchors>
-                                <Anchor point="RIGHT" relativeKey="$parent.BarFrame" x="0" y="0"/>
+                                <Anchor point="RIGHT" relativeKey="$parent.IconBG" x="0" y="0"/>
                             </Anchors>
                         </Texture>
                     </Layer>
@@ -103,8 +130,8 @@
                         <Alpha childKey="Sheen" startDelay="1.34" duration="0.05" order="1" fromAlpha="1" toAlpha="0"/>
                     </AnimationGroup>
                 </Animations>
-                <BarTexture file="Interface\TargetingFrame\UI-StatusBar"/>
-                <BarColor r="0.26" g="0.42" b="1"/>
+                <BarTexture atlas="ui-frame-bar-fill-blue"/>
+                <BarColor r="0.75" g="0.75" b="0.75"/>
             </StatusBar>
             <Frame parentKey="Flare1" inherits="BonusTrackerProgressBarFlareAnimTemplate"/>
             <Frame parentKey="Flare2" inherits="BonusTrackerProgressBarFlareAnimTemplate"/>
@@ -243,7 +270,7 @@
                             <Anchors>
                                 <Anchor point="LEFT" relativeTo="$parentLeftTexture" relativePoint="RIGHT" x="0" y="0"/>
                             </Anchors>
-                            <TexCoords left="0.0" right="0.1664" top="0.3475" bottom="0.671"/>
+                            <TexCoords left="0.0" right="0.1664" top="0.3425" bottom="0.671"/>
                         </Texture>
                         <FontString parentKey="Percentage" inherits="GameFontHighlightSmall" text="100 %">
                             <Anchors>
