@@ -1,3 +1,10 @@
+31 October 2021 - 2.1.0-beta2
+
+**[ADDED]** Link Items
+----------------------
+You can now link items from the Panel as well as the Tracker to post them in chat or other inputs fields.
+
+
 31 October 2021 - 2.1.0-beta1
 =============================
 
