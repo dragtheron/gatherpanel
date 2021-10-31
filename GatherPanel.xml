@@ -1,6 +1,5 @@
 <Ui>
     <Script file="GatherPanel.lua"/>
-
     <Frame name="GatherPanel_Tracker_Template" virtual="true">
         <Size x="192" y="38"/>
         <Anchors>
@@ -161,7 +160,6 @@
             <OnLeave function="GatherPanel_TrackerX_OnLeave"/>
         </Scripts>
     </Frame>
-
     <Button name="GatherBarTemplate" virtual="true">
         <Size x="0" y="20"/>
         <Anchors>
@@ -341,7 +339,6 @@
                 </Texture>
             </Layer>
         </Layers>
-
         <Frames>
             <Button name="GatherPanelTab1" inherits="CharacterFrameTabButtonTemplate" id="1" text="ITEMS">
                 <Anchors>
@@ -352,17 +349,12 @@
                     </Anchor>
                 </Anchors>
                 <Scripts>
-                    <OnEnter>
-                        GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
-                        GameTooltip:SetText(MicroButtonTooltipText('Items', "TOGGLEPANEL1"), 1.0,1.0,1.0 );
-                    </OnEnter>
-                    <OnLeave function="GameTooltip_Hide"/>
                     <OnClick>
                         GatherPanel_Tab_OnClick(self);
                     </OnClick>
                 </Scripts>
             </Button>
-            <Button name="GatherPanelTab2" inherits="CharacterFrameTabButtonTemplate" id="2" text="SETTINGS">
+            <Button name="GatherPanelTab2" inherits="CharacterFrameTabButtonTemplate" id="2" text="ADD ITEM">
                 <Anchors>
                     <Anchor point="LEFT" relativeTo="GatherPanelTab1" relativePoint="RIGHT">
                         <Offset>
@@ -371,11 +363,20 @@
                     </Anchor>
                 </Anchors>
                 <Scripts>
-                    <OnEnter>
-                        GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
-                        GameTooltip:SetText(MicroButtonTooltipText('Settings', "TOGGLEPANEL2"), 1.0,1.0,1.0 );
-                    </OnEnter>
-                    <OnLeave function="GameTooltip_Hide"/>
+                    <OnClick>
+                        GatherPanel_Tab_OnClick(self);
+                    </OnClick>
+                </Scripts>
+            </Button>
+            <Button name="GatherPanelTab3" inherits="CharacterFrameTabButtonTemplate" id="3" text="SETTINGS">
+                <Anchors>
+                    <Anchor point="LEFT" relativeTo="GatherPanelTab2" relativePoint="RIGHT">
+                        <Offset>
+                            <AbsDimension x="-15" y="0"/>
+                        </Offset>
+                    </Anchor>
+                </Anchors>
+                <Scripts>
                     <OnClick>
                         GatherPanel_Tab_OnClick(self);
                     </OnClick>
@@ -389,35 +390,6 @@
                             <Anchor point="TOPLEFT" x="50" y="-26"/>
                         </Anchors>
                     </Frame>
-
-                    <CheckButton parentKey="ShowOfflineButton" inherits="UICheckButtonTemplate">
-                        <Anchors>
-                            <Anchor point="BOTTOMLEFT" x="230" y="10"/>
-                        </Anchors>
-                        <Scripts>
-                            <OnLoad>
-                                self.text:SetText("Total Stock");
-                            </OnLoad>
-                            <OnClick>
-                                PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
-                                GatherPanel_SetAllCharacters(self:GetChecked());
-                            </OnClick>
-                        </Scripts>
-                    </CheckButton>
-                    <CheckButton parentKey="IncludeCurrentCharacterButton" inherits="UICheckButtonTemplate">
-                        <Anchors>
-                            <Anchor point="BOTTOMLEFT" x="10" y="10"/>
-                        </Anchors>
-                        <Scripts>
-                            <OnLoad>
-                                self.text:SetText("Include Current Character");
-                            </OnLoad>
-                            <OnClick>
-                                PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
-                                GatherPanel_SetIncludeCurrentCharacter(self:GetChecked());
-                            </OnClick>
-                        </Scripts>
-                    </CheckButton>
                     <Frame name="GatherFrame" setAllPoints="true" enableMouse="true" useParentLevel="true" id="2">
                         <Layers>
                             <Layer level="ARTWORK">
@@ -504,7 +476,7 @@
                     </Frame>
                     <Frame name="ItemDetailFrame" enableMouse="true" hidden="true">
                         <Frame parentKey="Border" inherits="DialogBorderDarkTemplate"/>
-                        <Size x="212" y="303"/>
+                        <Size x="212" y="333"/>
                         <Anchors>
                             <Anchor point="TOPLEFT" relativeTo="GatherPanel_Panel1" relativePoint="TOPRIGHT" x="0" y="-28"/>
                         </Anchors>
@@ -537,6 +509,13 @@
                                     </Anchors>
                                 </Texture>
                             </Layer>
+                            <Layer level="ARTWORK">
+                                <FontString parentKey="QuantityLabel" inherits="GameFontNormal" text="Quantity to Stock">
+                                    <Anchors>
+                                        <Anchor point="TOPLEFT" relativeKey="$parent" relativePoint="TOPLEFT" x="20" y="-180"/>
+                                    </Anchors>
+                                </FontString>
+                            </Layer>
                         </Layers>
                         <Frames>
                             <Frame parentKey="Border" inherits="DialogBorderTemplate"/>
@@ -553,14 +532,14 @@
                                     </OnClick>
                                 </Scripts>
                             </Button>
-                            <CheckButton name="ItemDetailTrackerCheckBox" inherits="OptionsSmallCheckButtonTemplate">
+                            <CheckButton parentKey="TrackerCheckBox" inherits="OptionsSmallCheckButtonTemplate">
                                 <Size x="26" y="26"/>
                                 <Anchors>
                                     <Anchor point="TOPLEFT" x="14" y="-143"/>
                                 </Anchors>
                                 <Layers>
                                     <Layer level="ARTWORK">
-                                        <FontString name="$parentText" inherits="GameFontNormalSmall">
+                                        <FontString inherits="GameFontNormalSmall" text="Show in Tracker">
                                             <Anchors>
                                                 <Anchor point="LEFT" relativePoint="RIGHT" x="-2" y="0"/>
                                             </Anchors>
@@ -568,9 +547,6 @@
                                     </Layer>
                                 </Layers>
                                 <Scripts>
-                                    <OnLoad>
-                                        _G[self:GetName().."Text"]:SetText('Track');
-                                    </OnLoad>
                                     <OnClick>
                                         GatherPanel_TrackItem(self:GetParent().item);
                                         if ( self:GetChecked() ) then
@@ -582,92 +558,68 @@
                                     <OnLeave function="GameTooltip_Hide"/>
                                 </Scripts>
                             </CheckButton>
-                            <EditBox name="ItemDetailMin" inherits="InputBoxTemplate" autoFocus="false">
+                            <EditBox parentKey="MinQuantityInput" inherits="InputBoxTemplate" autoFocus="false" numeric="true" min="0">
+                                <Anchors>
+                                    <Anchor point="TOPLEFT" relativeKey="$parent.QuantityLabel" relativePoint="BOTTOMLEFT" x="10" y="-20"/>
+                                </Anchors>
                                 <Layers>
                                     <Layer level="ARTWORK">
-                                        <FontString name="$parentText" inherits="GameFontNormal" text="Min">
+                                        <FontString parentKey="Label" inherits="GameFontNormalSmall" text="Minimum">
                                             <Anchors>
-                                                <Anchor point="LEFT" relativePoint="RIGHT" x="6" y="0"/>
+                                                <Anchor point="BOTTOMLEFT" relativeKey="$parent" relativePoint="TOPLEFT" x="-10" y="5"/>
                                             </Anchors>
                                         </FontString>
                                     </Layer>
                                 </Layers>
-                                <Anchors>
-                                    <Anchor point="TOPLEFT" relativeTo="ItemDetailTrackerCheckBox" relativePoint="BOTTOMLEFT" x="10" y="0"/>
-                                </Anchors>
                                 <Size x="50" y="26"/>
                                 <FontString inherits="GameFontNormal" />
                                 <Scripts>
                                     <OnEnterPressed function="GatherPanel_ItemDetailMin_OnEnter"/>
                                     <OnTabPressed function="GatherPanel_ItemDetailMin_OnTab"/>
+                                    <OnEditFocusLost function="GatherPanel_ItemDetailUpdateQuantity"/>
                                 </Scripts>
                             </EditBox>
-                            <EditBox name="ItemDetailMax" inherits="InputBoxTemplate" autoFocus="false">
+                            <EditBox parentKey="MaxQuantityInput" inherits="InputBoxTemplate" autoFocus="false" numeric="true" min="0">
+                                <Anchors>
+                                    <Anchor point="LEFT" relativeKey="$parent.MinQuantityInput" relativePoint="RIGHT" x="20" y="0"/>
+                                </Anchors>
                                 <Layers>
                                     <Layer level="ARTWORK">
-                                        <FontString name="$parentText" inherits="GameFontNormal" text="Max">
+                                        <FontString parentKey="Label" inherits="GameFontNormalSmall" text="Maximum">
                                             <Anchors>
-                                                <Anchor point="LEFT" relativePoint="RIGHT" x="6" y="0"/>
+                                                <Anchor point="BOTTOMLEFT" relativeKey="$parent" relativePoint="TOPLEFT" x="-10" y="5"/>
                                             </Anchors>
                                         </FontString>
                                     </Layer>
                                 </Layers>
-                                <Anchors>
-                                    <Anchor point="TOPLEFT" relativeTo="ItemDetailMin" relativePoint="BOTTOMLEFT" x="0" y="0"/>
-                                </Anchors>
                                 <Size x="50" y="26"/>
                                 <FontString inherits="GameFontNormal" />
                                 <Scripts>
                                     <OnEnterPressed function="GatherPanel_ItemDetailMax_OnEnter"/>
                                     <OnTabPressed function="GatherPanel_ItemDetailMax_OnTab"/>
+                                    <OnEditFocusLost function="GatherPanel_ItemDetailUpdateQuantity"/>
                                 </Scripts>
                             </EditBox>
-
-                            <Frame name="GatherPanel_ItemDetails_ParentSelection" inherits="UIDropDownMenuTemplate">
+                            <Frame parentKey="ParentDropDown" inherits="UIDropDownMenuTemplate">
+                                <Layers>
+                                    <Layer level="ARTWORK">
+                                        <FontString inherits="GameFontNormal" text="Group">
+                                            <Anchors>
+                                                <Anchor point="BOTTOMLEFT" relativePoint="TOPLEFT" x="13" y="0"/>
+                                            </Anchors>
+                                        </FontString>
+                                    </Layer>
+                                </Layers>
                                 <Anchors>
-                                    <Anchor point="TOPLEFT" relativeTo="ItemDetailMax" relativePoint="BOTTOMLEFT" x="0" y="0"/>
+                                    <Anchor point="TOPLEFT" relativeKey="$parent.MinQuantityInput" relativePoint="BOTTOMLEFT" x="-22" y="-17"/>
                                 </Anchors>
                             </Frame>
 
-                            <Button name="ItemDetailUpdateButton" inherits="UIPanelButtonTemplate">
-                                <Size x="95" y="22"/>
+                            <Button name="ItemDetailDeleteButton" inherits="StaticPopupButtonTemplate">
+                                <Size x="130" y="22"/>
                                 <Anchors>
-                                    <Anchor point="BOTTOMLEFT" x="11" y="12"/>
+                                    <Anchor point="BOTTOMRIGHT" x="-12" y="12"/>
                                 </Anchors>
-                                <Layers>
-                                    <Layer level="BACKGROUND">
-                                        <Texture name="$parentBorder" file="Interface\Buttons\UI-Button-Borders">
-                                            <Size x="106" y="26"/>
-                                            <Anchors>
-                                                <Anchor point="TOPLEFT" x="-10" y="1"/>
-                                                <Anchor point="BOTTOMRIGHT" x="1" y="-3"/>
-                                            </Anchors>
-                                            <TexCoords left="0.58203125" right="1.0" top="0.0" bottom="0.40625"/>
-                                        </Texture>
-                                    </Layer>
-                                </Layers>
-                                <Scripts>
-                                    <OnClick function="GatherPanel_ItemDetailUpdateButton_OnClick"/>
-                                </Scripts>
-                            </Button>
-
-                            <Button name="ItemDetailDeleteButton" inherits="UIPanelButtonTemplate">
-                                <Size x="95" y="22"/>
-                                <Anchors>
-                                    <Anchor point="BOTTOMRIGHT" x="-11" y="12"/>
-                                </Anchors>
-                                <Layers>
-                                    <Layer level="BACKGROUND">
-                                        <Texture name="$parentBorder" file="Interface\Buttons\UI-Button-Borders">
-                                            <Size x="106" y="26"/>
-                                            <Anchors>
-                                                <Anchor point="TOPLEFT" x="-10" y="1"/>
-                                                <Anchor point="BOTTOMRIGHT" x="1" y="-3"/>
-                                            </Anchors>
-                                            <TexCoords left="0.58203125" right="1.0" top="0.0" bottom="0.40625"/>
-                                        </Texture>
-                                    </Layer>
-                                </Layers>
                                 <Scripts>
                                     <OnClick function="GatherPanel_ItemDetailDeleteButton_OnClick"/>
                                 </Scripts>
@@ -678,19 +630,6 @@
             </Frame>
             <Frame name="GatherPanel_Panel2" setAllPoints="true" hidden="true">
                 <Frames>
-                    <CheckButton parentKey="ShowTrackerButton" inherits="UICheckButtonTemplate">
-                        <Anchors>
-                            <Anchor point="BOTTOMLEFT" x="10" y="10"/>
-                        </Anchors>
-                        <Scripts>
-                            <OnLoad>
-                                self.text:SetText("Show Tracker");
-                            </OnLoad>
-                            <OnClick>
-                                GatherPanel_ToggleTracker();
-                            </OnClick>
-                        </Scripts>
-                    </CheckButton>
                     <Frame parentKey="Inset" useParentLevel="true" inherits="InsetFrameTemplate">
                         <Size x="330" y="355"/>
                         <Anchors>
@@ -713,9 +652,7 @@
                                 </FontString>
                             </Layer>
                         </Layers>
-
                         <Frames>
-
                             <Button name="$parentItemButton" parentKey="ItemButton" inherits="LargeItemButtonTemplate">
                                 <Anchors>
                                     <Anchor point="TOPLEFT" relativeTo="GatherPanel_Label_ItemName" relativePoint="BOTTOMLEFT" y="-10"/>
@@ -765,7 +702,7 @@
                                 <Size x="300" y="50"/>
                                 <FontString inherits="GameFontNormal"  text="damax"/>
                             </EditBox>
-                            <EditBox parentKey="MaxQuantityInput" inherits="InputBoxTemplate"  autoFocus="false" numeric="true">
+                            <EditBox name="$parentMaxQuantityInput" parentKey="MaxQuantityInput" inherits="InputBoxTemplate"  autoFocus="false" numeric="true">
                                 <Layers>
                                     <Layer level="ARTWORK">
                                         <FontString name="GatherPanel_Label_ItemId" parentKey="Label" inherits="GameFontNormal" text="Maximum Amount to Stock">
@@ -781,7 +718,20 @@
                                 <Size x="300" y="50"/>
                                 <FontString inherits="GameFontNormal"  text="damin"/>
                             </EditBox>
-
+                            <Frame parentKey="ParentDropDown" inherits="UIDropDownMenuTemplate">
+                                <Layers>
+                                    <Layer level="ARTWORK">
+                                        <FontString name="GatherPanel_Label_ItemId" parentKey="Label" inherits="GameFontNormal" text="Group">
+                                            <Anchors>
+                                                <Anchor point="TOPLEFT" y="14"/>
+                                            </Anchors>
+                                        </FontString>
+                                    </Layer>
+                                </Layers>
+                                <Anchors>
+                                    <Anchor point="TOPLEFT" relativeTo="$parentMaxQuantityInput" relativePoint="BOTTOMLEFT" x="0" y="-16"/>
+                                </Anchors>
+                            </Frame>
                             <Button name="GatherPanel_NewItem_CreateButton" parentKey="CreateButton" inherits="StaticPopupButtonTemplate">
                                 <Size x="95" y="22"/>
                                 <Anchors>
@@ -798,7 +748,7 @@
                             <Button name="GatherPanel_NewGroup_CreateButton" inherits="StaticPopupButtonTemplate">
                                 <Size x="95" y="22"/>
                                 <Anchors>
-                                    <Anchor point="BOTTOMRIGHT" x="-16" y="16"/>
+                                    <Anchor point="LEFT" relativeKey="$parent.ParentDropDown" relativePoint="RIGHT" x="120" y="0"/>
                                 </Anchors>
                                 <Scripts>
                                     <OnLoad>
@@ -807,6 +757,164 @@
                                     <OnClick function="GatherPanel_Group_CreateButton_OnClick"/>
                                 </Scripts>
                             </Button>
+                        </Frames>
+                    </Frame>
+                </Frames>
+            </Frame>
+            <Frame name="GatherPanel_Panel3" setAllPoints="true" hidden="true">
+                <Frames>
+                    <Frame parentKey="Inset" useParentLevel="true" inherits="InsetFrameTemplate">
+                        <Size x="330" y="355"/>
+                        <Anchors>
+                            <Anchor point="TOPRIGHT" x="-6" y="-80" />
+                            <Anchor point="TOPLEFT" x="6" y="-80" />
+                        </Anchors>
+                        <Frames>
+                            <Frame parentKey="PanelOptions">
+                                <Anchors>
+                                    <Anchor point="TOPLEFT" x="0" y="0" />
+                                </Anchors>
+                                <Size x="330" y="160"/>
+                                <Layers>
+                                    <Layer level="OVERLAY">
+                                        <FontString parentKey="OptionsLabel" text="Panel" inherits="GameFontHighlight">
+                                            <Anchors>
+                                                <Anchor point="TOPLEFT" relativeKey="$parent" relativePoint="TOPLEFT" x="16" y="-16"/>
+                                            </Anchors>
+                                        </FontString>
+                                    </Layer>
+                                </Layers>
+                                <Frames>
+                                    <CheckButton parentKey="IncludeCurrentCharacterButton" inherits="UICheckButtonTemplate">
+                                        <Anchors>
+                                            <Anchor point="TOPLEFT" relativeKey="$parent.OptionsLabel" relativePoint="BOTTOMLEFT" x="0" y="-10"/>
+                                        </Anchors>
+                                        <Scripts>
+                                            <OnLoad>
+                                                self.text:SetText("Include Current Character");
+                                            </OnLoad>
+                                            <OnClick>
+                                                PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
+                                                GatherPanel_SetIncludeCurrentCharacter(self:GetChecked());
+                                            </OnClick>
+                                            <OnEnter>
+                                                GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
+                                                GameTooltip:AddLine("Include the amount of items available on the current character you are logged into, in addition to the amount of items available on the character who owns the list.", nil, nil, nil, true);
+                                                GameTooltip:AddLine("If disabled, you will only see the list owner's item count.", 1, 1, 1, true);
+                                                GameTooltip:Show()
+                                            </OnEnter>
+                                            <OnLeave function="GameTooltip_Hide"/>
+                                        </Scripts>
+                                    </CheckButton>
+                                    <CheckButton parentKey="ShowOfflineButton" inherits="UICheckButtonTemplate">
+                                        <Anchors>
+                                            <Anchor point="TOPLEFT" relativeKey="$parent.IncludeCurrentCharacterButton" relativePoint="BOTTOMLEFT" x="0" y="0"/>
+                                        </Anchors>
+                                        <Scripts>
+                                            <OnLoad>
+                                                self.text:SetText("Include All Characters From This Realm");
+                                            </OnLoad>
+                                            <OnClick>
+                                                PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
+                                                GatherPanel_SetAllCharacters(self:GetChecked());
+                                            </OnClick>
+                                            <OnEnter>
+                                                GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
+                                                GameTooltip:AddLine("Sum up every items count across the inventories of your characters.", nil, nil, nil, true);
+                                                GameTooltip:AddLine("This option does not include the option 'Include Current Character' automatically. If you want to have the current character's inventory included, you have to check this option too.", 1, 1, 1, true);
+                                                GameTooltip:Show()
+                                            </OnEnter>
+                                            <OnLeave function="GameTooltip_Hide"/>
+                                        </Scripts>
+                                    </CheckButton>
+                                    <Frame parentKey="CountFormat" inherits="UIDropDownMenuTemplate">
+                                        <Layers>
+                                            <Layer level="ARTWORK">
+                                                <FontString inherits="GameFontNormalSmall" text="Count Display">
+                                                    <Anchors>
+                                                        <Anchor point="BOTTOMLEFT" relativePoint="TOPLEFT" x="20" y="0"/>
+                                                    </Anchors>
+                                                </FontString>
+                                            </Layer>
+                                        </Layers>
+                                        <Anchors>
+                                            <Anchor point="TOPLEFT" relativeKey="$parent.ShowOfflineButton" relativePoint="BOTTOMLEFT" x="-12" y="-17"/>
+                                        </Anchors>
+                                    </Frame>
+                                    <Frame parentKey="ProgressFormat" inherits="UIDropDownMenuTemplate">
+                                        <Layers>
+                                            <Layer level="ARTWORK">
+                                                <FontString inherits="GameFontNormalSmall" text="Progress Type">
+                                                    <Anchors>
+                                                        <Anchor point="BOTTOMLEFT" relativePoint="TOPLEFT" x="20" y="0"/>
+                                                    </Anchors>
+                                                </FontString>
+                                            </Layer>
+                                        </Layers>
+                                        <Anchors>
+                                            <Anchor point="TOPLEFT" relativeKey="$parent.CountFormat" relativePoint="TOPRIGHT" x="100" y="0"/>
+                                        </Anchors>
+                                    </Frame>
+                                </Frames>
+                            </Frame>
+                            <Frame parentKey="TrackerOptions">
+                                <Anchors>
+                                    <Anchor point="TOPLEFT" relativeKey="$parent.PanelOptions" relativePoint="BOTTOMLEFT" x="0" y="-20"/>
+                                </Anchors>
+                                <Size x="330" y="80"/>
+                                <Layers>
+                                    <Layer level="OVERLAY">
+                                        <FontString parentKey="OptionsLabel" text="Tracker" inherits="GameFontHighlight">
+                                            <Anchors>
+                                                <Anchor point="TOPLEFT" relativeKey="$parent" relativePoint="TOPLEFT" x="16" y="-16"/>
+                                            </Anchors>
+                                        </FontString>
+                                    </Layer>
+                                </Layers>
+                                <Frames>
+                                    <CheckButton parentKey="ShowTrackerButton" inherits="UICheckButtonTemplate">
+                                        <Anchors>
+                                            <Anchor point="TOPLEFT" relativeKey="$parent.OptionsLabel" relativePoint="BOTTOMLEFT" x="0" y="-10"/>
+                                        </Anchors>
+                                        <Scripts>
+                                            <OnLoad>
+                                                self.text:SetText("Show Tracker Overlay");
+                                            </OnLoad>
+                                            <OnClick>
+                                                GatherPanel_ToggleTracker();
+                                            </OnClick>
+                                        </Scripts>
+                                    </CheckButton>
+                                    <Frame parentKey="CountFormat" inherits="UIDropDownMenuTemplate">
+                                        <Layers>
+                                            <Layer level="ARTWORK">
+                                                <FontString inherits="GameFontNormalSmall" text="Count Display">
+                                                    <Anchors>
+                                                        <Anchor point="BOTTOMLEFT" relativePoint="TOPLEFT" x="20" y="0"/>
+                                                    </Anchors>
+                                                </FontString>
+                                            </Layer>
+                                        </Layers>
+                                        <Anchors>
+                                            <Anchor point="TOPLEFT" relativeKey="$parent.ShowTrackerButton" relativePoint="BOTTOMLEFT" x="-12" y="-17"/>
+                                        </Anchors>
+                                    </Frame>
+                                    <Frame parentKey="ProgressFormat" inherits="UIDropDownMenuTemplate">
+                                        <Layers>
+                                            <Layer level="ARTWORK">
+                                                <FontString inherits="GameFontNormalSmall" text="Progress Type">
+                                                    <Anchors>
+                                                        <Anchor point="BOTTOMLEFT" relativePoint="TOPLEFT" x="20" y="0"/>
+                                                    </Anchors>
+                                                </FontString>
+                                            </Layer>
+                                        </Layers>
+                                        <Anchors>
+                                            <Anchor point="TOPLEFT" relativeKey="$parent.CountFormat" relativePoint="TOPRIGHT" x="100" y="0"/>
+                                        </Anchors>
+                                    </Frame>
+                                </Frames>
+                            </Frame>                        
                         </Frames>
                     </Frame>
                 </Frames>

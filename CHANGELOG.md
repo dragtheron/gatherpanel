@@ -1,3 +1,46 @@
+31 October 2021 - 2.1.0-beta1
+=============================
+
+**[ADDED]** Progress Type and Counter Format Options
+----------------------------------------------------
+There are two new options available for both the Panel and the Tracker visualization:
+For the counter style you can now chosse between percentage, numerical or blank style (was percentage before, with numerical on hover).
+For the progress type you can choose between 'Fill to Goal', i. e. fill your bars until min reached and again until max reached, or 'Fill to Max' to fill the bar completely from zero to max once.
+Each of these options are global and thus are shared between your characters.
+
+**[ADDED]** Localization Started
+--------------------------------
+Until now, there was no specific localization in place. 
+With the upcoming updates, several texts will be translated into German as well as English, including labels, dropdowns and tooltips.
+
+**[ADDED]** Group Selection at Item Enlisting
+---------------------------------------------
+You can now directly set the target group for a new item in the 'Add Item' panel.
+No need to go back and forth to move your items from 'Uncategorized' anymore.
+
+**[CHANGED]** Instant Item Updates
+----------------------------------
+For item updates (setting min and max values), there is no longer a need to hit the 'Update' button.
+In fact, this button is now gone and changes are applied as soon as you leave one of the input fields, tick a checkbox or choose a dropdown selection.
+
+**[CHANGED]** Reduced Variables For Settings
+--------------------------------------------
+All settings are now collected in a single variable and thus have been reset with this update.
+Please consult the reworked Settings panel to reconfigure your settings.
+
+Additionally, settings (inventory inclusions, tracker visibility) got moved to the new Settings panel and these settings are now properly described in a tooltip.
+
+**[FIXED]** Item Info, Again
+----------------------------
+Another issue has now been addressed, so that already acquired item information from the WoW API do not get erased upon relog or reload.
+
+**[FIXED]** Negative Item Goals
+-------------------------------
+The item goal input fields no longer accept negative values.
+
+Additionally, if you set a higher value for the 'Minimum' field as already in the 'Maxmimum' field, this input will become the new Maximum automatically, too.
+
+
 29 October 2021 - 2.1.0-alpha1
 ==============================
 
