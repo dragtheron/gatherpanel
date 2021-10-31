@@ -2,8 +2,6 @@ GATHERPANEL_ITEMBAR_HEIGHT = 26;
 GATHERPANEL_NUM_ITEMS_DISPLAYED = 15;
 GATHERPANEL_NUM_TRACKERS_ENABLED = 0;
 GATHERPANEL_NUM_TRACKERS_CREATED = 1;
-GATHERPANEL_ALL_CHARACTERS = false;
-GATHERPANEL_INCLUDE_CURRENT_CHARACTER = true;
 GATHERPANEL_LOADED = false;
 GATHERPANEL_SETTINGS = {
   trackerVisible = true,
@@ -543,7 +541,7 @@ function GatherPanel_Tracker_OnLoad()
 end
 
 function GatherPanel_ToggleTracker()
-  GATHERPANEL_TRACKER_VISIBLE = not GATHERPANEL_TRACKER_VISIBLE;
+  GATHERPANEL_SETTINGS.trackerVisible = not GATHERPANEL_SETTINGS.trackerVisible;
   -- Hide Tracker
   GatherPanel_Tracker_Update();
   -- Check UI Toggle
@@ -634,7 +632,7 @@ function GatherPanel_InitItem(item)
     end
   end
 
-  if GATHERPANEL_INCLUDE_CURRENT_CHARACTER then
+  if GATHERPANEL_SETTINGS.includeCurrentCharacter then
     characterItemCount = characterItemCount + GetItemCount(item.id, true)
   end
 

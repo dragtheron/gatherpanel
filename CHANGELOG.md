@@ -1,4 +1,12 @@
-31 October 2021 - 2.1.0-beta2
+31 October 2021 - 2.1.0-beta4
+=============================
+
+**[FIXED]** Current Character Inclusion and Tracker Toggle
+----------------------------------------------------------
+The moved settings 'Include Current Character' and 'Show Tracker Overlay', as well as the `/gpt` command are working again.
+
+
+31 October 2021 - 2.1.0-beta3
 =============================
 
 **[ADDED]** Link Items
