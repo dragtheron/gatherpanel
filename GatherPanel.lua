@@ -1180,9 +1180,28 @@ end
 function GatherPanel_Bar_OnClick(frame, button)
   if frame.item and frame.item.type == "ITEM" then
     local item = frame.item;
-    _G['ItemDetailFrame'].item = item;
-    GatherPanel_UpdateItemDetails();
-    _G['ItemDetailFrame']:Show();
+    if ( IsModifiedClick("CHATLINK") ) then
+      local itemName, itemLink = GetItemInfo(frame.itemKey);
+      if ( IsModifiedClick("CHATLINK") ) then
+        local linkType = string.match(itemLink, "|H([^:]+)");
+        if ( linkType == "instancelock" ) then	--People can't re-link instances that aren't their own.
+          local guid = string.match(itemLink, "|Hinstancelock:([^:]+)");
+          if ( not string.find(UnitGUID("player"), guid) ) then
+            return true;
+          end
+        end
+        if ( ChatEdit_InsertLink(itemLink) ) then
+          return true;
+        elseif ( SocialPostFrame and Social_IsShown() ) then
+          Social_InsertLink(itemLink);
+          return true;
+        end
+      end
+    else
+      _G['ItemDetailFrame'].item = item;
+      GatherPanel_UpdateItemDetails();
+      _G['ItemDetailFrame']:Show();
+    end
   elseif frame.item and frame.item.type == "GROUP" then
     if button == "RightButton" then
       if frame.itemKey ~= 0 then
@@ -1550,6 +1569,25 @@ end
 function GatherPanel_TrackerX_OnMouseUp(self, button)
   if button == "RightButton" then
     ToggleDropDownMenu(1, nil, self.Context);
+  elseif ( IsModifiedClick("CHATLINK") ) then
+    if self.item and self.item.type == "ITEM" then
+      local itemName, itemLink = GetItemInfo(self.item.id);
+      if ( IsModifiedClick("CHATLINK") ) then
+        local linkType = string.match(itemLink, "|H([^:]+)");
+        if ( linkType == "instancelock" ) then	--People can't re-link instances that aren't their own.
+          local guid = string.match(itemLink, "|Hinstancelock:([^:]+)");
+          if ( not string.find(UnitGUID("player"), guid) ) then
+            return true;
+          end
+        end
+        if ( ChatEdit_InsertLink(itemLink) ) then
+          return true;
+        elseif ( SocialPostFrame and Social_IsShown() ) then
+          Social_InsertLink(itemLink);
+          return true;
+        end
+      end
+    end
   end
 end
 
