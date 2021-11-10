@@ -1,3 +1,5 @@
+local addonName, L = ...;
+
 GATHERPANEL_ITEMBAR_HEIGHT = 26;
 GATHERPANEL_NUM_ITEMS_DISPLAYED = 15;
 GATHERPANEL_NUM_TRACKERS_ENABLED = 0;
@@ -38,9 +40,16 @@ GATHERPANEL_VERSION = {
   ["patch"] = 0 
 }
 
+-- setup localization
+local function L_Default(L, key)
+  return key;
+end
+setmetatable(L, { __index=L_Default });
+GATHERPANEL_L = L;
+
 local sortedHierarchy = {};
 local defaultGroup = {
-  name = "Uncategorized",
+  name = L["UNCATEGORIZED"],
   type = "GROUP",
   parent = nil,
   isCollapsed = GATHERPANEL_DEFAULT_GROUP_COLLAPSED
@@ -53,11 +62,10 @@ end
 local function getOptionName(enum, value, prefix)
   for key, val in pairs(enum) do
     if val == value then
-      print(prefix .. "_" .. key);
-      return _G[prefix .. "_" .. key];
+      return L[prefix .. "_" .. key];
     end
   end
-  return "NOT FOUND"
+  return L["NOT_FOUND"]
 end
 
 local function traverse(tab, objectId, object, depth)
@@ -162,13 +170,16 @@ local function setItemList()
       if realm == GetRealmName() then
         for characterName, itemTable in pairs(characterTable) do
           for itemId, item in pairs(itemTable) do
-            if itemList[itemId] ~= nil then
-              itemList[itemId]["min"] = itemList[itemId]["min"] + item["min"];
-              itemList[itemId]["max"] = itemList[itemId]["max"] + item["max"];
-            else
-              itemList[itemId] = {};
-              for k, v in pairs(item) do
-                itemList[itemId][k] = v;
+            -- skip other types then ITEM in the combined list
+            if item.type == "ITEM" then
+              if itemList[itemId] ~= nil then
+                itemList[itemId]["min"] = itemList[itemId]["min"] + item["min"];
+                itemList[itemId]["max"] = itemList[itemId]["max"] + item["max"];
+              else
+                itemList[itemId] = {};
+                for k, v in pairs(item) do
+                  itemList[itemId][k] = v;
+                end
               end
             end
           end
@@ -305,7 +316,11 @@ local function SelectItemlist(self, itemListId)
     ItemDetailDeleteButton:Enable();
   end
   realm, characterName = decodeItemListId(GATHERPANEL_ITEM_LIST_SELECTION);
-  UIDropDownMenu_SetText(GatherPanel_ItemlistSelection, characterName);
+  if GATHERPANEL_ITEM_LIST_SELECTION == GetItemlistId("X-Internal", "Combined") then
+    UIDropDownMenu_SetText(GatherPanel_ItemlistSelection, L["COMBINED"]);
+  else
+    UIDropDownMenu_SetText(GatherPanel_ItemlistSelection, characterName);
+  end
   CloseDropDownMenus();
   GatherPanel_InitializeSortedItemList();
   GatherPanel_ReloadTracker();
@@ -353,32 +368,32 @@ end
 function GatherPanel_Settings_SetPanelCountFormat(self, format)
   GATHERPANEL_SETTINGS_GLOBAL.panelCountFormat = format;
   GatherPanel_UpdatePanel();
-  UIDropDownMenu_SetText(GatherPanel_Panel3.Inset.PanelOptions.CountFormat, getOptionName(GATHERPANEL_COUNT_FORMAT, format, "GATHERPANEL_COUNT_FORMAT"));
+  UIDropDownMenu_SetText(GatherPanel_Panel3.Inset.PanelOptions.CountFormat, getOptionName(GATHERPANEL_COUNT_FORMAT, format, "COUNT_FORMAT"));
 end
 
 function GatherPanel_Settings_SetPanelProgressFormat(self, format)
   GATHERPANEL_SETTINGS_GLOBAL.panelProgressFormat = format;
   GatherPanel_UpdatePanel();
-  UIDropDownMenu_SetText(GatherPanel_Panel3.Inset.PanelOptions.ProgressFormat, getOptionName(GATHERPANEL_PROGRESS_FORMAT, format, "GATHERPANEL_PROGRESS_FORMAT"));
+  UIDropDownMenu_SetText(GatherPanel_Panel3.Inset.PanelOptions.ProgressFormat, getOptionName(GATHERPANEL_PROGRESS_FORMAT, format, "PROGRESS_FORMAT"));
 end
 
 function GatherPanel_Settings_SetTrackerCountFormat(self, format)
   GATHERPANEL_SETTINGS_GLOBAL.trackerCountFormat = format;
   GatherPanel_UpdateItems();
-  UIDropDownMenu_SetText(GatherPanel_Panel3.Inset.TrackerOptions.CountFormat, getOptionName(GATHERPANEL_COUNT_FORMAT, format, "GATHERPANEL_COUNT_FORMAT"));
+  UIDropDownMenu_SetText(GatherPanel_Panel3.Inset.TrackerOptions.CountFormat, getOptionName(GATHERPANEL_COUNT_FORMAT, format, "COUNT_FORMAT"));
 end
 
 function GatherPanel_Settings_SetTrackerProgressFormat(self, format)
   GATHERPANEL_SETTINGS_GLOBAL.trackerProgressFormat = format;
   GatherPanel_UpdateItems();
-  UIDropDownMenu_SetText(GatherPanel_Panel3.Inset.TrackerOptions.ProgressFormat, getOptionName(GATHERPANEL_PROGRESS_FORMAT, format, "GATHERPANEL_PROGRESS_FORMAT"));
+  UIDropDownMenu_SetText(GatherPanel_Panel3.Inset.TrackerOptions.ProgressFormat, getOptionName(GATHERPANEL_PROGRESS_FORMAT, format, "PROGRESS_FORMAT"));
 end
 
 
 local function generateDropdownOptions_ProgressFormat(func)
   for key, value in pairs(GATHERPANEL_PROGRESS_FORMAT) do
     local info = UIDropDownMenu_CreateInfo();
-    info.text = _G["GATHERPANEL_PROGRESS_FORMAT_" .. key];
+    info.text = L["PROGRESS_FORMAT_" .. key];
     info.func = func
     info.notCheckable = true;
     info.arg1 = value;
@@ -390,7 +405,7 @@ end
 local function generateDropdownOptions_CountFormat(func)
   for key, value in pairs(GATHERPANEL_COUNT_FORMAT) do
     local info = UIDropDownMenu_CreateInfo();
-    info.text = _G["GATHERPANEL_COUNT_FORMAT_" .. key];
+    info.text = L["COUNT_FORMAT_" .. key];
     info.func = func
     info.notCheckable = true;
     info.arg1 = value;
@@ -417,7 +432,7 @@ end
 
 local function initDropdownOptions_TrackerBarContext(self)
   local info = UIDropDownMenu_CreateInfo();
-  info.text = "Untrack";
+  info.text = L["UNTRACK"];
   info.func = trackItem;
   info.notCheckable = true;
   info.arg1 = self:GetParent().item;
@@ -427,13 +442,13 @@ end
 
 local function initDropdownOptions_GroupEdit(self)
   local info = UIDropDownMenu_CreateInfo();
-  info.text = "Change Name";
+  info.text = L["CHANGE_NAME"];
   info.func = group_ShowEditPopup;
   info.arg1 = self:GetParent().item;
   info.notCheckable = true;
   UIDropDownMenu_AddButton(info);
   info = UIDropDownMenu_CreateInfo();
-  info.text = "Remove";
+  info.text = L["REMOVE_GROUP"];
   info.func = GatherPanel_Context_ItemDelete;
   info.notCheckable = true;
   info.arg1 = self:GetParent().itemKey;
@@ -487,7 +502,7 @@ local function InitListOptions(self)
   local info = UIDropDownMenu_CreateInfo();
   info.keepShownOnClick = 1;
 
-  info.text = "Combined";
+  info.text = L["COMBINED"];
   info.isNotRadio = false;
   info.func = SelectItemlist;
   local itemListId = GetItemlistId("X-Internal", "Combined");
@@ -591,7 +606,7 @@ function GatherPanel_OnLoad()
     _G["GatherBar" .. i .. "ItemBarHighlight1"]:SetPoint("TOPLEFT", "GatherBar" .. i, "TOPLEFT", -2, 4);
     _G["GatherBar" .. i .. "ItemBarHighlight1"]:SetPoint("BOTTOMRIGHT", "GatherBar" .. i, "BOTTOMRIGHT", -10, -4);
   end
-  _G['ItemDetailDeleteButton']:SetText('Remove From List');
+  _G['ItemDetailDeleteButton']:SetText(L["REMOVE_FROM_LIST"]);
 
   PanelTemplates_SetNumTabs(_G['GatherPanel'], 3);
   PanelTemplates_SetTab(_G['GatherPanel'], 1);
@@ -787,7 +802,7 @@ local function renderItemBar(itemRow, item, level)
       itemRow.ItemBar.Percentage:SetText(item.itemCount .. "/" .. realGoal);
     elseif GATHERPANEL_COUNT_FORMAT.ABSOLUTE == GATHERPANEL_SETTINGS_GLOBAL.panelCountFormat then
       if (realPercentage >= 1) then
-        itemRow.ItemBar.Percentage:SetText("Fully Stocked");
+        itemRow.ItemBar.Percentage:SetText(L["FULLY_STOCKED"]);
       else
         itemRow.ItemBar.Percentage:SetFormattedText(PERCENTAGE_STRING, realPercentage * 100);
       end
@@ -799,7 +814,7 @@ local function renderItemBar(itemRow, item, level)
       itemRow.ItemBar.Percentage:SetText(item.itemCount .. "/" .. realGoal);
     elseif GATHERPANEL_COUNT_FORMAT.PERCENT == GATHERPANEL_SETTINGS_GLOBAL.panelCountFormat then
       if (realPercentage >= 1) then
-        itemRow.ItemBar.Percentage:SetText("Fully Stocked");
+        itemRow.ItemBar.Percentage:SetText(L["FULLY_STOCKED"]);
       else
         itemRow.ItemBar.Percentage:SetFormattedText(PERCENTAGE_STRING, realPercentage * 100);
       end
@@ -973,7 +988,7 @@ function GatherPanel_Tracker_UpdateItem(item, animate)
     tracker.Bar.Label:SetText(item.itemCount .. "/" .. realGoal);
   elseif GATHERPANEL_COUNT_FORMAT.PERCENT == GATHERPANEL_SETTINGS_GLOBAL.trackerCountFormat then
     if (realPercentage >= 1) then
-      tracker.Bar.Label:SetText("Fully Stocked");
+      tracker.Bar.Label:SetText(L["FULLY_STOCKED"]);
     else
       tracker.Bar.Label:SetFormattedText(PERCENTAGE_STRING, realPercentage * 100);
     end
@@ -1126,15 +1141,15 @@ function GatherPanel_OnEvent(event)
     UIDropDownMenu_Initialize(GatherPanel_Panel2.Inset.ParentDropDown, InitParentSelectionOptions_CreateFrame);
     UIDropDownMenu_SetText(GatherPanel_Panel2.Inset.ParentDropDown, defaultGroup.name);
     UIDropDownMenu_Initialize(GatherPanel_Panel3.Inset.PanelOptions.CountFormat, initDropdownOptions_PanelCountFormat);
-    UIDropDownMenu_SetText(GatherPanel_Panel3.Inset.PanelOptions.CountFormat, getOptionName(GATHERPANEL_COUNT_FORMAT, GATHERPANEL_SETTINGS_GLOBAL.panelCountFormat, "GATHERPANEL_COUNT_FORMAT"));
+    UIDropDownMenu_SetText(GatherPanel_Panel3.Inset.PanelOptions.CountFormat, getOptionName(GATHERPANEL_COUNT_FORMAT, GATHERPANEL_SETTINGS_GLOBAL.panelCountFormat, "COUNT_FORMAT"));
     UIDropDownMenu_Initialize(GatherPanel_Panel3.Inset.PanelOptions.ProgressFormat, initDropdownOptions_PanelProgressFormat);
     UIDropDownMenu_SetWidth(GatherPanel_Panel3.Inset.PanelOptions.ProgressFormat, 180);
-    UIDropDownMenu_SetText(GatherPanel_Panel3.Inset.PanelOptions.ProgressFormat, getOptionName(GATHERPANEL_PROGRESS_FORMAT, GATHERPANEL_SETTINGS_GLOBAL.panelProgressFormat, "GATHERPANEL_PROGRESS_FORMAT"));
+    UIDropDownMenu_SetText(GatherPanel_Panel3.Inset.PanelOptions.ProgressFormat, getOptionName(GATHERPANEL_PROGRESS_FORMAT, GATHERPANEL_SETTINGS_GLOBAL.panelProgressFormat, "PROGRESS_FORMAT"));
     UIDropDownMenu_Initialize(GatherPanel_Panel3.Inset.TrackerOptions.CountFormat, initDropdownOptions_TrackerCountFormat);
-    UIDropDownMenu_SetText(GatherPanel_Panel3.Inset.TrackerOptions.CountFormat, getOptionName(GATHERPANEL_COUNT_FORMAT, GATHERPANEL_SETTINGS_GLOBAL.trackerCountFormat, "GATHERPANEL_COUNT_FORMAT"));
+    UIDropDownMenu_SetText(GatherPanel_Panel3.Inset.TrackerOptions.CountFormat, getOptionName(GATHERPANEL_COUNT_FORMAT, GATHERPANEL_SETTINGS_GLOBAL.trackerCountFormat, "COUNT_FORMAT"));
     UIDropDownMenu_Initialize(GatherPanel_Panel3.Inset.TrackerOptions.ProgressFormat, initDropdownOptions_TrackerProgressFormat);
     UIDropDownMenu_SetWidth(GatherPanel_Panel3.Inset.TrackerOptions.ProgressFormat, 180);
-    UIDropDownMenu_SetText(GatherPanel_Panel3.Inset.TrackerOptions.ProgressFormat, getOptionName(GATHERPANEL_PROGRESS_FORMAT, GATHERPANEL_SETTINGS_GLOBAL.trackerProgressFormat, "GATHERPANEL_PROGRESS_FORMAT"));
+    UIDropDownMenu_SetText(GatherPanel_Panel3.Inset.TrackerOptions.ProgressFormat, getOptionName(GATHERPANEL_PROGRESS_FORMAT, GATHERPANEL_SETTINGS_GLOBAL.trackerProgressFormat, "PROGRESS_FORMAT"));
 
     -- Run Tracker Update once addon loaded saved variable
     GatherPanel_Tracker_Update();
@@ -1432,7 +1447,7 @@ function GatherPanel_NewItem_CreateButton_OnClick(frame)
   
   frame:GetParent().ItemButton.Icon:SetTexture("Interface\\PaperDoll\\UI-Backpack-EmptySlot");
   frame:GetParent().ItemButton.Name:SetText('');
-  frame:GetParent().LabelInstructions:SetText('Drag item into Item ID field.');
+  frame:GetParent().LabelInstructions:SetText(L["DRAG_ITEM_OR_SET_ITEM_ID"]);
 end
 
 function GatherPanel_EditGroup(group, newName)
@@ -1469,7 +1484,7 @@ end
 
 function GatherPanel_NewItem_ItemButton_OnReceive(frame)
   local infoType, itemId, itemLink = GetCursorInfo();
-  frame:GetParent().LabelInstructions:SetText("Drag item into Item ID field.");
+  frame:GetParent().LabelInstructions:SetText(L["DRAG_ITEM_OR_SET_ITEM_ID"]);
   frame:GetParent().LabelInstructions:SetTextColor(1, 1, 1);
   -- frame:GetParent().ItemIdInput:SetText("");
   frame:GetParent().MinQuantityInput:SetText("");
@@ -1485,7 +1500,7 @@ function GatherPanel_NewItem_ItemButton_OnReceive(frame)
     frame:GetParent().MinQuantityInput:SetFocus();
     if GatherPanel_NewItem_IsAlreadyAdded(itemId) then
       frame:GetParent().LabelInstructions:SetTextColor(1, 0, 0);
-      frame:GetParent().LabelInstructions:SetText("This item is already on the list.");
+      frame:GetParent().LabelInstructions:SetText(L["ITEM_ALREADY_ON_LIST"]);
       frame:GetParent().CreateButton:Disable();
       frame:GetParent().MinQuantityInput:Disable();
       frame:GetParent().MinQuantityInput.Label:SetTextColor(0.6, 0.6, 0.6);
@@ -1493,7 +1508,7 @@ function GatherPanel_NewItem_ItemButton_OnReceive(frame)
       frame:GetParent().MaxQuantityInput.Label:SetTextColor(0.6, 0.6, 0.6);
     else
       frame:GetParent().LabelInstructions:SetTextColor(1, 1, 1);
-      frame:GetParent().LabelInstructions:SetText("Please define your stock goals.");
+      frame:GetParent().LabelInstructions:SetText(L["DEFINE_STOCK_GOALS"]);
       frame:GetParent().CreateButton:Enable();
       frame:GetParent().MinQuantityInput:Enable();
       frame:GetParent().MinQuantityInput.Label:SetTextColor(1, 0.82, 0);
@@ -1517,7 +1532,7 @@ function GatherPanel_NewItem_IsAlreadyAdded(newItemId)
 end
 
 function GatherPanel_NewItem_Id_CheckItem(frame)
-  frame:GetParent().LabelInstructions:SetText("Drag item into Item ID field.");
+  frame:GetParent().LabelInstructions:SetText(L["DRAG_ITEM_OR_SET_ITEM_ID"]);
   frame:GetParent().LabelInstructions:SetTextColor(1, 1, 1);
   frame:GetParent().MinQuantityInput:SetText("");
   frame:GetParent().MaxQuantityInput:SetText("");
@@ -1538,7 +1553,7 @@ function GatherPanel_NewItem_Id_CheckItem(frame)
 
       if GatherPanel_NewItem_IsAlreadyAdded(itemId) then
         frame:GetParent().LabelInstructions:SetTextColor(1, 0, 0);
-        frame:GetParent().LabelInstructions:SetText("This item is already on the list.");
+        frame:GetParent().LabelInstructions:SetText(L["ITEM_ALREADY_ON_LIST"]);
         frame:GetParent().CreateButton:Disable();
         frame:GetParent().MinQuantityInput:Disable();
         frame:GetParent().MinQuantityInput.Label:SetTextColor(0.6, 0.6, 0.6);
@@ -1546,7 +1561,7 @@ function GatherPanel_NewItem_Id_CheckItem(frame)
         frame:GetParent().MaxQuantityInput.Label:SetTextColor(0.6, 0.6, 0.6);
       else
         frame:GetParent().LabelInstructions:SetTextColor(1, 1, 1);
-        frame:GetParent().LabelInstructions:SetText("Please define your stock goals.");
+        frame:GetParent().LabelInstructions:SetText(L["DEFINE_STOCK_GOALS"]);
         frame:GetParent().CreateButton:Enable();
         frame:GetParent().MinQuantityInput:Enable();
         frame:GetParent().MinQuantityInput.Label:SetTextColor(1, 0.82, 0);
@@ -1560,7 +1575,7 @@ function GatherPanel_NewItem_Id_CheckItem(frame)
     end
   end
   frame:GetParent().ItemButton.Name:SetTextColor(1, 0, 0);
-  frame:GetParent().ItemButton.Name:SetText("Invalid Item ID");
+  frame:GetParent().ItemButton.Name:SetText(L["ITEM_ID_INVALID"]);
   frame:GetParent().ItemButton.Icon:SetTexture("Interface\\ICONS\\inv_misc_questionmark");
 end
 
@@ -1603,7 +1618,7 @@ function GatherPanel_TrackerX_OnEnter(self)
     self.Bar.Label:SetText(self.item.itemCount .. "/" .. realGoal);
   elseif GATHERPANEL_COUNT_FORMAT.ABSOLUTE == GATHERPANEL_SETTINGS_GLOBAL.trackerCountFormat then
     if (realPercentage >= 1) then
-      self.Bar.Label:SetText("Fully Stocked");
+      self.Bar.Label:SetText(L["FULLY_STOCKED"]);
     else
       self.Bar.Label:SetFormattedText(PERCENTAGE_STRING, realPercentage * 100);
     end
@@ -1649,7 +1664,7 @@ function GatherPanel_TrackerX_OnLeave(self) local realGoal, realPercentage;
     self.Bar.Label:SetText(self.item.itemCount .. "/" .. realGoal);
   elseif GATHERPANEL_COUNT_FORMAT.PERCENT == GATHERPANEL_SETTINGS_GLOBAL.trackerCountFormat then
     if (realPercentage >= 1) then
-      self.Bar.Label:SetText("Fully Stocked");
+      self.Bar.Label:SetText(L["FULLY_STOCKED"]);
     else
       self.Bar.Label:SetFormattedText(PERCENTAGE_STRING, realPercentage * 100);
     end

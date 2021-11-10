@@ -1,3 +1,16 @@
+10 November 2021 - 2.1.0
+========================
+
+**[ADDED]** Localization for deDE and enUS
+------------------------------------------
+All texts are now translated according to the client's locale. 
+Until now, this AddOn supports deDE and enUS.
+
+**[CHANGED]** Support for WoW 9.1.5
+-----------------------------------
+Checked support for the latest client version.
+
+
 31 October 2021 - 2.1.0-beta4
 =============================
 
