@@ -923,7 +923,7 @@ end
 
 
 function GatherPanel_Tracker_Update()
-  if GATHERPANEL_SETTINGS.trackerVisible then
+  if GATHERPANEL_SETTINGS.trackerVisible and GATHERPANEL_NUM_TRACKERS_ENABLED > 0 then
     _G["GatherPanel_Tracker"]:Show();
   else
     _G["GatherPanel_Tracker"]:Hide();
@@ -978,7 +978,7 @@ function GatherPanel_Tracker_UpdateItem(item, animate)
     if tracker.AnimValue < 100 and realPercentage >= 1.0 then
       PlaySound(SOUNDKIT.IG_QUEST_LIST_COMPLETE)
     end
-    GatherPanel_Tracker_PlayFlareAnim(tracker, delta, sparkHorizontalOffset);
+    GatherPanel_Tracker_PlayFlareAnim(tracker, delta, realPercentage, sparkHorizontalOffset);
   end
   tracker.AnimValue = realPercentage * 100;
   tracker.Bar:SetValue(realPercentage * 100);
@@ -997,15 +997,15 @@ function GatherPanel_Tracker_UpdateItem(item, animate)
   end
 end
 
-function GatherPanel_Tracker_PlayFlareAnim(progressBar, delta, sparkHorizontalOffset)
+function GatherPanel_Tracker_PlayFlareAnim(progressBar, delta, newPercentage, sparkHorizontalOffset)
   if (progressBar.AnimValue >= 100 or delta <= 0) then
     return;
   end
 
-  local deltaWidth = progressBar.Bar:GetWidth() * (progressBar.AnimValue / 100);
+  local deltaWidth = progressBar.Bar:GetWidth() * delta;
 
-  animOffset = animOffset or 12;
-  local offset = deltaWidth - animOffset;
+  animOffset = animOffset or 14;
+  local offset = progressBar.Bar:GetWidth() * newPercentage - animOffset;
 
   local prefix = overridePrefix or "";
   if (delta < 5 and not overridePrefix) then
@@ -1278,6 +1278,7 @@ function GatherPanel_ReloadTracker()
       GatherPanel_Tracker_UpdateItem(item)
     end
   end
+  GatherPanel_Tracker_Update();
 end
 
 function GatherPanel_TrackItem(item)
@@ -1313,6 +1314,7 @@ function GatherPanel_TrackItem(item)
   end
   GatherPanel_UpdateItems(false);
   GatherPanel_UpdatePanel();
+  GatherPanel_ReloadTracker();
 end
 
 function GatherPanel_CreateTrackerForItem(item)
