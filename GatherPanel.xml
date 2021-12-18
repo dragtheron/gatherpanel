@@ -592,7 +592,7 @@
               </EditBox>
               <EditBox parentKey="MaxQuantityInput" inherits="InputBoxTemplate" autoFocus="false" numeric="true" min="0">
                 <Anchors>
-                  <Anchor point="LEFT" relativeKey="$parent.MaxQuantityInput" relativePoint="RIGHT" x="20" y="0" />
+                  <Anchor point="LEFT" relativeKey="$parent.MinQuantityInput" relativePoint="RIGHT" x="20" y="0" />
                 </Anchors>
                 <Layers>
                   <Layer level="ARTWORK">
