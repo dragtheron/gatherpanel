@@ -1,3 +1,27 @@
+13 January 2022 - 2.1.5
+=======================
+
+**[FIXED]** Item Names After Locale Change
+------------------------------------------
+Item information are now being updated after a locale change as intended.
+
+
+18 December 2021 - 2.1.4
+========================
+
+**[FIXED]** Add Item: Minimum Amount Label
+------------------------------------------
+This label is now properly named.
+
+
+16 December 2021 - 2.1.2
+========================
+
+**[FIXED]** Empty Tracker Relic
+-------------------------------
+An empty Tracker will now be removed from the HUD so it no longer prevents interactions in its invisible state.
+
+
 10 November 2021 - 2.1.0
 ========================
 

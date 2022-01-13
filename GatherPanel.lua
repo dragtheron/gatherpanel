@@ -627,6 +627,7 @@ end
 
 function GatherPanel_InitItem(item)
   local itemCount = 0;
+  local locale = GetLocale();
   if item.updated == nil then
     item.updated = 0;
   end
