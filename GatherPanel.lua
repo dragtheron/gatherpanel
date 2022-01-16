@@ -9,6 +9,7 @@ GATHERPANEL_SETTINGS = {
   trackerVisible = true,
   includeAllFromRealm = false,
   includeCurrentCharacter = true,
+  minimapPosition = { -18, -100 },
 }
 
 GATHERPANEL_COUNT_FORMAT = {
@@ -1675,4 +1676,27 @@ function GatherPanel_TrackerX_OnLeave(self) local realGoal, realPercentage;
     self.Bar.Label:SetText("");
   end
   GameTooltip_Hide();
+end
+
+
+function GatherPanel_UpdateMinimap()
+  if GatherPanel.draggingMinimapButton == 1 then
+    local xpos,ypos = GetCursorPosition();
+    local xmin,ymin = Minimap:GetLeft(), Minimap:GetBottom();
+
+    xpos = xmin-xpos/Minimap:GetEffectiveScale()+70;
+    ypos = ypos/Minimap:GetEffectiveScale()-ymin-70;
+
+    local angle = math.deg(math.atan2(ypos,xpos));
+
+    GatherPanelMinimapButton:SetPoint("TOPLEFT", Minimap, "TOPLEFT", 53-(cos(angle)*81), -55+(sin(angle)*81));
+  end
+end
+
+function GatherPanel_ResetMinimapButtonPosition()
+  if GATHERPANEL_SETTINGS.minimapPosition == nil then
+    GATHERPANEL_SETTINGS.minimapPosition = { -13, -100 }
+  end
+  GatherPanelMinimapButton:ClearAllPoints()
+  GatherPanelMinimapButton:SetPoint("TOPLEFT", Minimap, "TOPLEFT", GATHERPANEL_SETTINGS.minimapPosition[1], GATHERPANEL_SETTINGS.minimapPosition[2])
 end

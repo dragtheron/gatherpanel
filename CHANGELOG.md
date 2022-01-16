@@ -1,3 +1,14 @@
+16 January 2022 - 2.2.0
+=======================
+
+**[ADDED]** Keybinds and Minimap Button
+---------------------------------------
+In addition to the chat commands, you can now toggle the tracker overlay and the panel frame
+via keybinds ("other" section) or the new minimap button.
+Regarding the minimap button: Use the left mouse button to toggle the panel and the right button 
+to toggle the tracker overlay.
+
+
 13 January 2022 - 2.1.5
 =======================
 
