@@ -82,6 +82,7 @@ local function traverse(tab, objectId, object, depth)
 end
 
 local function flatToHierarchy(objects)
+  -- Uncatogorized Group
   local elements = {
     [0] = {
       children = {}
@@ -98,6 +99,7 @@ local function flatToHierarchy(objects)
   end
   table.sort(keys);
 
+  -- populate elements list
   for _, objectId in ipairs(keys) do
     if objects[objectId].type == nil then
       objects[objectId].type = "ITEM";
@@ -127,9 +129,24 @@ local function flatToHierarchy(objects)
     end
   end
 
+  -- now sort the groups according to their name.
+  local groupIds = {};
+  for groupId, group in pairs(roots) do
+    table.insert(groupIds, groupId);
+  end
+  local function compareByName(a, b)
+    -- skip comparisons with virtual object
+    if a == 0 or b == 0 then
+      return false;
+    end
+    return objects[a]["name"] < objects[b]["name"]
+  end
+  table.sort(groupIds, compareByName);
+
+
   local linearized = {};
-  for rootId, root in pairs(roots) do
-    traverse(linearized, rootId, root, 0);
+  for i, groupId in ipairs(groupIds) do
+    traverse(linearized, groupId, roots[groupId], 0);
   end
 
   return linearized;

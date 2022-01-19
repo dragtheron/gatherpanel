@@ -1,3 +1,11 @@
+19 January 2022 - 2.3.0-beta0
+=============================
+
+**[CHANGED]** Alphabetical Group Sorting
+----------------------------------------
+Groups are now ordered according to their name alphabetically.
+
+
 16 January 2022 - 2.2.0
 =======================
 
