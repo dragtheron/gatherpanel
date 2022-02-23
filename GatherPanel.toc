@@ -1,9 +1,9 @@
-## Interface: 90105
+## Interface: 90200
 ## Title: Gather Panel
 ## Notes: Keep track of inventory fill levels and gathering goals across multiple characters.
 ## Notes-deDE: Verfolge den Bestand im Inventar und Farmziele über mehrere Charaktere.
 ## Author: Tobias Stettner (Dragtheron)
-## Version: 2.3.0-beta0
+## Version: 2.3.1
 
 ## X-License: MIT
 ## X-Website: https://git.tsno.de/dragtheron/gather-panel
