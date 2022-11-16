@@ -1,0 +1,77 @@
+<Ui>
+  <Script file="Minimap.lua"></Script>
+  <Button name="GatherPanelMinimapButton" toplevel="true" frameStrata="MEDIUM" parent="Minimap" enableMouse="true" movable="true" hidden="false">
+    <Script file="Minimap.lua"></Script>
+		<Size x="33" y="33" />
+    <Anchors>
+      <Anchor point="CENTER" relativeTo="Minimap" relativePoint="CENTER" />
+    </Anchors>
+    <Layers>
+      <Layer level="ARTWORK">
+        <Texture parentKey="Icon" file="Interface\Icons\inv_misc_treasurechest05c">
+          <Size x="21" y="21" />
+          <Anchors>
+            <Anchor point="TOPLEFT" x="7" y="-6" />
+          </Anchors>
+          <TexCoords left="0.075" right="0.925" top="0.075" bottom="0.925" />
+        </Texture>
+      </Layer>
+      <Layer level="OVERLAY">
+        <Texture file="Interface\Minimap\Minimap-TrackingBorder">
+          <Size x="56" y="56" />
+          <Anchors>
+            <Anchor point="TOPLEFT" />
+          </Anchors>
+        </Texture>
+      </Layer>
+    </Layers>
+    <HighlightTexture alphaMode="ADD" file="Interface\Minimap\UI-Minimap-ZoomButton-Highlight" />
+		<Scripts>
+			<OnLoad>
+        print("Loaded Gather Panel")
+				self:RegisterForClicks("LeftButtonUp","RightButtonUp");
+				self:RegisterForDrag("LeftButton");
+        self:RegisterEvent("ADDON_LOADED");
+			</OnLoad>
+			<OnMouseDown>
+				GatherPanelMinimapButton.Icon:SetTexCoord(0,1,0,1);
+			</OnMouseDown>
+			<OnMouseUp>
+				GatherPanelMinimapButton.Icon:SetTexCoord(.075,.925,.075,.925);
+			</OnMouseUp>
+			<OnClick>
+        if button == "RightButton" then
+          GatherPanel_ToggleTracker()
+        else
+          GatherPanel:SetShown(not GatherPanel:IsShown())
+        end
+			</OnClick>
+			<OnEnter>
+				GameTooltip:SetOwner(self, "ANCHOR_LEFT")
+				GameTooltip:AddLine(format("GatherPanel v%i.%i.%i",
+          GATHERPANEL_VERSION.major,
+          GATHERPANEL_VERSION.minor,
+          GATHERPANEL_VERSION.patch
+        ))
+				GameTooltip:AddLine("Left Click to toggle panel.\nRight click to toggle tracker overlay.", 0, 1, 0)
+				GameTooltip:Show()
+			</OnEnter>
+			<OnLeave>
+				GameTooltip:Hide()
+			</OnLeave>
+			<OnDragStart>
+        self.dragging = true;
+        print("Starting Drag!");
+			</OnDragStart>
+			<OnDragStop>
+        self.dragging = false;
+			</OnDragStop>
+      <OnUpdate>
+				GatherPanel_Minimap_Update(self);
+			</OnUpdate>
+      <OnEvent>
+        GatherPanel_Minimap_OnEvent(self, event);
+      </OnEvent>
+		</Scripts>
+	</Button>
+</Ui>

@@ -9,7 +9,7 @@ GATHERPANEL_SETTINGS = {
   trackerVisible = true,
   includeAllFromRealm = false,
   includeCurrentCharacter = true,
-  minimapPosition = { -18, -100 },
+  minimapPosition = 90,
 }
 
 GATHERPANEL_COUNT_FORMAT = {
@@ -35,11 +35,8 @@ GATHERPANEL_DEFAULT_GROUP_COLLAPSED = false;
 GATHERPANEL_ITEMLISTS = {};
 GATHERPANEL_ITEM_LIST_SELECTION = nil;
 
-GATHERPANEL_VERSION = {
-  ["major"] = 2,
-  ["minor"] = 0,
-  ["patch"] = 0 
-}
+GATHERPANEL_VERSION = nil;
+CURRENT_GATHERPANEL_VERSION = nil
 
 -- setup localization
 local function L_Default(L, key)
@@ -157,8 +154,8 @@ local function decodeItemListId(itemListId)
   for str in string.gmatch(itemListId, "([^:]+)") do
     table.insert(t, str)
   end
-  realm = t[1];
-  characterName = t[2]
+  local realm = t[1];
+  local characterName = t[2]
   return realm, characterName;
 end
 
@@ -173,20 +170,12 @@ local function getItemlist()
   return GatherPanel_GetItemList();
 end
 
-local function getGroups()
-  local realm, characterName = decodeItemListId(GATHERPANEL_ITEM_LIST_SELECTION)
-  if GATHERPANEL_ITEM_GROUPS[realm] ~= nil and GATHERPANEL_ITEM_GROUPS[realm][characterName] ~= nil then
-    return GATHERPANEL_ITEM_GROUPS[realm][characterName];
-  end
-  return {};
-end
-
 local function setItemList()
   if GATHERPANEL_ITEM_LIST_SELECTION == GetItemlistId("X-Internal", "Combined") then
     local itemList = {};
     for realm, characterTable in pairs(GATHERPANEL_ITEMLISTS) do
       if realm == GetRealmName() then
-        for characterName, itemTable in pairs(characterTable) do
+        for _, itemTable in pairs(characterTable) do
           for itemId, item in pairs(itemTable) do
             -- skip other types then ITEM in the combined list
             if item.type == "ITEM" then
@@ -207,7 +196,7 @@ local function setItemList()
     GATHERPANEL_CURRENT_ITEM_LIST = itemList;
     return;
   elseif GATHERPANEL_ITEM_LIST_SELECTION ~= nil then
-    realm, characterName = decodeItemListId(GATHERPANEL_ITEM_LIST_SELECTION);
+    local realm, characterName = decodeItemListId(GATHERPANEL_ITEM_LIST_SELECTION);
     if GATHERPANEL_ITEMLISTS[realm] ~= nil and GATHERPANEL_ITEMLISTS[realm][characterName] ~= nil then
       GATHERPANEL_CURRENT_ITEM_LIST = GATHERPANEL_ITEMLISTS[realm][characterName];
       return;
@@ -333,7 +322,7 @@ local function SelectItemlist(self, itemListId)
     ItemDetailFrame.MaxQuantityInput:Enable();
     ItemDetailDeleteButton:Enable();
   end
-  realm, characterName = decodeItemListId(GATHERPANEL_ITEM_LIST_SELECTION);
+  local realm, characterName = decodeItemListId(GATHERPANEL_ITEM_LIST_SELECTION);
   if GATHERPANEL_ITEM_LIST_SELECTION == GetItemlistId("X-Internal", "Combined") then
     UIDropDownMenu_SetText(GatherPanel_ItemlistSelection, L["COMBINED"]);
   else
@@ -657,10 +646,10 @@ function GatherPanel_InitItem(item)
   local characterItemCount = 0;
   if IsAddOnLoaded("DataStore_Containers") then
     -- only load count from character who is owner of the list, i.e. what is this character missing
-    realm, selectedCharacter = decodeItemListId(GATHERPANEL_ITEM_LIST_SELECTION);
+    local realm, selectedCharacter = decodeItemListId(GATHERPANEL_ITEM_LIST_SELECTION);
     for characterName, character in pairs(DataStore:GetCharacters()) do
       if (characterName == selectedCharacter and characterName ~= UnitName("player")) then
-        bagCount, bankCount, voidCount, reagentBankCount = DataStore:GetContainerItemCount(character, item.id);
+        local bagCount, bankCount, voidCount, reagentBankCount = DataStore:GetContainerItemCount(character, item.id);
         characterItemCount = bagCount + bankCount + voidCount + reagentBankCount;
       end
     end
@@ -678,7 +667,7 @@ function GatherPanel_InitItem(item)
       if IsAddOnLoaded("DataStore_Containers") then
         for characterName, character in pairs(DataStore:GetCharacters()) do
           if (characterName ~= UnitName("player")) then
-            bagCount, bankCount, voidCount, reagentBankCount = DataStore:GetContainerItemCount(character, item.id);
+            local bagCount, bankCount, voidCount, reagentBankCount = DataStore:GetContainerItemCount(character, item.id);
             itemCount = itemCount + bagCount + bankCount + voidCount + reagentBankCount;
           end
         end
@@ -769,11 +758,11 @@ local function renderItemBar(itemRow, item, level)
   itemRow.ItemName:SetPoint("LEFT", itemRow, "LEFT", 10, 0);
   itemRow.ItemName:SetPoint("RIGHT", itemRow, "RIGHT", -3, 0);
   itemRow.ItemName:SetFontObject(GameFontHighlightSmall);
-  
+
   if item.itemQuality ~= nil then
     itemRow.ItemName:SetTextColor(
-      ITEM_QUALITY_COLORS[item.itemQuality].r, 
-      ITEM_QUALITY_COLORS[item.itemQuality].g, 
+      ITEM_QUALITY_COLORS[item.itemQuality].r,
+      ITEM_QUALITY_COLORS[item.itemQuality].g,
       ITEM_QUALITY_COLORS[item.itemQuality].b
     );
   else
@@ -853,7 +842,6 @@ function GatherPanel_UpdatePanel(initDropdowns)
   _G['GatherPanel_Panel3'].Inset.PanelOptions.ShowOfflineButton:SetChecked(GATHERPANEL_SETTINGS.includeAllFromRealm);
   _G['GatherPanel_Panel3'].Inset.PanelOptions.IncludeCurrentCharacterButton:SetChecked(GATHERPANEL_SETTINGS.includeCurrentCharacter);
   _G['GatherPanel_Panel3'].Inset.TrackerOptions.ShowTrackerButton:SetChecked(GATHERPANEL_SETTINGS.trackerVisible);
-  local numItems = getItemlistLength();
   local itemOffset = FauxScrollFrame_GetOffset(GatherFrameScrollFrame);
 
   local elements = getItemlist();
@@ -861,20 +849,22 @@ function GatherPanel_UpdatePanel(initDropdowns)
   local renderedRows = 0;
   local processedRows = 0;
   local collapsedLevel = 0;
+
   for i = 1, #sortedHierarchy, 1 do
 
     local elementKey = sortedHierarchy[i].id;
     local level = sortedHierarchy[i].level;
     local element = elements[elementKey];
+
     if elementKey == 0 then
       defaultGroup.isCollapsed = GATHERPANEL_DEFAULT_GROUP_COLLAPSED;
-      if i+1 < #sortedHierarchy then
+
+      if i+1 <= #sortedHierarchy then
         local nextElement = elements[sortedHierarchy[i+1].id];
         if nextElement and (nextElement.type ~= "GROUP" and nextElement.parent == 0) then
           processedRows = processedRows + 1;
           if (processedRows > itemOffset and renderedRows < GATHERPANEL_NUM_ITEMS_DISPLAYED) then
             local itemRow = _G["GatherBar" .. renderedRows+1];
-            local itemBar = _G["GatherBar" .. renderedRows+1 .. "ItemBar"];
             itemRow.item = nil;
             itemRow.itemKey = 0;
             renderItemGroup(itemRow, defaultGroup, level, initDropdowns);
@@ -894,7 +884,6 @@ function GatherPanel_UpdatePanel(initDropdowns)
           processedRows = processedRows + 1;
           if (processedRows > itemOffset and renderedRows < GATHERPANEL_NUM_ITEMS_DISPLAYED) then
             local itemRow = _G["GatherBar" .. renderedRows+1];
-            local itemBar = _G["GatherBar" .. renderedRows+1 .. "ItemBar"];
             itemRow.item = element;
             itemRow.itemKey = elementKey;
             renderItemGroup(itemRow, element, level, initDropdowns);
@@ -912,7 +901,6 @@ function GatherPanel_UpdatePanel(initDropdowns)
           processedRows = processedRows + 1;
           if (processedRows > itemOffset and renderedRows < GATHERPANEL_NUM_ITEMS_DISPLAYED) then
             local itemRow = _G["GatherBar" .. renderedRows+1];
-            local itemBar = _G["GatherBar" .. renderedRows+1 .. "ItemBar"];
             itemRow.item = element;
             itemRow.itemKey = elementKey;
             renderItemBar(itemRow, element, level);
@@ -952,17 +940,19 @@ end
 function GatherPanel_Tracker_UpdateItem(item, animate)
   local tracker = _G["GatherPanel_Tracker" .. item.tracker];
 
+  local texture = tracker.Bar:GetStatusBarTexture();
+
   -- Bar Color
   if (item.goalType == 'min') then
-    tracker.Bar:SetStatusBarAtlas("ui-frame-bar-fill-yellow");
+    texture:SetAtlas("UI-Frame-Bar-Fill-Yellow");
     tracker.Bar.BarBG:SetVertexColor(0.9, 0.7, 0);
   end
   if (item.goalType == 'max') then
     if (item.goal <= item.itemCount) then
-      tracker.Bar:SetStatusBarAtlas("ui-frame-bar-fill-green");
+      texture:SetAtlas("UI-Frame-Bar-Fill-Green");
       tracker.Bar.BarBG:SetVertexColor(0, 0.6, 0.1);
     else
-      tracker.Bar:SetStatusBarAtlas("ui-frame-bar-fill-blue");
+      texture:SetAtlas("UI-Frame-Bar-Fill-Blue");
       tracker.Bar.BarBG:SetVertexColor(0.26, 0.42, 1);
     end
   end
@@ -975,7 +965,7 @@ function GatherPanel_Tracker_UpdateItem(item, animate)
   end
 
   -- Check Point Marker
-  if (GATHERPANEL_PROGRESS_FORMAT.FILL_TO_MAXIMUM == GATHERPANEL_SETTINGS_GLOBAL.trackerProgressFormat) 
+  if (GATHERPANEL_PROGRESS_FORMAT.FILL_TO_MAXIMUM == GATHERPANEL_SETTINGS_GLOBAL.trackerProgressFormat)
       and (item.min > item.itemCount and item.min ~= item.max) then
     tracker.Bar.Checkpoint:Show()
     tracker.Bar.Checkpoint:SetPoint("CENTER", tracker.Bar, "LEFT", item.min/item.max * tracker.Bar:GetWidth(), -1.5);
@@ -997,7 +987,7 @@ function GatherPanel_Tracker_UpdateItem(item, animate)
     if tracker.AnimValue < 100 and realPercentage >= 1.0 then
       PlaySound(SOUNDKIT.IG_QUEST_LIST_COMPLETE)
     end
-    GatherPanel_Tracker_PlayFlareAnim(tracker, delta, realPercentage, sparkHorizontalOffset);
+    GatherPanel_Tracker_PlayFlareAnim(tracker, delta, realPercentage);
   end
   tracker.AnimValue = realPercentage * 100;
   tracker.Bar:SetValue(realPercentage * 100);
@@ -1016,18 +1006,16 @@ function GatherPanel_Tracker_UpdateItem(item, animate)
   end
 end
 
-function GatherPanel_Tracker_PlayFlareAnim(progressBar, delta, newPercentage, sparkHorizontalOffset)
+function GatherPanel_Tracker_PlayFlareAnim(progressBar, delta, newPercentage)
   if (progressBar.AnimValue >= 100 or delta <= 0) then
     return;
   end
 
-  local deltaWidth = progressBar.Bar:GetWidth() * delta;
-
-  animOffset = animOffset or 14;
+  local animOffset = 14;
   local offset = progressBar.Bar:GetWidth() * newPercentage - animOffset;
 
-  local prefix = overridePrefix or "";
-  if (delta < 5 and not overridePrefix) then
+  local prefix = "";
+  if (delta < 5) then
     prefix = "Small";
   end
 
@@ -1057,10 +1045,10 @@ function GatherPanel_Tracker_PlayFlareAnim(progressBar, delta, newPercentage, sp
   end
 end
 
-function Migrate_2_0_0()
+local function migrate_2_0_0()
 
   --[[
-    Previously saved variables 
+    Previously saved variables
     - GATHERPANEL_ITEMS_CHARACTER and
     - GATHERPANEL_ITEMS
     are now obsolete and got replaced by the new character
@@ -1101,7 +1089,7 @@ function Migrate_2_0_0()
   print("Gather Panel migrated to 2.0.0");
 end
 
-function Migrate_2_1_0()
+local function migrate_2_1_0()
   --[[
     Not only items are stored in the item lists, we now support parents
     and structural-only items ("groups").
@@ -1117,42 +1105,83 @@ function Migrate_2_1_0()
   print("Gather Panel migrated to 2.1.0");
 end
 
-local function doMigrations()
-  if GATHERPANEL_VERSION == nil then
-    return
+local function meetsVersionRequirement(major, minor, patch)
+  -- fresh install: always newest DB version
+  if (GATHERPANEL_VERSION == nil) then
+    return true;
   end
 
-  if GATHERPANEL_VERSION.major >= 3 then
+  if (GATHERPANEL_VERSION.major > major) then
+    return true;
+  end
+
+  if (GATHERPANEL_VERSION.major == major) then
+    if (GATHERPANEL_VERSION.minor > minor) then
+      return true;
+    end
+    if (GATHERPANEL_VERSION.minor == minor) then
+      if (GATHERPANEL_VERSION.patch >= patch) then
+        return true;
+      end
+    end
+  end
+
+  return false;
+end
+
+local function doMigrations()
+  -- shortcut if we already are on newest release (speed up reloads)
+  if meetsVersionRequirement(
+    CURRENT_GATHERPANEL_VERSION.major,
+    CURRENT_GATHERPANEL_VERSION.minor,
+    CURRENT_GATHERPANEL_VERSION.patch
+  ) then
+    print("Already up to date.");
     return;
   end
-  
-  if GATHERPANEL_VERSION.major >= 2 then
-    
-    if GATHERPANEL_VERSION.major == 2 and GATHERPANEL_VERSION.minor >= 1 then
-      return;
-    end
-    Migrate_2_1_0();
 
-    return;  
+  print("Checking version...");
+
+  if not meetsVersionRequirement(2, 0, 0) then
+    migrate_2_0_0();
+  end
+  if not meetsVersionRequirement(2, 1, 0) then
+    migrate_2_1_0();
+  end
+  if not meetsVersionRequirement(2, 4, 0) then
+    GatherPanel_Migrate_2_4_0();
+  end
+end
+
+local function loadCurrentVersion()
+  local version = GetAddOnMetadata("GatherPanel", "VERSION");
+  if version == nil then
+    version = "0.0.0"
   end
 
-  Migrate_2_0_0();
+  local major, minor, patch = string.match(version, "(%d+)%.(%d+).(%d+)");
+  CURRENT_GATHERPANEL_VERSION = {
+    major = tonumber(major),
+    minor = tonumber(minor),
+    patch = tonumber(patch),
+  }
+  print(CURRENT_GATHERPANEL_VERSION);
+end
+
+local function saveCurrentVersion()
+  GATHERPANEL_VERSION = CURRENT_GATHERPANEL_VERSION;
 end
 
 function GatherPanel_OnEvent(event)
   if event == 'ADDON_LOADED' and not GATHERPANEL_LOADED then
     GATHERPANEL_LOADED = true;
 
+    print("Minimap Position")
+    print(GATHERPANEL_SETTINGS.minimapPosition)
+
+    loadCurrentVersion();
     doMigrations();
-    -- save current data version
-    local version = GetAddOnMetadata("GatherPanel", "VERSION");
-    if version == nil then
-      version = "0.0.0"
-    end
-    local major, minor, patch = string.match(version, "(%d+)%.(%d+).(%d+)");
-    GATHERPANEL_VERSION.major = tonumber(major);
-    GATHERPANEL_VERSION.minor = tonumber(minor);
-    GATHERPANEL_VERSION.patch = tonumber(patch);
+    saveCurrentVersion();
 
     SelectItemlist(nil, GATHERPANEL_ITEM_LIST_SELECTION);
     UIDropDownMenu_Initialize(GatherPanel_ItemlistSelection, InitListOptions);
@@ -1265,9 +1294,9 @@ function GatherPanel_UpdateItemDetails()
     local items = getItemlist();
     local parent = items[frame.item.parent];
     if parent == nil then
-      UIDropDownMenu_SetText(ItemDetailFrame.ParentDropDown, defaultGroup.name);
+      UIDropDownMenu_SetText(frame.ParentDropDown, defaultGroup.name);
     else
-      UIDropDownMenu_SetText(ItemDetailFrame.ParentDropDown, parent.name);
+      UIDropDownMenu_SetText(frame.ParentDropDown, parent.name);
     end
   end
 end
@@ -1281,10 +1310,12 @@ function GatherPanel_ReloadTracker()
   GATHERPANEL_NUM_TRACKERS_ENABLED = 0;
 
   local items = getItemlist();
+
   local itemKeys = {};
-  for itemId, item in pairs(items) do
+  for itemId, _ in pairs(items) do
     table.insert(itemKeys, itemId);
   end
+
   table.sort(itemKeys);
 
   -- Reinitialize trackers from item list
@@ -1302,7 +1333,7 @@ end
 
 function GatherPanel_TrackItem(item)
   if (item.tracked) then
-    if item.itemCount < item.max then  
+    if item.itemCount < item.max then
       PlaySound(SOUNDKIT.IG_QUEST_LOG_ABANDON_QUEST);
     end
     item.tracked = false;
@@ -1439,6 +1470,11 @@ end
 function GatherPanel_NewItem_CreateButton_OnClick(frame)
   local items = getItemlist();
   local itemID = tonumber(frame:GetParent().ItemIdInput:GetText());
+
+  if itemID == nil then
+    return;
+  end
+
   local min = tonumber(frame:GetParent().MinQuantityInput:GetText());
   if (min == nil or min < 0) then
     min = 0;
@@ -1456,6 +1492,7 @@ function GatherPanel_NewItem_CreateButton_OnClick(frame)
     max = max,
     parent = parent
   };
+
   GatherPanel_InitializeSortedItemList();
   GatherPanel_ReloadTracker();
   GatherPanel_UpdateItems();
@@ -1465,7 +1502,7 @@ function GatherPanel_NewItem_CreateButton_OnClick(frame)
   frame:GetParent().ItemIdInput:SetText('');
   frame:GetParent().MinQuantityInput:SetText('');
   frame:GetParent().MaxQuantityInput:SetText('');
-  
+
   frame:GetParent().ItemButton.Icon:SetTexture("Interface\\PaperDoll\\UI-Backpack-EmptySlot");
   frame:GetParent().ItemButton.Name:SetText('');
   frame:GetParent().LabelInstructions:SetText(L["DRAG_ITEM_OR_SET_ITEM_ID"]);
@@ -1480,7 +1517,7 @@ function GatherPanel_EditGroup(group, newName)
   GatherPanel_UpdatePanel();
 end
 
-function GatherPanel_CreateGroup(groupName) 
+function GatherPanel_CreateGroup(groupName)
   local items = GatherPanel_GetItemList();
   local minItemId = 0;
   for elementId, element in pairs(items) do
@@ -1564,8 +1601,8 @@ function GatherPanel_NewItem_Id_CheckItem(frame)
     if itemName then
       frame:GetParent().ItemButton.Name:SetText(itemName);
       frame:GetParent().ItemButton.Name:SetTextColor(
-        ITEM_QUALITY_COLORS[itemQuality].r, 
-        ITEM_QUALITY_COLORS[itemQuality].g, 
+        ITEM_QUALITY_COLORS[itemQuality].r,
+        ITEM_QUALITY_COLORS[itemQuality].g,
         ITEM_QUALITY_COLORS[itemQuality].b
       );
       frame:GetParent().ItemButton.Icon:SetTexture(itemTexture);
@@ -1634,7 +1671,7 @@ function GatherPanel_TrackerX_OnEnter(self)
     realGoal = self.item.max;
     realPercentage = self.item.progressPercentageMax;
   end
-  if GATHERPANEL_COUNT_FORMAT.PERCENT == GATHERPANEL_SETTINGS_GLOBAL.trackerCountFormat 
+  if GATHERPANEL_COUNT_FORMAT.PERCENT == GATHERPANEL_SETTINGS_GLOBAL.trackerCountFormat
       or GATHERPANEL_COUNT_FORMAT.NONE == GATHERPANEL_SETTINGS_GLOBAL.trackerCountFormat then
     self.Bar.Label:SetText(self.item.itemCount .. "/" .. realGoal);
   elseif GATHERPANEL_COUNT_FORMAT.ABSOLUTE == GATHERPANEL_SETTINGS_GLOBAL.trackerCountFormat then
@@ -1693,27 +1730,4 @@ function GatherPanel_TrackerX_OnLeave(self) local realGoal, realPercentage;
     self.Bar.Label:SetText("");
   end
   GameTooltip_Hide();
-end
-
-
-function GatherPanel_UpdateMinimap()
-  if GatherPanel.draggingMinimapButton == 1 then
-    local xpos,ypos = GetCursorPosition();
-    local xmin,ymin = Minimap:GetLeft(), Minimap:GetBottom();
-
-    xpos = xmin-xpos/Minimap:GetEffectiveScale()+70;
-    ypos = ypos/Minimap:GetEffectiveScale()-ymin-70;
-
-    local angle = math.deg(math.atan2(ypos,xpos));
-
-    GatherPanelMinimapButton:SetPoint("TOPLEFT", Minimap, "TOPLEFT", 53-(cos(angle)*81), -55+(sin(angle)*81));
-  end
-end
-
-function GatherPanel_ResetMinimapButtonPosition()
-  if GATHERPANEL_SETTINGS.minimapPosition == nil then
-    GATHERPANEL_SETTINGS.minimapPosition = { -13, -100 }
-  end
-  GatherPanelMinimapButton:ClearAllPoints()
-  GatherPanelMinimapButton:SetPoint("TOPLEFT", Minimap, "TOPLEFT", GATHERPANEL_SETTINGS.minimapPosition[1], GATHERPANEL_SETTINGS.minimapPosition[2])
 end

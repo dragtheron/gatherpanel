@@ -1,8 +1,8 @@
 <Bindings>
-  <Binding name="TOGGLE_PANEL" header="GATHERPANEL">
+  <Binding category="ADDONS" name="TOGGLE_PANEL" header="GATHERPANEL">
     GatherPanel:SetShown(not GatherPanel:IsShown())
   </Binding>
-  <Binding name="TOGGLE_TRACKER">
+  <Binding category="ADDONS" name="TOGGLE_TRACKER">
     GatherPanel_ToggleTracker()
   </Binding>
 </Bindings>
