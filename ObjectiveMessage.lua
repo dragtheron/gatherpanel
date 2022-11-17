@@ -1,6 +1,5 @@
 local addonName, addon = ...;
-addon.ObjectiveMessage = {};
-local module = addon.ObjectiveMessage;
+local module = addon:RegisterModule("ObjectiveMessage");
 
 
 local function displayMessage(message)

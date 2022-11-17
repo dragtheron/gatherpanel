@@ -1,7 +1,8 @@
-local addonName, L = ...;
+local _, addon = ...;
+local module = addon:RegisterModule("Minimap");
 
 local function updatePosition(button)
-  local position = GATHERPANEL_SETTINGS.minimapPosition;
+  local position = addon.Variables.user.minimapPosition;
   local angle = math.rad(position or 90);
   local x, y = math.cos(angle), math.sin(angle);
   local radius = 5;
@@ -22,22 +23,27 @@ function GatherPanel_Minimap_Update(button)
       math.atan2(pointer_y - minimap_y, pointer_x - minimap_x)
     ) % 360;
 
-    GATHERPANEL_SETTINGS.minimapPosition = position;
+    addon.Variables.user.minimapPosition = position;
     updatePosition(button);
   else
   end
 end
 
 function GatherPanel_Minimap_ResetButtonPosition(button)
-  if GATHERPANEL_SETTINGS.minimapPosition == nil then
-    GATHERPANEL_SETTINGS.minimapPosition = 90;
+  if addon.Variables.user.minimapPosition == nil then
+    addon.Variables.user.minimapPosition = 90;
   end
   button:ClearAllPoints()
   updatePosition(button)
 end
 
-function GatherPanel_Minimap_OnEvent(button, event)
-  if event == 'ADDON_LOADED' then
-    GatherPanel_Minimap_ResetButtonPosition(button);
-  end
+
+local frame = CreateFrame("Button", nil, nil, "GatherPanelMinimapButtonTemplate");
+
+function frame:OpenSettings()
+  addon.Settings:Open();
+end
+
+function module:Init()
+  updatePosition(frame);
 end

@@ -1178,6 +1178,13 @@ function GatherPanel_OnEvent(event)
     doMigrations();
     saveCurrentVersion();
 
+    addon.Variables.global = GATHERPANEL_VARIABLES_GLOBAL or {};
+    GATHERPANEL_VARIABLES_GLOBAL = addon.Variables.global;
+    addon.Variables.user = GATHERPANEL_VARIABLES_USER or {};
+    GATHERPANEL_VARIABLES_USER = addon.Variables.user;
+
+    addon:LoadModules();
+
     SelectItemlist(nil, GATHERPANEL_ITEM_LIST_SELECTION);
 
     --TODO: Initialize them in XML or somewhere where it is not

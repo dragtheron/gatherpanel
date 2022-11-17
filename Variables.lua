@@ -1,6 +1,5 @@
 local _, addon = ...;
-addon.Variables = {};
-local module = addon.Variables;
+local module = addon:RegisterModule("Variables");
 
 module.const = {
   ---@enum
@@ -16,19 +15,8 @@ module.const = {
   }
 }
 
-module.global = {
-  panelCountFormat = module.const.COUNT_FORMAT.PERCENT,
-  panelProgressFormat = module.const.PROGRESS_FORMAT.FILL_TO_GOAL,
-  trackerCountFormat = module.const.COUNT_FORMAT.PERCENT,
-  trackerProgressFormat = module.const.PROGRESS_FORMAT.FILL_TO_MAXIMUM,
-};
+module.global = {};
 
 module.user = {
-  trackerVisible = true,
-  includeAllFromRealm = false,
-  includeCurrentCharacter = true,
   minimapPosition = 90,
 }
-
-GATHERPANEL_SETTINGS_GLOBAL2 = module.global;
-GATHERPANEL_SETTINGS_USER2 = module.user;

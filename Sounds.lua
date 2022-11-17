@@ -1,6 +1,5 @@
 local addonName, addon = ...;
-addon.Sounds = {}
-local module = addon.Sounds;
+local module = addon:RegisterModule("Sounds");
 
 
 local function playSound(soundFile)

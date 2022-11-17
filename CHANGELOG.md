@@ -2,6 +2,18 @@
 
 ---
 
+## 2.4.0-beta2 (November 17, 2022)
+
+This is a release candidate as the feature set for 2.4 is now complete.
+
+### [FIXED] Settings Storage and Defaults
+
+Settings are now stored properly in the user storage and defaults now only
+replace values which were not available before (i.e. don't override `false`
+anymore).
+
+---
+
 ## 2.4.0-beta1 (November 17, 2022)
 
 ### [ADDED] Settings Page in Game Settings

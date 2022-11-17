@@ -1,6 +1,5 @@
 local _, addon = ...;
-addon.Settings = {};
-local module = addon.Settings;
+local module = addon:RegisterModule("Settings");
 
 
 ---@enum SettingScope
@@ -64,14 +63,16 @@ end
 local function saveConfig(identifier, scope, value)
   local settingsTable = getSettingsTable(scope);
   settingsTable[identifier] = value;
-  return value;
+  return settingsTable[identifier];
 end
 
 
 local function saveDefaultIfNotSet(identifier, scope, value)
   local settingsTable = getSettingsTable(scope);
-  settingsTable[identifier] = settingsTable[identifier] or value;
-  return value;
+  if settingsTable[identifier] == nil then
+    settingsTable[identifier] = value;
+  end
+  return settingsTable[identifier];
 end
 
 
@@ -188,8 +189,8 @@ end
 ---@param setting SettingConfig
 local function setDropDownSetting(setting)
   local value = setting.frame.value;
-  saveConfig(setting.identifier, setting.scope, value);
-  setDropDown(setting.frame, value);
+  local res = saveConfig(setting.identifier, setting.scope, value);
+  setDropDown(setting.frame, res);
 end
 
 
@@ -240,16 +241,16 @@ function frame:OnDefault()
   apply();
 end
 
-registerSettings(frame);
-
 local category, layout = Settings.RegisterCanvasLayoutCategory(frame, "Gather Panel");
 layout:AddAnchorPoint("TOPLEFT", 10, -10);
 layout:AddAnchorPoint("BOTTOMRIGHT", -10, 10);
 
 Settings.RegisterAddOnCategory(category);
 
-
-
 function module:Open()
   Settings.OpenToCategory(category:GetID());
+end
+
+function module:Init()
+  registerSettings(frame);
 end
