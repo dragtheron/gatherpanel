@@ -2,6 +2,58 @@
 
 ---
 
+## 2.4.0-beta1 (November 17, 2022)
+
+### [ADDED] Settings Page in Game Settings
+
+Gather Panel's settings are now available via the Interface Options -> Addons page.
+The former settings tab in the Gather Panel itself is now gone.
+Every setting comes with a default setting you can load via the new "Default" button.
+
+Additionally, you can reach the settings directly using the new slash command:
+
+    /gp options
+
+### [ADDED] New Setting: Play Sounds
+
+You can now choose wether you like to hear sounds in these situations at once:
+
+- tracking an item
+- untracking an item
+- reaching the item collect goal
+
+### [ADDED] Quest-like Progress Notification
+
+There is now a textual notification when you collect new items you are currently tracking.
+You can disable this notification in the settings.
+
+### [FIXED] Item Group Selections
+
+The detail window besides Gather Panel (which opens when you click on an item) now shows
+the currently assigned group for that item without overflowing the dropdown menu frame.
+
+Also, the currently selected option gets now marked as selected in the option list.
+This behavior has been applied to the panel where you can add new items, too, and
+the character selection.
+
+Additionally, when you reassign an item to a new group, that group's name in the dropdown
+menu button gets refreshed immediately.
+
+### [FIXED] Item Group Ordering
+
+The options in the item group selection drop down are now ordered alphabetically, just as
+they are in the item listings.
+
+### [FIXED] Single Item
+
+If you happen to have only one item in your list, that is now visible, even in this case.
+
+### [REMOVED] Settings Tab
+
+The settings tab has moved into the game settings.
+
+---
+
 ## 2.4.0-beta0 (November 16, 2022)
 
 ### [CHANGED] Dragonflight Support
