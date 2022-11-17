@@ -181,16 +181,18 @@
           <Size x="135" y="10" />
         </FontString>
       </Layer>
-      <Texture parentKey="Icon" name="$parentIcon" hidden="true">
-        <Size>
-          <AbsDimension x="16" y="16" />
-        </Size>
-        <Anchors>
-          <Anchor point="RIGHT">
-            <Offset x="0" y="0" />
-          </Anchor>
-        </Anchors>
-      </Texture>
+      <Layer>
+        <Texture parentKey="Icon" name="$parentIcon" hidden="true">
+          <Size>
+            <AbsDimension x="16" y="16" />
+          </Size>
+          <Anchors>
+            <Anchor point="RIGHT">
+              <Offset x="0" y="0" />
+            </Anchor>
+          </Anchors>
+        </Texture>
+      </Layer>
     </Layers>
 
     <Frames>
@@ -310,6 +312,13 @@
   </Button>
   <Frame name="GatherPanel" inherits="PortraitFrameBaseTemplate" toplevel="true" parent="UIParent" enableMouse="true" movable="true" hidden="true">
     <Size x="400" y="485" />
+    <Attributes>
+      <Attribute name="UIPanelLayout-defined" type="boolean" value="true"/>
+      <Attribute name="UIPanelLayout-enabled" type="boolean" value="true"/>
+      <Attribute name="UIPanelLayout-area" type="string" value="left"/>
+      <Attribute name="UIPanelLayout-pushable" type="number" value="5"/>
+      <Attribute name="UIPanelLayout-whileDead" type="boolean" value="true"/>
+    </Attributes>
     <Anchors>
       <Anchor point="CENTER" relativeTo="UIParent" />
     </Anchors>
@@ -360,7 +369,7 @@
         </Anchors>
         <Scripts>
           <OnLoad>
-            self:SetText(GATHERPANEL_L["ITEMS"]);
+            self:SetText(GATHERPANEL_T["ITEMS"]);
           </OnLoad>
           <OnClick>
             GatherPanel_Tab_OnClick(self);
@@ -380,24 +389,7 @@
             GatherPanel_Tab_OnClick(self);
           </OnClick>
           <OnLoad>
-            self:SetText(GATHERPANEL_L["ADD_ITEM"]);
-          </OnLoad>
-        </Scripts>
-      </Button>
-      <Button name="GatherPanelTab3" inherits="PanelTabButtonTemplate" id="3" text="SETTINGS">
-        <Anchors>
-          <Anchor point="LEFT" relativeTo="GatherPanelTab2" relativePoint="RIGHT">
-            <Offset>
-              <AbsDimension x="-15" y="0" />
-            </Offset>
-          </Anchor>
-        </Anchors>
-        <Scripts>
-          <OnClick>
-            GatherPanel_Tab_OnClick(self);
-          </OnClick>
-          <OnLoad>
-            self:SetText(GATHERPANEL_L["SETTINGS"]);
+            self:SetText(GATHERPANEL_T["ADD_ITEM"]);
           </OnLoad>
         </Scripts>
       </Button>
@@ -493,13 +485,12 @@
             </Frames>
             <Scripts>
               <OnLoad>
-                self.ItemHeadingLabel:SetText(GATHERPANEL_L["ITEM"]);
-                self.StockHeadingLabel:SetText(GATHERPANEL_L["STOCK_LEVEL"]);
+                self.ItemHeadingLabel:SetText(GATHERPANEL_T["ITEM"]);
+                self.StockHeadingLabel:SetText(GATHERPANEL_T["STOCK_LEVEL"]);
               </OnLoad>
             </Scripts>
           </Frame>
           <Frame name="ItemDetailFrame" enableMouse="true" hidden="true">
-            <Frame parentKey="Border" inherits="DialogBorderDarkTemplate" />
             <Size x="212" y="333" />
             <Anchors>
               <Anchor point="TOPLEFT" relativeTo="GatherPanel_Panel1" relativePoint="TOPRIGHT" x="0" y="-28" />
@@ -581,11 +572,11 @@
                   </OnClick>
                   <OnLeave function="GameTooltip_Hide" />
                   <OnLoad>
-                    self.Label:SetText(GATHERPANEL_L["SHOW_IN_TRACKER"]);
+                    self.Label:SetText(GATHERPANEL_T["SHOW_IN_TRACKER"]);
                   </OnLoad>
                 </Scripts>
               </CheckButton>
-              <EditBox parentKey="MinQuantityInput" inherits="InputBoxTemplate" autoFocus="false" numeric="true" min="0">
+              <EditBox parentKey="MinQuantityInput" inherits="InputBoxTemplate" autoFocus="false" numeric="true">
                 <Anchors>
                   <Anchor point="TOPLEFT" relativeKey="$parent.QuantityLabel" relativePoint="BOTTOMLEFT" x="10" y="-20" />
                 </Anchors>
@@ -605,11 +596,11 @@
                   <OnTabPressed function="GatherPanel_ItemDetailMin_OnTab" />
                   <OnEditFocusLost function="GatherPanel_ItemDetailUpdateQuantity" />
                   <OnLoad>
-                    self.Label:SetText(GATHERPANEL_L["MINIMUM"]);
+                    self.Label:SetText(GATHERPANEL_T["MINIMUM"]);
                   </OnLoad>
                 </Scripts>
               </EditBox>
-              <EditBox parentKey="MaxQuantityInput" inherits="InputBoxTemplate" autoFocus="false" numeric="true" min="0">
+              <EditBox parentKey="MaxQuantityInput" inherits="InputBoxTemplate" autoFocus="false" numeric="true">
                 <Anchors>
                   <Anchor point="LEFT" relativeKey="$parent.MinQuantityInput" relativePoint="RIGHT" x="20" y="0" />
                 </Anchors>
@@ -629,7 +620,7 @@
                   <OnTabPressed function="GatherPanel_ItemDetailMax_OnTab" />
                   <OnEditFocusLost function="GatherPanel_ItemDetailUpdateQuantity" />
                   <OnLoad>
-                    self.Label:SetText(GATHERPANEL_L["MAXIMUM"]);
+                    self.Label:SetText(GATHERPANEL_T["MAXIMUM"]);
                   </OnLoad>
                 </Scripts>
               </EditBox>
@@ -646,9 +637,11 @@
                 <Anchors>
                   <Anchor point="TOPLEFT" relativeKey="$parent.MinQuantityInput" relativePoint="BOTTOMLEFT" x="-22" y="-17" />
                 </Anchors>
-                <OnLoad>
-                  self.Label:SetText(GATHERPANEL_L["GROUP"]);
-                </OnLoad>
+                <Scripts>
+                  <OnLoad>
+                    self.Label:SetText(GATHERPANEL_T["GROUP"]);
+                  </OnLoad>
+                </Scripts>
               </Frame>
               <Button name="ItemDetailDeleteButton" inherits="StaticPopupButtonTemplate">
                 <Size x="130" y="22" />
@@ -662,7 +655,7 @@
             </Frames>
             <Scripts>
               <OnLoad>
-                self.QuantityLabel:SetText(GATHERPANEL_L["QUANTITY_TO_STOCK"]);
+                self.QuantityLabel:SetText(GATHERPANEL_T["QUANTITY_TO_STOCK"]);
               </OnLoad>
             </Scripts>
           </Frame>
@@ -725,7 +718,7 @@
                   <OnEnterPressed function="GatherPanel_NewItem_Id_CheckItem" />
                   <OnEditFocusLost function="GatherPanel_NewItem_Id_CheckItem" />
                   <OnLoad>
-                    self.Label:SetText(GATHERPANEL_L["ITEM_ID"]);
+                    self.Label:SetText(GATHERPANEL_T["ITEM_ID"]);
                   </OnLoad>
                 </Scripts>
               </EditBox>
@@ -746,7 +739,7 @@
                 <FontString inherits="GameFontNormal" text="damax" />
                 <Scripts>
                   <OnLoad>
-                    self.Label:SetText(GATHERPANEL_L["MINIMUM"]);
+                    self.Label:SetText(GATHERPANEL_T["MINIMUM"]);
                   </OnLoad>
                 </Scripts>
               </EditBox>
@@ -767,7 +760,7 @@
                 <FontString inherits="GameFontNormal" text="damin" />
                 <Scripts>
                   <OnLoad>
-                    self.Label:SetText(GATHERPANEL_L["MAXIMUM"]);
+                    self.Label:SetText(GATHERPANEL_T["MAXIMUM"]);
                   </OnLoad>
                 </Scripts>
               </EditBox>
@@ -786,7 +779,7 @@
                 </Anchors>
                 <Scripts>
                   <OnLoad>
-                    self.Label:SetText(GATHERPANEL_L["GROUP"]);
+                    self.Label:SetText(GATHERPANEL_T["GROUP"]);
                   </OnLoad>
                 </Scripts>
               </Frame>
@@ -797,7 +790,7 @@
                 </Anchors>
                 <Scripts>
                   <OnLoad>
-                    self:SetText(GATHERPANEL_L["ADD_ITEM"]);
+                    self:SetText(GATHERPANEL_T["ADD_ITEM"]);
                   </OnLoad>
                   <OnClick function="GatherPanel_NewItem_CreateButton_OnClick" />
                 </Scripts>
@@ -805,11 +798,11 @@
               <Button name="GatherPanel_NewGroup_CreateButton" inherits="StaticPopupButtonTemplate">
                 <Size x="125" y="22" />
                 <Anchors>
-                  <Anchor point="LEFT" relativeKey="$parent.ParentDropDown" relativePoint="RIGHT" x="120" y="0" />
+                  <Anchor point="LEFT" relativeKey="$parent.ParentDropDown" relativePoint="RIGHT" x="20" y="0" />
                 </Anchors>
                 <Scripts>
                   <OnLoad>
-                    self:SetText(GATHERPANEL_L["CREATE_GROUP"]);
+                    self:SetText(GATHERPANEL_T["CREATE_GROUP"]);
                   </OnLoad>
                   <OnClick function="GatherPanel_Group_CreateButton_OnClick" />
                 </Scripts>
@@ -817,190 +810,9 @@
             </Frames>
             <Scripts>
               <OnLoad>
-                self.LabelInstructions:SetText(GATHERPANEL_L["DRAG_ITEM_OR_SET_ITEM_ID"]);
+                self.LabelInstructions:SetText(GATHERPANEL_T["DRAG_ITEM_OR_SET_ITEM_ID"]);
               </OnLoad>
             </Scripts>
-          </Frame>
-        </Frames>
-      </Frame>
-      <Frame name="GatherPanel_Panel3" setAllPoints="true" hidden="true">
-        <Frames>
-          <Frame parentKey="Inset" useParentLevel="true" inherits="InsetFrameTemplate">
-            <Size x="330" y="355" />
-            <Anchors>
-              <Anchor point="TOPRIGHT" x="-6" y="-80" />
-              <Anchor point="TOPLEFT" x="6" y="-80" />
-            </Anchors>
-            <Frames>
-              <Frame parentKey="PanelOptions">
-                <Anchors>
-                  <Anchor point="TOPLEFT" x="0" y="0" />
-                </Anchors>
-                <Size x="330" y="160" />
-                <Layers>
-                  <Layer level="OVERLAY">
-                    <FontString parentKey="OptionsLabel" text="Panel" inherits="GameFontHighlight">
-                      <Anchors>
-                        <Anchor point="TOPLEFT" relativeKey="$parent" relativePoint="TOPLEFT" x="16" y="-16" />
-                      </Anchors>
-                    </FontString>
-                  </Layer>
-                </Layers>
-                <Frames>
-                  <CheckButton parentKey="IncludeCurrentCharacterButton" inherits="UICheckButtonTemplate">
-                    <Anchors>
-                      <Anchor point="TOPLEFT" relativeKey="$parent.OptionsLabel" relativePoint="BOTTOMLEFT" x="0" y="-10" />
-                    </Anchors>
-                    <Scripts>
-                      <OnLoad>
-                        self.text:SetText(GATHERPANEL_L["INCLUDE_CURRENT_CHARACTER"]);
-                      </OnLoad>
-                      <OnClick>
-                        PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
-                        GatherPanel_SetIncludeCurrentCharacter(self:GetChecked());
-                      </OnClick>
-                      <OnEnter>
-                        GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
-                        GameTooltip:AddLine("Include the amount of items available on the current character you are logged into, in addition to the amount of items available on the character who owns the list.", nil, nil, nil, true);
-                        GameTooltip:AddLine("If disabled, you will only see the list owner's item count.", 1, 1, 1, true);
-                        GameTooltip:Show()
-                      </OnEnter>
-                      <OnLeave function="GameTooltip_Hide" />
-                    </Scripts>
-                  </CheckButton>
-                  <CheckButton parentKey="ShowOfflineButton" inherits="UICheckButtonTemplate">
-                    <Anchors>
-                      <Anchor point="TOPLEFT" relativeKey="$parent.IncludeCurrentCharacterButton" relativePoint="BOTTOMLEFT" x="0" y="0" />
-                    </Anchors>
-                    <Scripts>
-                      <OnLoad>
-                        self.text:SetText(GATHERPANEL_L["INCLUDE_ALL_CHARACTERS_FROM_THIS_REALM"]);
-                      </OnLoad>
-                      <OnClick>
-                        PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
-                        GatherPanel_SetAllCharacters(self:GetChecked());
-                      </OnClick>
-                      <OnEnter>
-                        GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
-                        GameTooltip:AddLine("Sum up every items count across the inventories of your characters.", nil, nil, nil, true);
-                        GameTooltip:AddLine("This option does not include the option 'Include Current Character' automatically. If you want to have the current character's inventory included, you have to check this option too.", 1, 1, 1, true);
-                        GameTooltip:Show()
-                      </OnEnter>
-                      <OnLeave function="GameTooltip_Hide" />
-                    </Scripts>
-                  </CheckButton>
-                  <Frame parentKey="CountFormat" inherits="UIDropDownMenuTemplate">
-                    <Layers>
-                      <Layer level="ARTWORK">
-                        <FontString parentKey="Label" inherits="GameFontNormalSmall" text="Count Display">
-                          <Anchors>
-                            <Anchor point="BOTTOMLEFT" relativePoint="TOPLEFT" x="20" y="0" />
-                          </Anchors>
-                        </FontString>
-                      </Layer>
-                    </Layers>
-                    <Anchors>
-                      <Anchor point="TOPLEFT" relativeKey="$parent.ShowOfflineButton" relativePoint="BOTTOMLEFT" x="-12" y="-17" />
-                    </Anchors>
-                    <OnLoad>
-                      self.Label:SetText(GATHERPANEL_L["STOCK_COUNT_FORMAT"]);
-                    </OnLoad>
-                  </Frame>
-                  <Frame parentKey="ProgressFormat" inherits="UIDropDownMenuTemplate">
-                    <Layers>
-                      <Layer level="ARTWORK">
-                        <FontString parentKey="Label" inherits="GameFontNormalSmall" text="Progress Type">
-                          <Anchors>
-                            <Anchor point="BOTTOMLEFT" relativePoint="TOPLEFT" x="20" y="0" />
-                          </Anchors>
-                        </FontString>
-                      </Layer>
-                    </Layers>
-                    <Anchors>
-                      <Anchor point="TOPLEFT" relativeKey="$parent.CountFormat" relativePoint="TOPRIGHT" x="100" y="0" />
-                    </Anchors>
-                    <Scripts>
-                      <OnLoad>
-                        self.Label:SetText(GATHERPANEL_L["PROGRESS_TYPE"]);
-                      </OnLoad>
-                    </Scripts>
-                  </Frame>
-                </Frames>
-                <Scripts>
-                  <OnLoad>
-                    self.OptionsLabel:SetText(L["GENERAL"]);
-                  </OnLoad>
-                </Scripts>
-              </Frame>
-              <Frame parentKey="TrackerOptions">
-                <Anchors>
-                  <Anchor point="TOPLEFT" relativeKey="$parent.PanelOptions" relativePoint="BOTTOMLEFT" x="0" y="-20" />
-                </Anchors>
-                <Size x="330" y="80" />
-                <Layers>
-                  <Layer level="OVERLAY">
-                    <FontString parentKey="OptionsLabel" text="Tracker" inherits="GameFontHighlight">
-                      <Anchors>
-                        <Anchor point="TOPLEFT" relativeKey="$parent" relativePoint="TOPLEFT" x="16" y="-16" />
-                      </Anchors>
-                    </FontString>
-                  </Layer>
-                </Layers>
-                <Frames>
-                  <CheckButton parentKey="ShowTrackerButton" inherits="UICheckButtonTemplate">
-                    <Anchors>
-                      <Anchor point="TOPLEFT" relativeKey="$parent.OptionsLabel" relativePoint="BOTTOMLEFT" x="0" y="-10" />
-                    </Anchors>
-                    <Scripts>
-                      <OnLoad>
-                        self.text:SetText(GATHERPANEL_L["SHOW_TRACKER_OVERLAY"]);
-                      </OnLoad>
-                      <OnClick>
-                        GatherPanel_ToggleTracker();
-                      </OnClick>
-                    </Scripts>
-                  </CheckButton>
-                  <Frame parentKey="CountFormat" inherits="UIDropDownMenuTemplate">
-                    <Layers>
-                      <Layer level="ARTWORK">
-                        <FontString parentKey="Label" inherits="GameFontNormalSmall" text="Count Display">
-                          <Anchors>
-                            <Anchor point="BOTTOMLEFT" relativePoint="TOPLEFT" x="20" y="0" />
-                          </Anchors>
-                        </FontString>
-                      </Layer>
-                    </Layers>
-                    <Anchors>
-                      <Anchor point="TOPLEFT" relativeKey="$parent.ShowTrackerButton" relativePoint="BOTTOMLEFT" x="-12" y="-17" />
-                    </Anchors>
-                  </Frame>
-                  <Frame parentKey="ProgressFormat" inherits="UIDropDownMenuTemplate">
-                    <Layers>
-                      <Layer level="ARTWORK">
-                        <FontString parentKey="Label" inherits="GameFontNormalSmall" text="Progress Type">
-                          <Anchors>
-                            <Anchor point="BOTTOMLEFT" relativePoint="TOPLEFT" x="20" y="0" />
-                          </Anchors>
-                        </FontString>
-                      </Layer>
-                    </Layers>
-                    <Anchors>
-                      <Anchor point="TOPLEFT" relativeKey="$parent.CountFormat" relativePoint="TOPRIGHT" x="100" y="0" />
-                    </Anchors>
-                    <Scripts>
-                      <OnLoad>
-                        self.Label:SetText(GATHERPANEL_L["PROGRESS_TYPE"]);
-                      </OnLoad>
-                    </Scripts>
-                  </Frame>
-                </Frames>
-                <Scripts>
-                  <OnLoad>
-                    self.OptionsLabel:SetText(GATHERPANEL_L["TRACKER"]);
-                  </OnLoad>
-                </Scripts>
-              </Frame>
-            </Frames>
           </Frame>
         </Frames>
       </Frame>
@@ -1014,7 +826,7 @@
         self:RegisterEvent("ADDON_LOADED");
         self:RegisterEvent("BAG_UPDATE_DELAYED");
         tinsert(UISpecialFrames, self:GetName());
-        GatherPanel_OnLoad();
+        GatherPanel_OnLoad(self);
       </OnLoad>
       <OnDragStart>
         self:StartMoving();

@@ -1,0 +1,228 @@
+<Ui>
+  <Frame name="GatherPanel_Settings_FrameTemplate" virtual="true" hidden="true">
+    <Attributes>
+      <Attribute name="UIPanelLayout-defined" type="boolean" value="true"/>
+      <Attribute name="UIPanelLayout-enabled" type="boolean" value="true"/>
+      <Attribute name="UIPanelLayout-area" type="string" value="left"/>
+      <Attribute name="UIPanelLayout-pushable" type="number" value="5"/>
+      <Attribute name="UIPanelLayout-whileDead" type="boolean" value="true"/>
+    </Attributes>
+    <Size x="330" y="355" />
+    <Frames>
+      <Button parentKey="DefaultsButton" inherits="UIPanelButtonTemplate">
+        <Size x="96" y="22"/>
+        <Anchors>
+          <Anchor point="TOPRIGHT" x="-36" y="-16"/>
+        </Anchors>
+      </Button>
+      <Frame parentKey="PanelOptions">
+        <Size x="0" y="200"/>
+        <Anchors>
+          <Anchor point="TOPLEFT" x="0" y="0" />
+          <Anchor point="TOPRIGHT" x="0" y="0" />
+        </Anchors>
+        <Layers>
+          <Layer level="OVERLAY">
+            <FontString parentKey="OptionsLabel" text="Panel" inherits="GameFontHighlight">
+              <Anchors>
+                <Anchor point="TOPLEFT" relativeKey="$parent" relativePoint="TOPLEFT" x="16" y="-16" />
+              </Anchors>
+            </FontString>
+          </Layer>
+        </Layers>
+        <Frames>
+          <CheckButton parentKey="IncludeCurrentCharacterButton" inherits="UICheckButtonTemplate">
+            <Anchors>
+              <Anchor point="TOPLEFT" relativeKey="$parent.OptionsLabel" relativePoint="BOTTOMLEFT" x="0" y="-10" />
+            </Anchors>
+            <Scripts>
+              <OnLoad>
+                self.text:SetText(GATHERPANEL_T["INCLUDE_CURRENT_CHARACTER"]);
+              </OnLoad>
+              <OnClick>
+                PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
+              </OnClick>
+              <OnEnter>
+                GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
+                GameTooltip:AddLine("Include the amount of items available on the current character you are logged into, in addition to the amount of items available on the character who owns the list.", nil, nil, nil, true);
+                GameTooltip:AddLine("If disabled, you will only see the list owner's item count.", 1, 1, 1, true);
+                GameTooltip:Show()
+              </OnEnter>
+              <OnLeave function="GameTooltip_Hide" />
+            </Scripts>
+          </CheckButton>
+          <CheckButton parentKey="ShowOfflineButton" inherits="UICheckButtonTemplate">
+            <Anchors>
+              <Anchor point="TOPLEFT" relativeKey="$parent.IncludeCurrentCharacterButton" relativePoint="BOTTOMLEFT" x="0" y="0" />
+            </Anchors>
+            <Scripts>
+              <OnLoad>
+                self.text:SetText(GATHERPANEL_T["INCLUDE_ALL_CHARACTERS_FROM_THIS_REALM"]);
+              </OnLoad>
+              <OnClick>
+                PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
+              </OnClick>
+              <OnEnter>
+                GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
+                GameTooltip:AddLine("Sum up every items count across the inventories of your characters.", nil, nil, nil, true);
+                GameTooltip:AddLine("This option does not include the option 'Include Current Character' automatically. If you want to have the current character's inventory included, you have to check this option too.", 1, 1, 1, true);
+                GameTooltip:Show()
+              </OnEnter>
+              <OnLeave function="GameTooltip_Hide" />
+            </Scripts>
+          </CheckButton>
+          <CheckButton parentKey="ShowObjectiveText" inherits="UICheckButtonTemplate">
+            <Anchors>
+              <Anchor point="TOPLEFT" relativeKey="$parent.ShowOfflineButton" relativePoint="BOTTOMLEFT" x="0" y="0" />
+            </Anchors>
+            <Scripts>
+              <OnLoad>
+                self.text:SetText(GATHERPANEL_T["SHOW_OBJECTIVE_NOTIFICATION"]);
+              </OnLoad>
+              <OnClick>
+                PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
+              </OnClick>
+              <OnEnter>
+                GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
+                GameTooltip:AddLine("When enabled, there will be a text notification on the center of the screen, just as normal objective updates do.", nil, nil, nil, true);
+                GameTooltip:Show()
+              </OnEnter>
+              <OnLeave function="GameTooltip_Hide" />
+            </Scripts>
+          </CheckButton>
+          <CheckButton parentKey="PlaySounds" inherits="UICheckButtonTemplate">
+            <Anchors>
+              <Anchor point="TOPLEFT" relativeKey="$parent.ShowObjectiveText" relativePoint="BOTTOMLEFT" x="0" y="0" />
+            </Anchors>
+            <Scripts>
+              <OnLoad>
+                self.text:SetText(GATHERPANEL_T["PLAY_SOUNDS"]);
+              </OnLoad>
+              <OnClick>
+                PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
+              </OnClick>
+              <OnEnter>
+                GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
+                GameTooltip:AddLine("Every time you track, untrack or fulfill a goal, a proper little notification sound can be played.", nil, nil, nil, true);
+                GameTooltip:Show()
+              </OnEnter>
+              <OnLeave function="GameTooltip_Hide" />
+            </Scripts>
+          </CheckButton>
+          <Frame parentKey="CountFormat" inherits="UIDropDownMenuTemplate">
+            <Layers>
+              <Layer level="ARTWORK">
+                <FontString parentKey="Label" inherits="GameFontNormalSmall" text="Count Display">
+                  <Anchors>
+                    <Anchor point="BOTTOMLEFT" relativePoint="TOPLEFT" x="20" y="0" />
+                  </Anchors>
+                </FontString>
+              </Layer>
+            </Layers>
+            <Anchors>
+              <Anchor point="TOPLEFT" relativeKey="$parent.PlaySounds" relativePoint="BOTTOMLEFT" x="-12" y="-17" />
+            </Anchors>
+            <Scripts>
+              <OnLoad>
+                self.Label:SetText(GATHERPANEL_T["STOCK_COUNT_FORMAT"]);
+              </OnLoad>
+            </Scripts>
+          </Frame>
+          <Frame parentKey="ProgressFormat" inherits="UIDropDownMenuTemplate">
+            <Layers>
+              <Layer level="ARTWORK">
+                <FontString parentKey="Label" inherits="GameFontNormalSmall" text="Progress Type">
+                  <Anchors>
+                    <Anchor point="BOTTOMLEFT" relativePoint="TOPLEFT" x="20" y="0" />
+                  </Anchors>
+                </FontString>
+              </Layer>
+            </Layers>
+            <Anchors>
+              <Anchor point="TOPLEFT" relativeKey="$parent.CountFormat" relativePoint="TOPRIGHT" x="60" y="0" />
+            </Anchors>
+            <Scripts>
+              <OnLoad>
+                self.Label:SetText(GATHERPANEL_T["PROGRESS_TYPE"]);
+              </OnLoad>
+            </Scripts>
+          </Frame>
+        </Frames>
+        <Scripts>
+          <OnLoad>
+            self.OptionsLabel:SetText(GATHERPANEL_T["GENERAL"]);
+          </OnLoad>
+        </Scripts>
+      </Frame>
+      <Frame parentKey="TrackerOptions">
+        <Anchors>
+          <Anchor point="TOPLEFT" relativeKey="$parent.PanelOptions" relativePoint="BOTTOMLEFT" x="0" y="-20" />
+        </Anchors>
+        <Size x="330" y="80" />
+        <Layers>
+          <Layer level="OVERLAY">
+            <FontString parentKey="OptionsLabel" text="Tracker" inherits="GameFontHighlight">
+              <Anchors>
+                <Anchor point="TOPLEFT" relativeKey="$parent" relativePoint="TOPLEFT" x="16" y="-16" />
+              </Anchors>
+            </FontString>
+          </Layer>
+        </Layers>
+        <Frames>
+          <CheckButton parentKey="ShowTrackerButton" inherits="UICheckButtonTemplate">
+            <Anchors>
+              <Anchor point="TOPLEFT" relativeKey="$parent.OptionsLabel" relativePoint="BOTTOMLEFT" x="0" y="-10" />
+            </Anchors>
+            <Scripts>
+              <OnLoad>
+                self.text:SetText(GATHERPANEL_T["SHOW_TRACKER_OVERLAY"]);
+              </OnLoad>
+              <OnClick>
+                PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
+              </OnClick>
+            </Scripts>
+          </CheckButton>
+          <Frame parentKey="CountFormat" inherits="UIDropDownMenuTemplate">
+            <Layers>
+              <Layer level="ARTWORK">
+                <FontString parentKey="Label" inherits="GameFontNormalSmall" text="Count Display">
+                  <Anchors>
+                    <Anchor point="BOTTOMLEFT" relativePoint="TOPLEFT" x="20" y="0" />
+                  </Anchors>
+                </FontString>
+              </Layer>
+            </Layers>
+            <Anchors>
+              <Anchor point="TOPLEFT" relativeKey="$parent.ShowTrackerButton" relativePoint="BOTTOMLEFT" x="-12" y="-17" />
+            </Anchors>
+          </Frame>
+          <Frame parentKey="ProgressFormat" inherits="UIDropDownMenuTemplate">
+            <Layers>
+              <Layer level="ARTWORK">
+                <FontString parentKey="Label" inherits="GameFontNormalSmall" text="Progress Type">
+                  <Anchors>
+                    <Anchor point="BOTTOMLEFT" relativePoint="TOPLEFT" x="20" y="0" />
+                  </Anchors>
+                </FontString>
+              </Layer>
+            </Layers>
+            <Anchors>
+              <Anchor point="TOPLEFT" relativeKey="$parent.CountFormat" relativePoint="TOPRIGHT" x="60" y="0" />
+            </Anchors>
+            <Scripts>
+              <OnLoad>
+                self.Label:SetText(GATHERPANEL_T["PROGRESS_TYPE"]);
+              </OnLoad>
+            </Scripts>
+          </Frame>
+        </Frames>
+        <Scripts>
+          <OnLoad>
+            self.OptionsLabel:SetText(GATHERPANEL_T["TRACKER"]);
+          </OnLoad>
+        </Scripts>
+      </Frame>
+    </Frames>
+  </Frame>
+  <Script file="Settings.lua"/>
+</Ui>

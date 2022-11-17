@@ -9,19 +9,34 @@
 ## X-Website: https://git.tsno.de/dragtheron/gather-panel
 ## X-Curse-Project-ID: 428233
 
-## SavedVariables: GATHERPANEL_ITEMS, GATHERPANEL_ITEMLISTS, GATHERPANEL_VERSION, GATHERPANEL_SETTINGS_GLOBAL
-## SavedVariablesPerCharacter: GATHERPANEL_ALL_CHARACTERS, GATHERPANEL_TRACKER_VISIBLE, GATHERPANEL_ITEMS_CHARACTER, GATHERPANEL_ITEM_LIST_SELECTION, GATHERPANEL_SETTINGS
+## SavedVariables: GATHERPANEL_ITEMS, GATHERPANEL_ITEMLISTS, GATHERPANEL_VERSION, GATHERPANEL_SETTINGS_GLOBAL, GATHERPANEL_SETTINGS_GLOBAL2
+## SavedVariablesPerCharacter: GATHERPANEL_ALL_CHARACTERS, GATHERPANEL_TRACKER_VISIBLE, GATHERPANEL_ITEMS_CHARACTER, GATHERPANEL_ITEM_LIST_SELECTION, GATHERPANEL_SETTINGS, GATHERPANEL_SETTINGS_USER2
 
 ## OptionalDeps: Altoholic, DataStore, DataStore_Containers
 
+# Development Stuff
+#helpers.lua
+
+# Initialization
+init.lua
+Variables.lua
+
+# Localization
 localization-enUS.lua
 localization-deDE.lua
 
-# Development Stuff
-# helpers.lua
+# Migrations
+migrations/2-4-0.lua
 
-migrations/2.4.0.lua
+# Pure Modules
+ObjectiveMessage.lua
+Sounds.lua
 
+# Main
 GatherPanel.lua
 GatherPanel.xml
+
+# Into Blizzard Stuff
 Bindings.lua
+Settings.xml
+# Settings.lua

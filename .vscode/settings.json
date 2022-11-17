@@ -45,7 +45,15 @@
     "UIParent",
     "GetCursorPosition",
     "Minimap",
-    "UI"
+    "UI",
+    "UIErrorsMixin",
+    "UIErrorsFrame",
+    "YELLOW_FONT_COLOR",
+    "UIErrors",
+    "Settings",
+    "RESET_TO_DEFAULT",
+    "SETTINGS_DEFAULTS",
+    "ShowAppropriateDialog"
   ],
   "Lua.runtime.version": "Lua 5.1",
 }

@@ -1,7 +1,6 @@
 <Ui>
   <Script file="Minimap.lua"></Script>
   <Button name="GatherPanelMinimapButton" toplevel="true" frameStrata="MEDIUM" parent="Minimap" enableMouse="true" movable="true" hidden="false">
-    <Script file="Minimap.lua"></Script>
 		<Size x="33" y="33" />
     <Anchors>
       <Anchor point="CENTER" relativeTo="Minimap" relativePoint="CENTER" />
