@@ -2,19 +2,7 @@
 
 ---
 
-## 2.4.0-beta2 (November 17, 2022)
-
-This is a release candidate as the feature set for 2.4 is now complete.
-
-### [FIXED] Settings Storage and Defaults
-
-Settings are now stored properly in the user storage and defaults now only
-replace values which were not available before (i.e. don't override `false`
-anymore).
-
----
-
-## 2.4.0-beta1 (November 17, 2022)
+## 2.4.0 (November 17, 2022)
 
 ### [ADDED] Settings Page in Game Settings
 
@@ -38,6 +26,17 @@ You can now choose wether you like to hear sounds in these situations at once:
 
 There is now a textual notification when you collect new items you are currently tracking.
 You can disable this notification in the settings.
+
+### [CHANGED] Dragonflight Support
+
+With the release of Dragonflight, the UI base changed and so Gather Panel now uses the
+brand-new UI elements.
+
+### [FIXED] Settings Storage and Defaults
+
+Settings are now stored properly in the user storage and defaults now only
+replace values which were not available before (i.e. don't override `false`
+anymore).
 
 ### [FIXED] Item Group Selections
 
@@ -63,15 +62,6 @@ If you happen to have only one item in your list, that is now visible, even in t
 ### [REMOVED] Settings Tab
 
 The settings tab has moved into the game settings.
-
----
-
-## 2.4.0-beta0 (November 16, 2022)
-
-### [CHANGED] Dragonflight Support
-
-With the release of Dragonflight, the UI base changed and so Gather Panel now uses the
-brand-new UI elements.
 
 ---
 
