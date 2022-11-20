@@ -2,6 +2,12 @@
 
 ---
 
+## 2.4.1 (November 20, 2022)
+
+### [FIXED] Minimap Button Click Error
+
+Fixed an issue when clicking the minimap icon.
+
 ## 2.4.0 (November 17, 2022)
 
 ### [ADDED] Settings Page in Game Settings
