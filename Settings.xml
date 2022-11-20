@@ -57,7 +57,7 @@
             </Anchors>
             <Scripts>
               <OnLoad>
-                self.text:SetText(GATHERPANEL_T["INCLUDE_ALL_CHARACTERS_FROM_THIS_REALM"]);
+                self.Text:SetText(GATHERPANEL_T["INCLUDE_ALL_CHARACTERS_FROM_THIS_REALM"]);
               </OnLoad>
               <OnClick>
                 PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);

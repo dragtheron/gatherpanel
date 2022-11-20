@@ -30,10 +30,10 @@
 				self:RegisterForDrag("LeftButton");
 			</OnLoad>
 			<OnMouseDown>
-				GatherPanelMinimapButton.Icon:SetTexCoord(0,1,0,1);
+				self.Icon:SetTexCoord(0,1,0,1);
 			</OnMouseDown>
 			<OnMouseUp>
-				GatherPanelMinimapButton.Icon:SetTexCoord(.075,.925,.075,.925);
+				self.Icon:SetTexCoord(.075,.925,.075,.925);
 			</OnMouseUp>
 			<OnClick>
         if button == "RightButton" then
@@ -61,9 +61,11 @@
 			</OnLeave>
 			<OnDragStart>
         self.dragging = true;
+				self.Icon:SetTexCoord(0,1,0,1);
 			</OnDragStart>
 			<OnDragStop>
         self.dragging = false;
+				self.Icon:SetTexCoord(.075,.925,.075,.925);
 			</OnDragStop>
       <OnUpdate>
 				GatherPanel_Minimap_Update(self);
