@@ -53,7 +53,10 @@
     "Settings",
     "RESET_TO_DEFAULT",
     "SETTINGS_DEFAULTS",
-    "ShowAppropriateDialog"
+    "ShowAppropriateDialog",
+    "Professions",
+    "C_TradeSkillUI",
+    "CreateAtlasMarkup"
   ],
   "Lua.runtime.version": "Lua 5.1",
 }

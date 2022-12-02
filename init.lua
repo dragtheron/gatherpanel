@@ -19,7 +19,6 @@ end
 
 function Addon:LoadModules()
   for _, module in pairs(Addon.modules) do
-    print("Loading module", module.moduleName);
     module:Init();
   end
 end

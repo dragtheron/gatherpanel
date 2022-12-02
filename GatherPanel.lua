@@ -21,6 +21,7 @@ local ITEM_TYPE = {
 ---@field type ItemType
 ---@field id integer
 ---@field name string
+---@field displayName string
 ---@field itemQuality number
 ---@field itemTexture string
 ---@field goalType ItemGoalType
@@ -626,6 +627,15 @@ function GatherPanel_InitItem(item)
     item.name, _, item.itemQuality, _, _, _, _, _, _, item.itemTexture, _ = GetItemInfo(item.id);
     item.locale = locale;
   end
+  item.professionQuality = C_TradeSkillUI.GetItemReagentQualityByItemInfo(item.id);
+  local professionQualityIcon;
+  if item.professionQuality then
+    professionQualityIcon = Professions.GetIconForQuality(item.professionQuality, true);
+  else
+    professionQualityIcon = Professions.GetIconForQuality(0, true);
+  end
+  item.professionQualityMarkup = CreateAtlasMarkup(professionQualityIcon, 26, 26);
+  item.displayName = item.professionQualityMarkup .. " " .. item.name;
   local characterItemCount = 0;
   if IsAddOnLoaded("DataStore_Containers") then
     -- only load count from character who is owner of the list, i.e. what is this character missing
@@ -643,6 +653,8 @@ function GatherPanel_InitItem(item)
     characterItemCount = characterItemCount + GetItemCount(item.id, true)
   end
 
+  item.itemCount = characterItemCount;
+
   if addon.Variables.user.includeAllFromRealm then
     if IsAddOnLoaded("Altoholic") then
       local altoholic = _G["Altoholic"]
@@ -656,15 +668,14 @@ function GatherPanel_InitItem(item)
           end
         end
       end
-      item.itemCount = itemCount + characterItemCount
+      item.itemCount = itemCount + characterItemCount;
     end
-  else
-    item.itemCount = characterItemCount
   end
 
   if item.itemCountTmp == nil then
     item.itemCountTmp = item.itemCount;
   end
+
 
   local goal = 0;
   if (item.min > 0) then
@@ -695,9 +706,22 @@ function GatherPanel_UpdateItems(animate)
   for i, item in pairs(items) do
     if item.type == "ITEM" then
       GatherPanel_InitItem(item);
+
       if (item.tracker) then
         GatherPanel_Tracker_UpdateItem(item, animate);
       end
+
+      local collectedSomething = item.itemCount ~= item.itemCountTmp;
+      if collectedSomething and item.itemCountTmp < item.goal then
+        if item.itemCount == item.goal then
+          addon.ObjectiveMessage:Add(addon.T["GATHERING_OBJECTIVE_COMPLETE"]);
+        end
+        local collectedMsg = string.format(
+          "%s: %i/%i", item.displayName, math.min(item.goal, item.itemCount), item.goal
+        );
+        addon.ObjectiveMessage:Add(collectedMsg);
+      end
+      item.itemCountTmp = item.itemCount
     end
   end
 end
@@ -744,7 +768,7 @@ end
 ---@param item Item
 local function renderItemBar(itemRow, item, level)
 
-  itemRow.ItemName:SetText(item.name);
+  itemRow.ItemName:SetText(item.displayName);
   itemRow.ItemName:SetPoint("LEFT", itemRow, "LEFT", 10, 0);
   itemRow.ItemName:SetPoint("RIGHT", itemRow, "RIGHT", -3, 0);
   itemRow.ItemName:SetFontObject(GameFontHighlightSmall);
@@ -980,13 +1004,8 @@ function GatherPanel_Tracker_UpdateItem(item, animate)
     end
     local collectedSomething = item.itemCount ~= item.itemCountTmp;
     if collectedSomething and item.itemCountTmp < item.goal then
-      local collectedMsg = string.format(
-        "%s: %i/%i", item.name, math.min(item.goal, item.itemCount), item.goal
-      );
-      addon.ObjectiveMessage:Add(collectedMsg);
       GatherPanel_Tracker_PlayFlareAnim(tracker, delta, realPercentage);
     end
-    item.itemCountTmp = item.itemCount;
   end
   tracker.AnimValue = realPercentage * 100;
   tracker.Bar:SetValue(realPercentage * 100);
@@ -1135,11 +1154,8 @@ local function doMigrations()
     CURRENT_GATHERPANEL_VERSION.minor,
     CURRENT_GATHERPANEL_VERSION.patch
   ) then
-    print("Already up to date.");
     return;
   end
-
-  print("Checking version...");
 
   if not meetsVersionRequirement(2, 0, 0) then
     migrate_2_0_0();
@@ -1291,7 +1307,7 @@ function GatherPanel_UpdateItemDetails()
   local frame = _G['ItemDetailFrame'];
   if frame.item ~= nil then
     frame.TrackerCheckBox:SetChecked(frame.item.tracked);
-    _G['ItemName']:SetText(frame.item.name);
+    _G['ItemName']:SetText(frame.item.displayName);
     frame.MinQuantityInput:SetText(frame.item.min);
     frame.MaxQuantityInput:SetText(frame.item.max);
     local items = getItemlist();
