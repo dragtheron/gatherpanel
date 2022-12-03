@@ -1,0 +1,4 @@
+<Ui>
+  <Script file="Hooks/Base.lua"/>
+  <Script file="Hooks/RightClickToList.lua"/>
+</Ui>

@@ -160,6 +160,7 @@ local function registerSettings(frame)
   registerCheckBoxSetting("includeCurrentCharacter", SettingScope.user, frame.PanelOptions.IncludeCurrentCharacterButton, true);
   registerCheckBoxSetting("includeAllFromRealm", SettingScope.user, frame.PanelOptions.ShowOfflineButton, false);
   registerCheckBoxSetting("showObjectiveText", SettingScope.global, frame.PanelOptions.ShowObjectiveText, true);
+  registerCheckBoxSetting("showIds", SettingScope.global, frame.PanelOptions.ShowIds, true);
   registerCheckBoxSetting("playSounds", SettingScope.global, frame.PanelOptions.PlaySounds, true);
   registerCheckBoxSetting("trackerVisible", SettingScope.user, frame.TrackerOptions.ShowTrackerButton, true);
   registerDropDownSetting("panelCountFormat", SettingScope.global, frame.PanelOptions.CountFormat, addon.Variables.const.COUNT_FORMAT.PERCENT, countFormatOptions);

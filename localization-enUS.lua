@@ -5,6 +5,7 @@ L.T["COMBINED"] = "Combined";
 L.T["COUNT_FORMAT_PERCENT"] = "Percentage";
 L.T["COUNT_FORMAT_ABSOLUTE"] = "Absolute";
 L.T["COUNT_FORMAT_NONE"] = "None";
+L.T["CURRENCY"] = "Token";
 L.T["CREATE_GROUP"] = "Create New Group";
 L.T["DRAG_ITEM_OR_SET_ITEM_ID"] = "Place an item into the field\nor provide an item ID.";
 L.T["DEFINE_STOCK_GOALS"] = "Set your desired stock goals.";

@@ -16,7 +16,7 @@
         </Anchors>
       </Button>
       <Frame parentKey="PanelOptions">
-        <Size x="0" y="200"/>
+        <Size x="0" y="240"/>
         <Anchors>
           <Anchor point="TOPLEFT" x="0" y="0" />
           <Anchor point="TOPRIGHT" x="0" y="0" />
@@ -90,9 +90,28 @@
               <OnLeave function="GameTooltip_Hide" />
             </Scripts>
           </CheckButton>
-          <CheckButton parentKey="PlaySounds" inherits="UICheckButtonTemplate">
+          <CheckButton parentKey="ShowIds" inherits="UICheckButtonTemplate">
             <Anchors>
               <Anchor point="TOPLEFT" relativeKey="$parent.ShowObjectiveText" relativePoint="BOTTOMLEFT" x="0" y="0" />
+            </Anchors>
+            <Scripts>
+              <OnLoad>
+                self.text:SetText(GATHERPANEL_T["SHOW_IDS_IN_TOOLTIPS"]);
+              </OnLoad>
+              <OnClick>
+                PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
+              </OnClick>
+              <OnEnter>
+                GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
+                GameTooltip:AddLine("With this feature enabled, you can see the item and currency ID's in their tooltips.", nil, nil, nil, true);
+                GameTooltip:Show()
+              </OnEnter>
+              <OnLeave function="GameTooltip_Hide" />
+            </Scripts>
+          </CheckButton>
+          <CheckButton parentKey="PlaySounds" inherits="UICheckButtonTemplate">
+            <Anchors>
+              <Anchor point="TOPLEFT" relativeKey="$parent.ShowIds" relativePoint="BOTTOMLEFT" x="0" y="0" />
             </Anchors>
             <Scripts>
               <OnLoad>

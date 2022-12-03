@@ -15,7 +15,9 @@ module.const = {
   }
 }
 
-module.global = {};
+module.global = {
+  Entries = {},
+};
 
 module.user = {
   minimapPosition = 90,

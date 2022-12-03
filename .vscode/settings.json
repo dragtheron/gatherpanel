@@ -56,7 +56,22 @@
     "ShowAppropriateDialog",
     "Professions",
     "C_TradeSkillUI",
-    "CreateAtlasMarkup"
+    "CreateAtlasMarkup",
+    "hooksecurefunc",
+    "TradeSkillFrame",
+    "GetMouseFocus",
+    "ItemRefTooltip",
+    "ItemRefShoppingTooltip1",
+    "ItemRefShoppingTooltip2",
+    "ShoppingTooltip1",
+    "ShoppingTooltip2",
+    "C_Container",
+    "C_CurrencyInfo",
+    "PanelTemplates_GetSelectedTab",
+    "GetCurrencyInfo"
   ],
   "Lua.runtime.version": "Lua 5.1",
+  "Lua.diagnostics.disable": [
+    "empty-block"
+  ],
 }
