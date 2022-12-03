@@ -22,6 +22,7 @@ local ITEM_TYPE = {
 ---@field id integer
 ---@field name string
 ---@field displayName string
+---@field professionQuality number
 ---@field itemQuality number
 ---@field itemTexture string
 ---@field goalType ItemGoalType
@@ -87,7 +88,9 @@ local function compareByQualityAndName(a, b)
   end
 
   if a.element.itemQuality ~= b.element.itemQuality then
-    return a.element.itemQuality > b.element.itemQuality
+    if a.element.itemQuality ~= nil and b.element.itemQuality ~= nil then
+      return a.element.itemQuality > b.element.itemQuality
+    end
   end
 
   if a.element.professionQuality ~= b.element.professionQuality then
@@ -95,8 +98,10 @@ local function compareByQualityAndName(a, b)
       return a.element.professionQuality > b.element.professionQuality
     end
   end
-
-  return a.element.name < b.element.name;
+  if a.element.name ~= nil and b.element.name ~= nil then
+    return a.element.name < b.element.name;
+  end
+  return false;
 end
 
 local function traverse(tab, objectId, object, depth)
@@ -656,7 +661,7 @@ function GatherPanel_InitItem(item)
   item.professionQuality = C_TradeSkillUI.GetItemReagentQualityByItemInfo(item.id);
   if item.professionQuality then
     local professionQualityIcon = Professions.GetIconForQuality(item.professionQuality, true);
-    local professionQualityMarkup = CreateAtlasMarkup(professionQualityIcon, 26, 26);
+    local professionQualityMarkup = CreateAtlasMarkup(professionQualityIcon, 16, 16);
     item.displayName = item.name .. " " .. professionQualityMarkup;
   else
     item.displayName = item.name;
@@ -741,6 +746,19 @@ function GatherPanel_UpdateItems(animate)
         if item.itemCount == item.goal then
           addon.ObjectiveMessage:Add(addon.T["GATHERING_OBJECTIVE_COMPLETE"]);
         end
+
+        local displayName = item.name;
+
+        if item.professionQuality then
+          displayName = string.format(
+            "%s (%s)",
+            displayName,
+            string.format(
+              addon.T["PROFESSION_QUALITY_MARKUP"], item.professionQuality
+            )
+          );
+        end
+
         local collectedMsg = string.format(
           "%s: %i/%i", item.displayName, math.min(item.goal, item.itemCount), item.goal
         );
@@ -1547,7 +1565,13 @@ function GatherPanel_NewItem_CreateButton_OnClick(frame)
   GatherPanel_ReloadTracker();
   GatherPanel_UpdateItems(false);
   GatherPanel_UpdatePanel();
-  GatherPanel_TrackItem(items[itemID]);
+
+  local trackNewItem = frame:GetParent().TrackCheckBox:GetChecked();
+
+  if trackNewItem then
+    GatherPanel_TrackItem(items[itemID]);
+  end
+
   frame:GetParent().CreateButton:Disable();
   frame:GetParent().ItemIdInput:SetText('');
   frame:GetParent().MinQuantityInput:SetText('');

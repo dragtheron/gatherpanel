@@ -798,7 +798,7 @@
                   <OnClick function="GatherPanel_NewItem_CreateButton_OnClick" />
                 </Scripts>
               </Button>
-              <Button name="GatherPanel_NewGroup_CreateButton" inherits="StaticPopupButtonTemplate">
+              <Button name="GatherPanel_NewGroup_CreateButton" parentKey="CreateGroupButton" inherits="StaticPopupButtonTemplate">
                 <Size x="165" y="22" />
                 <Anchors>
                   <Anchor point="LEFT" relativeKey="$parent.ParentDropDown" relativePoint="RIGHT" x="0" y="0" />
@@ -811,9 +811,9 @@
                 </Scripts>
               </Button>
 
-              <CheckButton parentKey="TrackCheckBox" inherits="UICheckButtonTemplate">
+              <CheckButton name="$parentTrackCheckBox" parentKey="TrackCheckBox" inherits="UICheckButtonTemplate">
                 <Anchors>
-                  <Anchor point="TOPLEFT" relativeKey="GatherPanel_NewItem_CreateButton" relativePoint="TOPRIGHT" x="100" y="0" />
+                  <Anchor point="LEFT" relativeKey="$parent.CreateButton" relativePoint="RIGHT" x="5" y="0" />
                 </Anchors>
                 <Scripts>
                   <OnLoad>
