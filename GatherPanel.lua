@@ -81,14 +81,41 @@ function addon:GetOptionName(enum, value, prefix)
   return L.T["NOT_FOUND"]
 end
 
+local function compareByQualityAndName(a, b)
+  if a.element.type ~= "ITEM" or b.element.type ~= "ITEM" then
+    return false;
+  end
+
+  if a.element.itemQuality ~= b.element.itemQuality then
+    return a.element.itemQuality > b.element.itemQuality
+  end
+
+  if a.element.professionQuality ~= b.element.professionQuality then
+    if a.element.professionQuality ~= nil and b.element.professionQuality ~= nil then
+      return a.element.professionQuality > b.element.professionQuality
+    end
+  end
+
+  return a.element.name < b.element.name;
+end
+
 local function traverse(tab, objectId, object, depth)
   table.insert(tab, {
     id = objectId,
     level = depth
   });
   if object.children ~= nil then
+    -- sort the children by quality, then by name
+    local sorted = {};
     for childId, child in pairs(object.children) do
-      traverse(tab, childId, child, depth + 1);
+      table.insert(sorted, {
+        id = childId,
+        element = child,
+      });
+    end
+    table.sort(sorted, compareByQualityAndName)
+    for _, e in ipairs(sorted) do
+      traverse(tab, e.id, e.element, depth + 1);
     end
   end
 end
@@ -116,9 +143,8 @@ local function flatToHierarchy(objects)
     if objects[objectId].type == nil then
       objects[objectId].type = "ITEM";
     end
-    elements[objectId] = {
-      children = nil
-    };
+    elements[objectId] = objects[objectId]
+    elements[objectId]["children"] = nil;
   end
 
   for objectId, object in pairs(objects) do
@@ -628,14 +654,13 @@ function GatherPanel_InitItem(item)
     item.locale = locale;
   end
   item.professionQuality = C_TradeSkillUI.GetItemReagentQualityByItemInfo(item.id);
-  local professionQualityIcon;
   if item.professionQuality then
-    professionQualityIcon = Professions.GetIconForQuality(item.professionQuality, true);
+    local professionQualityIcon = Professions.GetIconForQuality(item.professionQuality, true);
+    local professionQualityMarkup = CreateAtlasMarkup(professionQualityIcon, 26, 26);
+    item.displayName = item.name .. " " .. professionQualityMarkup;
   else
-    professionQualityIcon = Professions.GetIconForQuality(0, true);
+    item.displayName = item.name;
   end
-  item.professionQualityMarkup = CreateAtlasMarkup(professionQualityIcon, 26, 26);
-  item.displayName = item.professionQualityMarkup .. " " .. item.name;
   local characterItemCount = 0;
   if IsAddOnLoaded("DataStore_Containers") then
     -- only load count from character who is owner of the list, i.e. what is this character missing

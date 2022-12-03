@@ -15,7 +15,7 @@
 ## OptionalDeps: Altoholic, DataStore, DataStore_Containers
 
 # Development Stuff
-#helpers.lua
+helpers.lua
 
 # Initialization
 init.lua
