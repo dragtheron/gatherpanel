@@ -37,6 +37,7 @@ local ITEM_TYPE = {
 ---@field isCollapsed boolean
 ---@field tracked boolean
 ---@field tracker integer The index of the tracker entry.
+---@field betterItem Item
 
 GATHERPANEL_ITEMBAR_HEIGHT = 26;
 GATHERPANEL_NUM_ITEMS_DISPLAYED = 15;
@@ -387,7 +388,7 @@ local function SelectItemlist(self, itemListId)
   GatherPanel_InitializeSortedItemList();
   GatherPanel_ReloadTracker();
   GatherPanel_UpdateItems(false);
-  GatherPanel_UpdatePanel();
+  GatherPanel_UpdatePanel(true);
   addon.ObjectiveTracker:FullUpdate();
 end
 
@@ -734,6 +735,10 @@ function GatherPanel_InitItem(item)
     end
   end
 
+  if addon.Variables.user.cumulateLowerQuality and item.betterItem then
+    item.itemCount = item.itemCount + item.betterItem.itemCount;
+  end
+
   if item.itemCountTmp == nil then
     item.itemCountTmp = item.itemCount;
   end
@@ -763,43 +768,60 @@ end
 
 ---@param animate boolean
 function GatherPanel_UpdateItems(animate)
-  local items = getItemlist();
+  local entries = getItemlist();
   local locale = GetLocale();
-  for i, item in pairs(items) do
-    if item.type == "ITEM" then
-      GatherPanel_InitItem(item);
+  local lastItem = nil;
 
-      if (item.tracker) then
-        GatherPanel_Tracker_UpdateItem(item, animate);
-        addon.ObjectiveTracker:UpdateItem(item);
+  for i = 1, #addon.sortedHierarchy, 1 do
+    local entryKey = addon.sortedHierarchy[i].id;
+    local entry = entryKey == 0 and {
+      type = "GROUP",
+      name = "Default Group",
+      id = 0,
+    } or entries[entryKey];
+
+    if entry.type == "ITEM" then
+      if lastItem then
+        if lastItem.name == entry.name then
+          entry.betterItem = lastItem;
+        end
       end
 
-      local collectedSomething = item.itemCount ~= item.itemCountTmp
-        and item.itemCount > item.itemCountTmp;
+      GatherPanel_InitItem(entry);
 
-      if collectedSomething and item.itemCountTmp < item.goal then
-        if item.itemCount >= item.goal then
+      if (entry.tracker) then
+        GatherPanel_Tracker_UpdateItem(entry, animate);
+        addon.ObjectiveTracker:UpdateItem(entry);
+      end
+
+      local collectedSomething = entry.itemCount ~= entry.itemCountTmp
+        and entry.itemCount > entry.itemCountTmp;
+
+      if collectedSomething and entry.itemCountTmp < entry.goal then
+        if entry.itemCount >= entry.goal then
           addon.ObjectiveMessage:Add(addon.T["GATHERING_OBJECTIVE_COMPLETE"]);
         end
 
-        local displayName = item.name;
+        local displayName = entry.name;
 
-        if item.professionQuality then
+        if entry.professionQuality then
           displayName = string.format(
             "%s (%s)",
             displayName,
             string.format(
-              addon.T["PROFESSION_QUALITY_MARKUP"], item.professionQuality
+              addon.T["PROFESSION_QUALITY_MARKUP"], entry.professionQuality
             )
           );
         end
 
         local collectedMsg = string.format(
-          "%s: %i/%i", item.displayName, math.min(item.goal, item.itemCount), item.goal
+          "%s: %i/%i", entry.displayName, math.min(entry.goal, entry.itemCount), entry.goal
         );
         addon.ObjectiveMessage:Add(collectedMsg);
       end
-      item.itemCountTmp = item.itemCount
+      entry.itemCountTmp = entry.itemCount
+
+      lastItem = entry;
     end
   end
 end
@@ -1293,11 +1315,6 @@ function GatherPanel_OnEvent(event)
     LibDD:UIDropDownMenu_SetWidth(GatherPanel_Panel2.Inset.ParentDropDown, 120);
 
     GatherPanel_Panel2.Inset.CreateGroupButton:SetPoint("LEFT", GatherPanel_Panel2.Inset.ParentDropDown, "RIGHT");
-
-    -- Run Tracker Update once addon loaded saved variable
-    GatherPanel_Tracker_Update();
-    GatherPanel_UpdatePanel(true);
-    addon.ObjectiveTracker:FullUpdate();
   end
 
   if GATHERPANEL_LOADED == true then

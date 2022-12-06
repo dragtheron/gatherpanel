@@ -164,6 +164,7 @@ local function registerSettings(frame)
   registerCheckBoxSetting("includeAllFromRealm", SettingScope.user, panelOptionsFrame.ShowOfflineButton, false);
   registerCheckBoxSetting("showObjectiveText", SettingScope.global, panelOptionsFrame.ShowObjectiveText, true);
   registerCheckBoxSetting("playSounds", SettingScope.global, panelOptionsFrame.PlaySounds, true);
+  registerCheckBoxSetting("cumulateLowerQuality", SettingScope.user, panelOptionsFrame.CumulateLowerQualities, true);
   registerCheckBoxSetting("trackerVisible", SettingScope.user, trackerOptionsFrame.ShowTrackerButton, true);
   registerCheckBoxSetting("showObjectiveTracker", SettingScope.user, trackerOptionsFrame.ShowObjectiveTrackerButton, true);
 

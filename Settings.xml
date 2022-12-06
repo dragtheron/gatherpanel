@@ -24,7 +24,7 @@
 				<Frames>
 					<Button parentKey="InputBlocker" clipChildren="true" setAllPoints="true" hidden="true"/>
           <Frame parentKey="PanelOptions">
-            <Size x="0" y="200"/>
+            <Size x="0" y="240"/>
             <Anchors>
               <Anchor point="TOPLEFT" x="0" y="0" />
               <Anchor point="TOPRIGHT" x="0" y="0" />
@@ -79,9 +79,22 @@
                   <OnLeave function="GameTooltip_Hide" />
                 </Scripts>
               </CheckButton>
-              <CheckButton parentKey="ShowObjectiveText" inherits="UICheckButtonTemplate">
+              <CheckButton parentKey="CumulateLowerQualities" inherits="UICheckButtonTemplate">
                 <Anchors>
                   <Anchor point="TOPLEFT" relativeKey="$parent.ShowOfflineButton" relativePoint="BOTTOMLEFT" x="0" y="0" />
+                </Anchors>
+                <Scripts>
+                  <OnLoad>
+                    self.Text:SetText(GATHERPANEL_T["CUMULATE_LOWER_QUALITIES"]);
+                  </OnLoad>
+                  <OnClick>
+                    PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
+                  </OnClick>
+                </Scripts>
+              </CheckButton>
+              <CheckButton parentKey="ShowObjectiveText" inherits="UICheckButtonTemplate">
+                <Anchors>
+                  <Anchor point="TOPLEFT" relativeKey="$parent.CumulateLowerQualities" relativePoint="BOTTOMLEFT" x="0" y="0" />
                 </Anchors>
                 <Scripts>
                   <OnLoad>

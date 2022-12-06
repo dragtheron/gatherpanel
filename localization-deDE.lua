@@ -8,6 +8,7 @@ L.T["COUNT_FORMAT_PERCENT"] = "Prozent";
 L.T["COUNT_FORMAT_ABSOLUTE"] = "Absolut";
 L.T["COUNT_FORMAT_NONE"] = "Keine";
 L.T["CREATE_GROUP"] = "Neue Gruppe erstellen";
+L.T["CUMULATE_LOWER_QUALITIES"] = "Items höherer Qualität zusammenrechnen";
 L.T["DRAG_ITEM_OR_SET_ITEM_ID"] = "Legt einen Gegenstand in das Feld\noder tragt die Item ID ein.";
 L.T["DEFINE_STOCK_GOALS"] = "Gebt die gewünschten Lagerstände an.";
 L.T["FULLY_STOCKED"] = "Auf Lager";

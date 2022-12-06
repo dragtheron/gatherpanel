@@ -6,7 +6,14 @@ Known Issues
 Change Log
 ==========
 
-2.5.0-alpha1 (December 7, 2022)
+2.5.0-beta0 (December 7, 2022)
+-------------------------------
+
+[ADDED] Cumulate Items With Higher Qualities
+- You can now choose if you want items of higher qualities included in the quantity calculation.
+- There is a new setting available in the game Settings panel.
+
+2.5.0-alpha1 (December 6, 2022)
 -------------------------------
 
 This release marks a Beta candidate.
