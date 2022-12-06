@@ -40,3 +40,4 @@ GatherPanel.xml
 Bindings.lua
 Settings.xml
 # Settings.lua
+ObjectiveTracker.lua

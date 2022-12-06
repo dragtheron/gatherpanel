@@ -59,6 +59,7 @@ setmetatable(L.T, { __index=L_Default });
 GATHERPANEL_L = L.T;
 
 local sortedHierarchy = {};
+addon.sortedHierarchy = sortedHierarchy;
 local defaultGroup = {
   name = L.T["UNCATEGORIZED"],
   type = "GROUP",
@@ -87,20 +88,21 @@ local function compareByQualityAndName(a, b)
     return false;
   end
 
-  if a.element.itemQuality ~= b.element.itemQuality then
-    if a.element.itemQuality ~= nil and b.element.itemQuality ~= nil then
+  if a.element.itemQuality ~= b.element.itemQuality
+    and a.element.itemQuality ~= nil and b.element.itemQuality ~= nil then
       return a.element.itemQuality > b.element.itemQuality
     end
-  end
 
-  if a.element.professionQuality ~= b.element.professionQuality then
-    if a.element.professionQuality ~= nil and b.element.professionQuality ~= nil then
+  if a.element.name ~= b.element.name
+    and a.element.name ~= nil and b.element.name ~= nil then
+      return a.element.name < b.element.name;
+    end
+
+  if a.element.professionQuality ~= b.element.professionQuality
+    and a.element.professionQuality ~= nil and b.element.professionQuality ~= nil then
       return a.element.professionQuality > b.element.professionQuality
     end
-  end
-  if a.element.name ~= nil and b.element.name ~= nil then
-    return a.element.name < b.element.name;
-  end
+
   return false;
 end
 
@@ -217,6 +219,10 @@ end
 
 local function getItemlist()
   return GatherPanel_GetItemList();
+end
+
+function addon.getItemlist()
+  GatherPanel_GetItemList();
 end
 
 
@@ -381,6 +387,7 @@ local function SelectItemlist(self, itemListId)
   GatherPanel_ReloadTracker();
   GatherPanel_UpdateItems(false);
   GatherPanel_UpdatePanel();
+  addon.ObjectiveTracker:FullUpdate();
 end
 
 ---@param item Item
@@ -643,6 +650,7 @@ function GatherPanel_InitializeSortedItemList()
   for _, element in ipairs(linearizedHierarchy) do
     table.insert(sortedHierarchy, element);
   end
+  addon.sortedHierarchy = sortedHierarchy;
 end
 
 
@@ -739,6 +747,7 @@ function GatherPanel_UpdateItems(animate)
 
       if (item.tracker) then
         GatherPanel_Tracker_UpdateItem(item, animate);
+        addon.ObjectiveTracker:UpdateItem(item);
       end
 
       local collectedSomething = item.itemCount ~= item.itemCountTmp;
@@ -1260,12 +1269,15 @@ function GatherPanel_OnEvent(event)
     -- Run Tracker Update once addon loaded saved variable
     GatherPanel_Tracker_Update();
     GatherPanel_UpdatePanel(true);
+    addon.ObjectiveTracker:FullUpdate();
   end
 
   if GATHERPANEL_LOADED == true then
     -- Run Item and Bar Updates every event (as most commonly the character received a new item)
+    -- Todo: make this more efficient (i.e. checking which item to update instead of full update)
     GatherPanel_UpdateItems(true);
     GatherPanel_UpdatePanel();
+    addon.ObjectiveTracker:FullUpdate();
   end
 end
 
@@ -1432,6 +1444,7 @@ function GatherPanel_TrackItem(item)
   GatherPanel_UpdateItems(false);
   GatherPanel_UpdatePanel();
   GatherPanel_ReloadTracker();
+  addon.ObjectiveTracker:FullUpdate();
 end
 
 ---@param item Item

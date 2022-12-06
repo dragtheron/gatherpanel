@@ -56,7 +56,23 @@
     "ShowAppropriateDialog",
     "Professions",
     "C_TradeSkillUI",
-    "CreateAtlasMarkup"
+    "CreateAtlasMarkup",
+    "ObjectiveTrackerBlocksFrame",
+    "ObjectiveTracker_GetModuleInfoTable",
+    "ContinuableContainer",
+    "Item",
+    "OBJECTIVE_DASH_STYLE_SHOW",
+    "OBJECTIVE_DASH_STYLE_HIDE",
+    "LINE_TYPE_ANIM",
+    "OBJECTIVE_TRACKER_COLOR",
+    "ObjectiveTracker_AddBlock",
+    "ObjectiveTracker_Update",
+    "ObjectiveTracker_Initialize",
+    "ObjectiveTrackerFrame",
+    "hooksecurefunc"
   ],
   "Lua.runtime.version": "Lua 5.1",
+  "Lua.diagnostics.disable": [
+    "unused-function"
+  ],
 }
