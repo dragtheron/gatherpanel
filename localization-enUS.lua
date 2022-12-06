@@ -1,5 +1,6 @@
 local _, L = ...;
 L.T["ADD_ITEM"] = "Add Item";
+L.T["ALL_TRACKED_IN_GROUP_COMPLETE"] = "Everything Collected";
 L.T["CHANGE_NAME"] = "Change Name";
 L.T["COMBINED"] = "Combined";
 L.T["COUNT_FORMAT_PERCENT"] = "Percentage";
@@ -37,6 +38,7 @@ L.T["SETTINGS"] = "Settings";
 L.T["SHOW_TRACKER_OVERLAY"] = "Show Tracker Overlay";
 L.T["SHOW_IN_TRACKER"] = "Show in Tracker Overlay";
 L.T["SHOW_OBJECTIVE_NOTIFICATION"] = "Show Progress as Objective Text";
+L.T["SHOW_OBJECTIVE_TRACKER"] = "Show Tracked Items in Quest Tracker";
 L.T["STOCK_COUNT_FORMAT"] = "Stock Count Format";
 L.T["STOCK_LEVEL"] = "Stock Level";
 L.T["TOGGLE_TRACKER"] = "Toggle Tracker Overlay";

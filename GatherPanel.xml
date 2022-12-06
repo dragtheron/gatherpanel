@@ -6,11 +6,10 @@
       <Anchor point="CENTER" />
     </Anchors>
     <Frames>
-      <Frame parentKey="Context" name="$parentContext" inherits="UIDropDownMenuTemplate" setAllPoints="true" hidden="true"></Frame>
       <StatusBar parentKey="Bar" drawLayer="BACKGROUND" minValue="0" maxValue="100" defaultValue="50">
         <Size x="191" y="17" />
         <Anchors>
-          <Anchor point="LEFT" x="10" y="0" />
+          <Anchor point="LEFT" x="0" y="0" />
         </Anchors>
         <Layers>
           <Layer level="ARTWORK">
@@ -196,7 +195,6 @@
     </Layers>
 
     <Frames>
-      <Frame parentKey="Context" name="$parentContext" inherits="UIDropDownMenuTemplate" setAllPoints="true" hidden="true"></Frame>
       <CheckButton name="$parentTrackerCheck" parentKey="TrackerCheck" inherits="UICheckButtonTemplate">
         <Size x="26" y="26" />
         <Anchors>
@@ -395,11 +393,6 @@
       </Button>
       <Frame name="GatherPanel_Panel1" setAllPoints="true" enableMouse="true" useParentLevel="true">
         <Frames>
-          <Frame name="GatherPanel_ItemlistSelection" inherits="UIDropDownMenuTemplate">
-            <Anchors>
-              <Anchor point="TOPLEFT" x="50" y="-26" />
-            </Anchors>
-          </Frame>
           <Frame name="GatherFrame" setAllPoints="true" enableMouse="true" useParentLevel="true" id="2">
             <Layers>
               <Layer level="ARTWORK">
@@ -423,12 +416,6 @@
                   <Anchor point="TOPLEFT" x="6" y="-80" />
                 </Anchors>
                 <Frames>
-                  <!-- Buttons inserted via Lua -->
-                  <Button name="GatherBar1" inherits="GatherBarTemplate">
-                    <Anchors>
-                      <Anchor point="TOPRIGHT" x="-10" y="-6" />
-                    </Anchors>
-                  </Button>
                   <ScrollFrame name="GatherFrameScrollFrame" inherits="FauxScrollFrameTemplate">
                     <Anchors>
                       <Anchor point="TOPLEFT" relativeKey="$parent.Inset" x="0" y="-4" />
@@ -624,25 +611,6 @@
                   </OnLoad>
                 </Scripts>
               </EditBox>
-              <Frame parentKey="ParentDropDown" inherits="UIDropDownMenuTemplate">
-                <Layers>
-                  <Layer level="ARTWORK">
-                    <FontString inherits="GameFontNormal" parentKey="Label" text="Group">
-                      <Anchors>
-                        <Anchor point="BOTTOMLEFT" relativePoint="TOPLEFT" x="13" y="0" />
-                      </Anchors>
-                    </FontString>
-                  </Layer>
-                </Layers>
-                <Anchors>
-                  <Anchor point="TOPLEFT" relativeKey="$parent.MinQuantityInput" relativePoint="BOTTOMLEFT" x="-22" y="-17" />
-                </Anchors>
-                <Scripts>
-                  <OnLoad>
-                    self.Label:SetText(GATHERPANEL_T["GROUP"]);
-                  </OnLoad>
-                </Scripts>
-              </Frame>
               <Button name="ItemDetailDeleteButton" inherits="StaticPopupButtonTemplate">
                 <Size x="130" y="22" />
                 <Anchors>
@@ -767,25 +735,6 @@
                   </OnLoad>
                 </Scripts>
               </EditBox>
-              <Frame parentKey="ParentDropDown" inherits="UIDropDownMenuTemplate">
-                <Layers>
-                  <Layer level="ARTWORK">
-                    <FontString name="GatherPanel_Label_ItemId" parentKey="Label" inherits="GameFontNormalSmall" text="Group">
-                      <Anchors>
-                        <Anchor point="BOTTOMLEFT" relativePoint="TOPLEFT" x="20" y="0" />
-                      </Anchors>
-                    </FontString>
-                  </Layer>
-                </Layers>
-                <Anchors>
-                  <Anchor point="TOPLEFT" relativeTo="$parentMinQuantityInput" relativePoint="BOTTOMLEFT" x="-20" y="-16" />
-                </Anchors>
-                <Scripts>
-                  <OnLoad>
-                    self.Label:SetText(GATHERPANEL_T["GROUP"]);
-                  </OnLoad>
-                </Scripts>
-              </Frame>
               <Button name="GatherPanel_NewItem_CreateButton" parentKey="CreateButton" inherits="StaticPopupButtonTemplate">
                 <Size x="175" y="22" />
                 <Anchors>
@@ -800,9 +749,6 @@
               </Button>
               <Button name="GatherPanel_NewGroup_CreateButton" parentKey="CreateGroupButton" inherits="StaticPopupButtonTemplate">
                 <Size x="165" y="22" />
-                <Anchors>
-                  <Anchor point="LEFT" relativeKey="$parent.ParentDropDown" relativePoint="RIGHT" x="0" y="0" />
-                </Anchors>
                 <Scripts>
                   <OnLoad>
                     self:SetText(GATHERPANEL_T["CREATE_GROUP"]);
@@ -862,13 +808,6 @@
     <Anchors>
       <Anchor point="CENTER" />
     </Anchors>
-    <Frames>
-      <Frame name="GatherPanel_Tracker1" inherits="GatherPanel_Tracker_Template" hidden="true">
-        <Anchors>
-          <Anchor point="TOPLEFT" x="0" y="0" />
-        </Anchors>
-      </Frame>
-    </Frames>
     <Scripts>
       <OnLoad>
         self:RegisterForDrag("LeftButton");

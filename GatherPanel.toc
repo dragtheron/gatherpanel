@@ -12,12 +12,13 @@
 ## SavedVariables: GATHERPANEL_ITEMS, GATHERPANEL_ITEMLISTS, GATHERPANEL_VERSION, GATHERPANEL_VARIABLES_GLOBAL
 ## SavedVariablesPerCharacter: GATHERPANEL_ALL_CHARACTERS, GATHERPANEL_TRACKER_VISIBLE, GATHERPANEL_ITEMS_CHARACTER, GATHERPANEL_ITEM_LIST_SELECTION, GATHERPANEL_VARIABLES_USER,
 
-## OptionalDeps: Altoholic, DataStore, DataStore_Containers
+## OptionalDeps: Altoholic, DataStore, DataStore_Containers, LibStub, !LibUIDropDownMenu
 
 # Development Stuff
 helpers.lua
 
 # Initialization
+Libs\Libs.xml
 init.lua
 Variables.lua
 

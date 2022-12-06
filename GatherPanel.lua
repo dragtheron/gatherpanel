@@ -1,5 +1,6 @@
 local addonName, addon = ...;
 
+local LibDD = LibStub:GetLibrary("LibUIDropDownMenu-4.0");
 local L = addon;
 
 -- Testing Types
@@ -40,7 +41,7 @@ local ITEM_TYPE = {
 GATHERPANEL_ITEMBAR_HEIGHT = 26;
 GATHERPANEL_NUM_ITEMS_DISPLAYED = 15;
 GATHERPANEL_NUM_TRACKERS_ENABLED = 0;
-GATHERPANEL_NUM_TRACKERS_CREATED = 1;
+GATHERPANEL_NUM_TRACKERS_CREATED = 0;
 GATHERPANEL_LOADED = false;
 
 GATHERPANEL_DEFAULT_GROUP_COLLAPSED = false;
@@ -350,12 +351,12 @@ local function SetParent(self, parentId)
   local parent = getItemlist()[parentId];
   if parent then
     GatherPanel_Panel2.Inset.ParentDropDown.parentId = parentId;
-    UIDropDownMenu_SetText(GatherPanel_Panel2.Inset.ParentDropDown, parent.name);
+    LibDD:UIDropDownMenu_SetText(GatherPanel_Panel2.Inset.ParentDropDown, parent.name);
   else
     GatherPanel_Panel2.Inset.ParentDropDown.parentId = 0;
-    UIDropDownMenu_SetText(GatherPanel_Panel2.Inset.ParentDropDown, defaultGroup.name);
+    LibDD:UIDropDownMenu_SetText(GatherPanel_Panel2.Inset.ParentDropDown, defaultGroup.name);
   end
-  UIDropDownMenu_SetWidth(GatherPanel_Panel2.Inset.ParentDropDown, 120);
+  LibDD:UIDropDownMenu_SetWidth(GatherPanel_Panel2.Inset.ParentDropDown, 120);
 end
 
 local function SelectItemlist(self, itemListId)
@@ -378,11 +379,11 @@ local function SelectItemlist(self, itemListId)
   end
   local realm, characterName = decodeItemListId(GATHERPANEL_ITEM_LIST_SELECTION);
   if GATHERPANEL_ITEM_LIST_SELECTION == GetItemlistId("X-Internal", "Combined") then
-    UIDropDownMenu_SetText(GatherPanel_ItemlistSelection, L.T["COMBINED"]);
+    LibDD:UIDropDownMenu_SetText(GatherPanel_Panel1.ListSelection, L.T["COMBINED"]);
   else
-    UIDropDownMenu_SetText(GatherPanel_ItemlistSelection, characterName);
+    LibDD:UIDropDownMenu_SetText(GatherPanel_Panel1.ListSelection, characterName);
   end
-  CloseDropDownMenus();
+  LibDD:CloseDropDownMenus();
   GatherPanel_InitializeSortedItemList();
   GatherPanel_ReloadTracker();
   GatherPanel_UpdateItems(false);
@@ -432,36 +433,36 @@ end
 
 
 local function initDropdownOptions_TrackerBarContext(frame)
-  local info = UIDropDownMenu_CreateInfo();
+  local info = LibDD:UIDropDownMenu_CreateInfo();
   info.text = L.T["UNTRACK"];
   info.func = trackItem;
   info.notCheckable = true;
   ---@type Item
   info.arg1 = frame:GetParent().item;
-  UIDropDownMenu_AddButton(info);
+  LibDD:UIDropDownMenu_AddButton(info);
 end
 
 
 local function initDropdownOptions_GroupEdit(frame)
-  local info = UIDropDownMenu_CreateInfo();
+  local info = LibDD:UIDropDownMenu_CreateInfo();
   info.text = L.T["CHANGE_NAME"];
   info.func = group_ShowEditPopup;
   ---@type Item
   info.arg1 = frame:GetParent().item;
   info.notCheckable = true;
-  UIDropDownMenu_AddButton(info);
-  info = UIDropDownMenu_CreateInfo();
+  LibDD:UIDropDownMenu_AddButton(info);
+  info = LibDD:UIDropDownMenu_CreateInfo();
   info.text = L.T["REMOVE_GROUP"];
   info.func = GatherPanel_Context_ItemDelete;
   info.notCheckable = true;
   ---@type integer
   info.arg1 = frame:GetParent().itemKey;
-  UIDropDownMenu_AddButton(info);
+  LibDD:UIDropDownMenu_AddButton(info);
 end
 
 
 local function InitParentSelectionOptions_DetailFrame(_)
-  local defaultGroupInfo = UIDropDownMenu_CreateInfo();
+  local defaultGroupInfo = LibDD:UIDropDownMenu_CreateInfo();
   defaultGroupInfo.text = defaultGroup.name;
   defaultGroupInfo.isNotRadio = false;
   defaultGroupInfo.func = SelectParentGroup;
@@ -471,10 +472,10 @@ local function InitParentSelectionOptions_DetailFrame(_)
   else
     defaultGroupInfo.checked = nil;
   end
-  UIDropDownMenu_AddButton(defaultGroupInfo);
+  LibDD:UIDropDownMenu_AddButton(defaultGroupInfo);
 
   for itemId, item in iterSortedItemList() do
-    local info = UIDropDownMenu_CreateInfo();
+    local info = LibDD:UIDropDownMenu_CreateInfo();
     if item.type == "GROUP" then
       info.text = item.name;
       info.isNotRadio = false;
@@ -485,14 +486,14 @@ local function InitParentSelectionOptions_DetailFrame(_)
       else
         info.checked = nil;
       end
-      UIDropDownMenu_AddButton(info);
+      LibDD:UIDropDownMenu_AddButton(info);
     end
   end
 end
 
 
 local function InitParentSelectionOptions_CreateFrame(_)
-  local defaultGroupInfo = UIDropDownMenu_CreateInfo();
+  local defaultGroupInfo = LibDD:UIDropDownMenu_CreateInfo();
   defaultGroupInfo.text = defaultGroup.name;
   defaultGroupInfo.isNotRadio = false;
   defaultGroupInfo.func = SetParent;
@@ -502,9 +503,9 @@ local function InitParentSelectionOptions_CreateFrame(_)
   else
     defaultGroupInfo.checked = nil;
   end
-  UIDropDownMenu_AddButton(defaultGroupInfo);
+  LibDD:UIDropDownMenu_AddButton(defaultGroupInfo);
   for itemId, item in iterSortedItemList() do
-    local info = UIDropDownMenu_CreateInfo();
+    local info = LibDD:UIDropDownMenu_CreateInfo();
     if item.type == "GROUP" then
       info.text = item.name;
       info.isNotRadio = false;
@@ -515,14 +516,14 @@ local function InitParentSelectionOptions_CreateFrame(_)
       else
         info.checked = nil;
       end
-      UIDropDownMenu_AddButton(info);
+      LibDD:UIDropDownMenu_AddButton(info);
     end
   end
 end
 
 
 local function InitListOptions(_)
-  local info = UIDropDownMenu_CreateInfo();
+  local info = LibDD:UIDropDownMenu_CreateInfo();
   info.keepShownOnClick = 1;
 
   info.text = L.T["COMBINED"];
@@ -536,7 +537,7 @@ local function InitListOptions(_)
   else
     info.checked = nil;
   end
-  UIDropDownMenu_AddButton(info);
+  LibDD:UIDropDownMenu_AddButton(info);
 
   for realm, characterTable in pairs(GATHERPANEL_ITEMLISTS) do
     if realm == GetRealmName() then
@@ -558,7 +559,7 @@ local function InitListOptions(_)
         else
           info.checked = nil;
         end
-        UIDropDownMenu_AddButton(info);
+        LibDD:UIDropDownMenu_AddButton(info);
       end
     end
   end
@@ -622,10 +623,17 @@ function GatherPanel_OnLoad(frame)
 
   local container = _G["GatherPanelInset"];
   for i = 1, GATHERPANEL_NUM_ITEMS_DISPLAYED, 1 do
-    if (i ~= 1) then
-      local bar = CreateFrame("Button", "GatherBar" .. i, container, "GatherBarTemplate");
+
+    local bar = CreateFrame("Button", "GatherBar" .. i, container, "GatherBarTemplate");
+    bar.Context = LibDD:Create_UIDropDownMenu(nil, bar);
+    bar.Context:SetAllPoints();
+    bar.Context:Hide();
+    if i == 1 then
+      bar:SetPoint("TOPRIGHT", -10, -6);
+    else
       bar:SetPoint("TOPRIGHT", "GatherBar" .. (i - 1), "BOTTOMRIGHT", 0, -3);
     end
+
     _G["GatherBar" .. i].id = i;
     _G["GatherBar" .. i]:SetPoint("LEFT", "GatherPanelInset", "LEFT", 10, 0);
     _G["GatherBar" .. i .. "ItemName"]:SetPoint("LEFT", "GatherBar" .. i, "LEFT", 10, 0);
@@ -637,6 +645,22 @@ function GatherPanel_OnLoad(frame)
 
   PanelTemplates_SetNumTabs(_G['GatherPanel'], 2);
   PanelTemplates_SetTab(_G['GatherPanel'], 1);
+
+  ItemDetailFrame.ParentDropDown = LibDD:Create_UIDropDownMenu(nil, ItemDetailFrame);
+  ItemDetailFrame.ParentDropDown:SetPoint("TOPLEFT", ItemDetailFrame.MinQuantityInput, "BOTTOMLEFT", -22, -17);
+  ItemDetailFrame.ParentDropDown.Label = ItemDetailFrame.ParentDropDown:CreateFontString(nil, "ARTWORK", "GameFontNormal");
+  ItemDetailFrame.ParentDropDown.Label:SetText(addon.T["GROUP"]);
+  ItemDetailFrame.ParentDropDown.Label:SetPoint("BOTTOMLEFT", ItemDetailFrame.ParentDropDown, "TOPLEFT", 13, 0);
+
+  GatherPanel_Panel1.ListSelection = LibDD:Create_UIDropDownMenu(nil, GatherPanel_Panel1);
+  GatherPanel_Panel1.ListSelection:SetPoint("TOPLEFT", GatherPanel_Panel1, 50, -26);
+
+  GatherPanel_Panel2.Inset.ParentDropDown = LibDD:Create_UIDropDownMenu(nil, GatherPanel_Panel2.Inset);
+  GatherPanel_Panel2.Inset.ParentDropDown:SetPoint("TOPLEFT", GatherPanel_Panel2.Inset.MinQuantityInput, "BOTTOMLEFT", -20, -16);
+  GatherPanel_Panel2.Inset.ParentDropDown.Label = GatherPanel_Panel2.Inset.ParentDropDown:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall");
+  GatherPanel_Panel2.Inset.ParentDropDown.Label:SetText(addon.T["GROUP"]);
+  GatherPanel_Panel2.Inset.ParentDropDown.Label:SetPoint("BOTTOMLEFT", GatherPanel_Panel2.Inset.ParentDropDown, "TOPLEFT", 20, 0);
+
 end
 
 function GatherPanel_InitializeSortedItemList()
@@ -750,9 +774,11 @@ function GatherPanel_UpdateItems(animate)
         addon.ObjectiveTracker:UpdateItem(item);
       end
 
-      local collectedSomething = item.itemCount ~= item.itemCountTmp;
+      local collectedSomething = item.itemCount ~= item.itemCountTmp
+        and item.itemCount > item.itemCountTmp;
+
       if collectedSomething and item.itemCountTmp < item.goal then
-        if item.itemCount == item.goal then
+        if item.itemCount >= item.goal then
           addon.ObjectiveMessage:Add(addon.T["GATHERING_OBJECTIVE_COMPLETE"]);
         end
 
@@ -803,7 +829,7 @@ local function renderItemGroup(itemRow, group, level, initDropdowns)
   itemRow:SetPoint("LEFT", "GatherPanelInset", "LEFT", 46 * level, 0);
 
   if initDropdowns and itemRow.item ~= nil then
-    UIDropDownMenu_Initialize(itemRow.Context, initDropdownOptions_GroupEdit, "MENU");
+    LibDD:UIDropDownMenu_Initialize(itemRow.Context, initDropdownOptions_GroupEdit, "MENU");
   end
 
   if (itemRow.hovered) then
@@ -1258,13 +1284,15 @@ function GatherPanel_OnEvent(event)
     --TODO: Initialize them in XML or somewhere where it is not
     -- necessary to use injected global variables from frame names.
 
-    UIDropDownMenu_Initialize(GatherPanel_ItemlistSelection, InitListOptions);
-    UIDropDownMenu_SetWidth(GatherPanel_ItemlistSelection, 120);
-    UIDropDownMenu_Initialize(ItemDetailFrame.ParentDropDown, InitParentSelectionOptions_DetailFrame);
-    UIDropDownMenu_SetWidth(ItemDetailFrame.ParentDropDown, 120);
-    UIDropDownMenu_Initialize(GatherPanel_Panel2.Inset.ParentDropDown, InitParentSelectionOptions_CreateFrame);
-    UIDropDownMenu_SetText(GatherPanel_Panel2.Inset.ParentDropDown, defaultGroup.name);
-    UIDropDownMenu_SetWidth(GatherPanel_Panel2.Inset.ParentDropDown, 120);
+    LibDD:UIDropDownMenu_Initialize(GatherPanel_Panel1.ListSelection, InitListOptions);
+    LibDD:UIDropDownMenu_SetWidth(GatherPanel_Panel1.ListSelection, 120);
+    LibDD:UIDropDownMenu_Initialize(ItemDetailFrame.ParentDropDown, InitParentSelectionOptions_DetailFrame);
+    -- LibDD:UIDropDownMenu_SetWidth(ItemDetailFrame.ParentDropDown, 120);
+    LibDD:UIDropDownMenu_Initialize(GatherPanel_Panel2.Inset.ParentDropDown, InitParentSelectionOptions_CreateFrame);
+    LibDD:UIDropDownMenu_SetText(GatherPanel_Panel2.Inset.ParentDropDown, defaultGroup.name);
+    LibDD:UIDropDownMenu_SetWidth(GatherPanel_Panel2.Inset.ParentDropDown, 120);
+
+    GatherPanel_Panel2.Inset.CreateGroupButton:SetPoint("LEFT", GatherPanel_Panel2.Inset.ParentDropDown, "RIGHT");
 
     -- Run Tracker Update once addon loaded saved variable
     GatherPanel_Tracker_Update();
@@ -1340,7 +1368,7 @@ function GatherPanel_Bar_OnClick(frame, button)
   elseif frame.item and frame.item.type == "GROUP" then
     if button == "RightButton" then
       if frame.itemKey ~= 0 then
-        ToggleDropDownMenu(1, nil, frame.Context);
+        -- ToggleDropDownMenu(1, nil, frame.Context);
       end
     elseif button == "LeftButton" then
       item_ExpandOrCollapse(frame.item);
@@ -1368,11 +1396,11 @@ function GatherPanel_UpdateItemDetails()
     local items = getItemlist();
     local parent = items[frame.item.parent];
     if parent == nil then
-      UIDropDownMenu_SetText(frame.ParentDropDown, defaultGroup.name);
-      UIDropDownMenu_SetWidth(frame.ParentDropDown, 120);
+      LibDD:UIDropDownMenu_SetText(frame.ParentDropDown, defaultGroup.name);
+      -- LibDD:UIDropDownMenu_SetWidth(frame.ParentDropDown, 120);
     else
-      UIDropDownMenu_SetText(frame.ParentDropDown, parent.name);
-      UIDropDownMenu_SetWidth(frame.ParentDropDown, 120);
+      LibDD:UIDropDownMenu_SetText(frame.ParentDropDown, parent.name);
+      -- LibDD:UIDropDownMenu_SetWidth(frame.ParentDropDown, 120);
     end
   end
 end
@@ -1395,8 +1423,8 @@ function GatherPanel_ReloadTracker()
   table.sort(itemKeys);
 
   -- Reinitialize trackers from item list
-  for i, itemId in ipairs(itemKeys) do
-    local item = items[itemKeys[i]];
+  for _, itemId in ipairs(itemKeys) do
+    local item = items[itemId];
     item.tracker = nil;
     if item.tracked == true then
       GatherPanel_InitItem(item)
@@ -1452,14 +1480,22 @@ function GatherPanel_CreateTrackerForItem(item)
   -- Enable Tracker
   local tracker;
   if (GATHERPANEL_NUM_TRACKERS_ENABLED == GATHERPANEL_NUM_TRACKERS_CREATED) then
-    local tracker = CreateFrame("Frame", "GatherPanel_Tracker" .. GATHERPANEL_NUM_TRACKERS_CREATED + 1, _G["GatherPanel_Tracker"],
-        "GatherPanel_Tracker_Template");
-    tracker:SetPoint("TOPLEFT", "GatherPanel_Tracker" .. GATHERPANEL_NUM_TRACKERS_CREATED, "BOTTOMLEFT", 0, 5);
-    tracker.animValue = nil;
     GATHERPANEL_NUM_TRACKERS_CREATED = GATHERPANEL_NUM_TRACKERS_CREATED + 1;
+    tracker = CreateFrame("Frame", "GatherPanel_Tracker" .. GATHERPANEL_NUM_TRACKERS_CREATED, _G["GatherPanel_Tracker"], "GatherPanel_Tracker_Template");
+    tracker = _G["GatherPanel_Tracker" .. GATHERPANEL_NUM_TRACKERS_CREATED];
+    if GATHERPANEL_NUM_TRACKERS_CREATED == 1 then
+      tracker:SetPoint("TOPLEFT", 0, 0);
+    else
+      tracker:SetPoint("TOPLEFT", "GatherPanel_Tracker" .. GATHERPANEL_NUM_TRACKERS_CREATED - 1, "BOTTOMLEFT", 0, 5);
+    end
+    tracker.animValue = nil;
+    tracker.Context = LibDD:Create_UIDropDownMenu(nil, tracker);
+    tracker.Context:SetAllPoints();
+    tracker.Context:Hide();
   end
   GATHERPANEL_NUM_TRACKERS_ENABLED = GATHERPANEL_NUM_TRACKERS_ENABLED + 1;
   item.tracker = GATHERPANEL_NUM_TRACKERS_ENABLED;
+
   tracker = _G["GatherPanel_Tracker" .. item.tracker];
   tracker.icon = item.itemTexture;
   tracker.item = item;
@@ -1477,7 +1513,7 @@ function GatherPanel_CreateTrackerForItem(item)
   end
   tracker:Show();
   item.tracked = true;
-  UIDropDownMenu_Initialize(tracker.Context, initDropdownOptions_TrackerBarContext, "MENU");
+  LibDD:UIDropDownMenu_Initialize(tracker.Context, initDropdownOptions_TrackerBarContext, "MENU");
 end
 
 function GatherPanel_SetAllCharacters(checked)
@@ -1726,7 +1762,7 @@ end
 
 function GatherPanel_TrackerX_OnMouseUp(self, button)
   if button == "RightButton" then
-    ToggleDropDownMenu(1, nil, self.Context);
+    LibDD:ToggleDropDownMenu(1, nil, self.Context);
   elseif ( IsModifiedClick("CHATLINK") ) then
     if self.item and self.item.type == "ITEM" then
       local itemName, itemLink = GetItemInfo(self.item.id);

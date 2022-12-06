@@ -1,6 +1,7 @@
 local _, L = ...;
 if GetLocale() == "deDE" then
 L.T["ADD_ITEM"] = "Gegenstand hinzufügen";
+L.T["ALL_TRACKED_IN_GROUP_COMPLETE"] = "Alles gesammelt";
 L.T["CHANGE_NAME"] = "Name ändern";
 L.T["COMBINED"] = "Kombiniert";
 L.T["COUNT_FORMAT_PERCENT"] = "Prozent";
@@ -36,6 +37,7 @@ L.T["SETTINGS"] = "Einstellungen";
 L.T["SHOW_TRACKER_OVERLAY"] = "Tracker Overlay anzeigen";
 L.T["SHOW_IN_TRACKER"] = "Im Tracker Overlay anzeigen";
 L.T["SHOW_OBJECTIVE_NOTIFICATION"] = "Fortschrittbenachrichtigung im Questverfolgungsstil";
+L.T["SHOW_OBJECTIVE_TRACKER"] = "In der Questzielverfolgung anzeigen";
 L.T["STOCK_COUNT_FORMAT"] = "Bestandsformat";
 L.T["STOCK_LEVEL"] = "Bestand";
 L.T["TOGGLE_TRACKER"] = "Tracker Overlay ein- oder ausschalten";

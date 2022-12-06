@@ -69,10 +69,26 @@
     "ObjectiveTracker_Update",
     "ObjectiveTracker_Initialize",
     "ObjectiveTrackerFrame",
-    "hooksecurefunc"
+    "hooksecurefunc",
+    "OBJECTIVE_TRACKER_UPDATE_MOVED",
+    "OBJECTIVE_TRACKER_UPDATE_ALL",
+    "band",
+    "ObjectiveTracker_CheckAndHideHeader",
+    "ObjectiveTracker_GetBlockOffset",
+    "OBJECTIVE_TRACKER_HEADER_OFFSET_X",
+    "ObjectiveTracker_ReorderModules",
+    "ObjectiveTracker_UpdatePOIs",
+    "UIParent_ManageFramePositions",
+    "GetScreenWidth",
+    "tInvert",
+    "bit",
+    "min",
+    "GatherPanel_Panel2",
+    "GatherPanel_Panel1"
   ],
   "Lua.runtime.version": "Lua 5.1",
   "Lua.diagnostics.disable": [
-    "unused-function"
+    "unused-function",
+    "empty-block"
   ],
 }

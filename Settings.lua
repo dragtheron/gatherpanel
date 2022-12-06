@@ -1,6 +1,6 @@
 local _, addon = ...;
 local module = addon:RegisterModule("Settings");
-
+local LibDD = LibStub:GetLibrary("LibUIDropDownMenu-4.0");
 
 ---@enum SettingScope
 local SettingScope = {
@@ -97,8 +97,8 @@ end
 local function setDropDown(frame, value)
   frame.value = value;
   local option = getOption(frame.options, frame.value);
-  UIDropDownMenu_SetText(frame, option.text);
-  UIDropDownMenu_SetWidth(frame, 160);
+  LibDD:UIDropDownMenu_SetText(frame, option.text);
+  LibDD:UIDropDownMenu_SetWidth(frame, 160);
 end
 
 
@@ -130,12 +130,12 @@ local function registerDropDownSetting(identifier, scope, frame, defaultVal, opt
         setDropDown(frame, value)
       end
 
-      local info = UIDropDownMenu_CreateInfo();
+      local info = LibDD:UIDropDownMenu_CreateInfo();
       info.text = option.text;
       info.func = onSelect;
       info.notCheckable = true;
       info.arg1 = option.value;
-      UIDropDownMenu_AddButton(info);
+      LibDD:UIDropDownMenu_AddButton(info);
     end
   end
 
@@ -148,7 +148,7 @@ local function registerDropDownSetting(identifier, scope, frame, defaultVal, opt
     frameType = "DropDown"
   }
 
-  UIDropDownMenu_Initialize(frame, initializeOptions);
+  LibDD:UIDropDownMenu_Initialize(frame, initializeOptions);
 
   local value = saveDefaultIfNotSet(identifier, scope, defaultVal);
   frame.options = options;
@@ -157,15 +157,21 @@ end
 
 
 local function registerSettings(frame)
-  registerCheckBoxSetting("includeCurrentCharacter", SettingScope.user, frame.PanelOptions.IncludeCurrentCharacterButton, true);
-  registerCheckBoxSetting("includeAllFromRealm", SettingScope.user, frame.PanelOptions.ShowOfflineButton, false);
-  registerCheckBoxSetting("showObjectiveText", SettingScope.global, frame.PanelOptions.ShowObjectiveText, true);
-  registerCheckBoxSetting("playSounds", SettingScope.global, frame.PanelOptions.PlaySounds, true);
-  registerCheckBoxSetting("trackerVisible", SettingScope.user, frame.TrackerOptions.ShowTrackerButton, true);
-  registerDropDownSetting("panelCountFormat", SettingScope.global, frame.PanelOptions.CountFormat, addon.Variables.const.COUNT_FORMAT.PERCENT, countFormatOptions);
-  registerDropDownSetting("trackerCountFormat", SettingScope.global, frame.TrackerOptions.CountFormat, addon.Variables.const.COUNT_FORMAT.PERCENT, countFormatOptions);
-  registerDropDownSetting("panelProgressFormat", SettingScope.global, frame.PanelOptions.ProgressFormat, addon.Variables.const.PROGRESS_FORMAT.FILL_TO_GOAL, progressFormatOptions);
-  registerDropDownSetting("trackerProgressFormat", SettingScope.global, frame.TrackerOptions.ProgressFormat, addon.Variables.const.PROGRESS_FORMAT.FILL_TO_MAXIMUM, progressFormatOptions);
+  local panelOptionsFrame = frame.ScrollBox.PanelOptions;
+  local trackerOptionsFrame = frame.ScrollBox.TrackerOptions;
+
+  registerCheckBoxSetting("includeCurrentCharacter", SettingScope.user, panelOptionsFrame.IncludeCurrentCharacterButton, true);
+  registerCheckBoxSetting("includeAllFromRealm", SettingScope.user, panelOptionsFrame.ShowOfflineButton, false);
+  registerCheckBoxSetting("showObjectiveText", SettingScope.global, panelOptionsFrame.ShowObjectiveText, true);
+  registerCheckBoxSetting("playSounds", SettingScope.global, panelOptionsFrame.PlaySounds, true);
+  registerCheckBoxSetting("trackerVisible", SettingScope.user, trackerOptionsFrame.ShowTrackerButton, true);
+  registerCheckBoxSetting("showObjectiveTracker", SettingScope.user, trackerOptionsFrame.ShowObjectiveTrackerButton, true);
+
+  registerDropDownSetting("panelCountFormat", SettingScope.global, panelOptionsFrame.CountFormat, addon.Variables.const.COUNT_FORMAT.PERCENT, countFormatOptions);
+  registerDropDownSetting("trackerCountFormat", SettingScope.global, trackerOptionsFrame.CountFormat, addon.Variables.const.COUNT_FORMAT.PERCENT, countFormatOptions);
+  registerDropDownSetting("panelProgressFormat", SettingScope.global, panelOptionsFrame.ProgressFormat, addon.Variables.const.PROGRESS_FORMAT.FILL_TO_GOAL, progressFormatOptions);
+  registerDropDownSetting("trackerProgressFormat", SettingScope.global, trackerOptionsFrame.ProgressFormat, addon.Variables.const.PROGRESS_FORMAT.FILL_TO_MAXIMUM, progressFormatOptions);
+
 end
 
 
@@ -174,6 +180,7 @@ local function apply()
   GatherPanel_UpdateItems(false);
   GatherPanel_Tracker_Update();
   GatherPanel_UpdatePanel();
+  addon.ObjectiveTracker:FullUpdate();
 end
 
 
@@ -217,12 +224,44 @@ local function setDefault(setting)
 end
 
 
-
 local frame = CreateFrame("Frame", nil, nil, "GatherPanel_Settings_FrameTemplate");
 frame.DefaultsButton:SetText(SETTINGS_DEFAULTS);
 frame.DefaultsButton:SetScript("OnClick", function(button, buttonName, down)
   ShowAppropriateDialog("GAME_SETTINGS_APPLY_DEFAULTS");
 end);
+
+local function createDropDownWithLabel(parentFrame, labelText)
+  local dropDownFrame = LibDD:Create_UIDropDownMenu(nil, parentFrame);
+  dropDownFrame.Label = dropDownFrame:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall");
+  dropDownFrame.Label:SetText(labelText);
+  dropDownFrame.Label:SetPoint("BOTTOMLEFT", dropDownFrame, "TOPLEFT", 20, 0);
+  return dropDownFrame;
+end
+
+function frame:CreatePanelOptionsDropDowns()
+  local sectionFrame = self.ScrollBox.PanelOptions;
+
+  sectionFrame.CountFormat = createDropDownWithLabel(sectionFrame, addon.T["STOCK_COUNT_FORMAT"]);
+  sectionFrame.CountFormat:SetPoint("TOPLEFT", sectionFrame.PlaySounds, "BOTTOMLEFT", -12, -17);
+
+  sectionFrame.ProgressFormat = createDropDownWithLabel(sectionFrame, addon.T["PROGRESS_TYPE"]);
+  sectionFrame.ProgressFormat:SetPoint("TOPLEFT", sectionFrame.CountFormat, "TOPRIGHT", 60, 0);
+end
+
+function frame:CreateTrackerOptionsDropDowns()
+  local sectionFrame = self.ScrollBox.TrackerOptions;
+
+  sectionFrame.CountFormat = createDropDownWithLabel(sectionFrame, addon.T["STOCK_COUNT_FORMAT"]);
+  sectionFrame.CountFormat:SetPoint("TOPLEFT", sectionFrame.ShowObjectiveTrackerButton, "BOTTOMLEFT", -12, -17);
+
+  sectionFrame.ProgressFormat = createDropDownWithLabel(sectionFrame, addon.T["PROGRESS_TYPE"]);
+  sectionFrame.ProgressFormat:SetPoint("TOPLEFT", sectionFrame.CountFormat, "TOPRIGHT", 60, 0);
+end
+
+frame:CreatePanelOptionsDropDowns();
+frame:CreateTrackerOptionsDropDowns();
+
+
 
 function frame:OnCommit()
   for _, setting in pairs(settings) do

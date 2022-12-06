@@ -1,5 +1,22 @@
 package-as: GatherPanel
 
-manual-changelog: CHANGELOG.md
+manual-changelog:
+    filename: CHANGELOG.md
+    markup-type: markdown
+
+enable-nolib-creation: no
+
+externals:
+    Libs-release/LibStub:
+        url: svn://svn.wowace.com/wow/libstub/mainline/trunk
+    Libs-release/LibUIDropDownMenu:
+        url: https://repos.wowace.com/wow/libuidropdownmenu/trunk/LibUIDropDownMenu
+
+move-folders:
+    GatherPanel/Libs: Accountant_Classic/Libs-dev
+    GatherPanel/Libs-release: Accountant_Classic/Libs
+
+ignore:
+    - Libs-dev
 
 license-output: LICENSE

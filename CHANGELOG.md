@@ -2,6 +2,26 @@
 
 ---
 
+## 2.5.0-alpha1 (December 7, 2022)
+
+This release marks a Beta candidate.
+
+### [ADDED] New Setting to Toggle Objective Tracker
+
+You can now choose wether you want your tracked entries be displayed in Blizzard's Objective Tracker or not.
+
+### [FIXED] DropDown Tainting Errors
+
+Resolved tainting errors caused by using Blizzard's DropDown code.
+
+### [FIXED] Textual Progress Notifications
+
+Textual objective notifications now occur only if the respective quantity increases.
+
+### [FIXED] Quest Objective Tracker Tainting Errors
+
+Resolved tainting erros when using the new Objective Tracker display method for tracked entries.
+
 ## 2.5.0-alpha0 (December 6, 2022)
 
 ### [ADDED] Profession Quality
@@ -13,21 +33,9 @@ appropriate icon you got familiar with by Blizzard default.
 
 In addition to the movable tracker bars, tracked item now are displayed in Blizzard's objective tracker.
 
-**Please note these known issues:**
-
-- Due to the way this feature currently is implemented, trying to change the interface using Blizzard's new
-  Edit Mode will fail in a Lua error. Until this issue gets resolved, that will be delivered as Alpha release only.
-- Once you complete such an Gather Panel objective, there is no "swoosh" animation yet.
-- Completely fulfilled groups will not collapse in a "all completed"(like the "turn in quest" one) yet.
-
 ### [CHANGED] Item Ordering
 
 Items in the Panel are now sorted by item quality, then by name and then by profession quality.
-
-### Other known issues to be resolved in the next stable release
-
-- The textual notifications for progress on tracked items (introduced in version 2.4.0) displays decreased item counts
-  too, as it notifies the current counts after each reload. The notification should only inform increasing counters.
 
 ---
 
