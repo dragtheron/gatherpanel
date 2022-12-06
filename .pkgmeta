@@ -8,15 +8,17 @@ enable-nolib-creation: no
 
 externals:
     Libs-release/LibStub:
-        url: svn://svn.wowace.com/wow/libstub/mainline/trunk
+        url: https://repos.wowace.com/wow/libstub/trunk
     Libs-release/LibUIDropDownMenu:
         url: https://repos.wowace.com/wow/libuidropdownmenu/trunk/LibUIDropDownMenu
 
 move-folders:
-    GatherPanel/Libs: Accountant_Classic/Libs-dev
-    GatherPanel/Libs-release: Accountant_Classic/Libs
+    GatherPanel/Libs: GatherPanel/Libs-dev
+    GatherPanel/Libs-release: GatherPanel/Libs
 
 ignore:
     - Libs-dev
+    - .editorconfig
+    - .vscode
 
 license-output: LICENSE

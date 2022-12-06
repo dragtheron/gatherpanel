@@ -1,301 +1,253 @@
-# Change Log
+Known Issues
+============
 
----
+- Completing a tracked objective does not show the usual "swoosh" animation in the Objective Tracker.
 
-## 2.5.0-alpha1 (December 7, 2022)
+Change Log
+==========
+
+2.5.0-alpha1 (December 7, 2022)
+-------------------------------
 
 This release marks a Beta candidate.
 
-### [ADDED] New Setting to Toggle Objective Tracker
+[ADDED] New Setting to Toggle Objective Tracker
+- You can now choose wether you want your tracked entries be displayed in Blizzard's Objective Tracker or not.
 
-You can now choose wether you want your tracked entries be displayed in Blizzard's Objective Tracker or not.
+[FIXED] DropDown Tainting Errors
+- Resolved tainting errors caused by using Blizzard's DropDown code.
 
-### [FIXED] DropDown Tainting Errors
+[FIXED] Textual Progress Notifications
+- Textual objective notifications now occur only if the respective quantity increases.
 
-Resolved tainting errors caused by using Blizzard's DropDown code.
+[FIXED] Quest Objective Tracker Tainting Errors
+- Resolved tainting erros when using the new Objective Tracker display method for tracked entries.
 
-### [FIXED] Textual Progress Notifications
+2.5.0-alpha0 (December 6, 2022)
+-------------------------------
 
-Textual objective notifications now occur only if the respective quantity increases.
+[ADDED] Profession Quality
+- The profession quality now will be displayed beneath the name using its appropriate icon you got familiar with by
+  Blizzard default.
 
-### [FIXED] Quest Objective Tracker Tainting Errors
+[ADDED] Quest-like Objective Tracker
+- In addition to the movable tracker bars, tracked item now are displayed in Blizzard's objective tracker.
 
-Resolved tainting erros when using the new Objective Tracker display method for tracked entries.
-
-## 2.5.0-alpha0 (December 6, 2022)
-
-### [ADDED] Profession Quality
-
-The profession quality now will be displayed beneath the name using its
-appropriate icon you got familiar with by Blizzard default.
-
-### [ADDED] Quest-like Objective Tracker
-
-In addition to the movable tracker bars, tracked item now are displayed in Blizzard's objective tracker.
-
-### [CHANGED] Item Ordering
-
-Items in the Panel are now sorted by item quality, then by name and then by profession quality.
+[CHANGED] Item Ordering
+- Items in the Panel are now sorted by item quality, then by name and then by profession quality.
 
 ---
 
-## 2.4.1 (November 20, 2022)
+2.4.1 (November 20, 2022)
+-------------------------
 
-### [FIXED] Minimap Button Click Error
+[FIXED] Minimap Button Click Error
+- Fixed an issue when clicking the minimap icon.
 
-Fixed an issue when clicking the minimap icon.
+2.4.0 (November 17, 2022)
+-------------------------
 
-## 2.4.0 (November 17, 2022)
+[ADDED] Settings Page in Game Settings
+- Gather Panel's settings are now available via the Interface Options -> Addons page.
+- The former settings tab in the Gather Panel itself is now gone.
+- Every setting comes with a default setting you can load via the new "Default" button.
+- Additionally, you can reach the settings directly using the new slash command:
 
-### [ADDED] Settings Page in Game Settings
+      /gp options
 
-Gather Panel's settings are now available via the Interface Options -> Addons page.
-The former settings tab in the Gather Panel itself is now gone.
-Every setting comes with a default setting you can load via the new "Default" button.
+[ADDED] New Setting: Play Sounds
+- You can now choose wether you like to hear sounds in these situations at once:
+  - tracking an item
+  - untracking an item
+  - reaching the item collect goal
 
-Additionally, you can reach the settings directly using the new slash command:
+[ADDED] Quest-like Progress Notification
+- There is now a textual notification when you collect new items you are currently tracking.
+- You can disable this notification in the settings.
 
-    /gp options
+[CHANGED] Dragonflight Support
+- With the release of Dragonflight, the UI base changed and so Gather Panel now uses the brand-new UI elements.
 
-### [ADDED] New Setting: Play Sounds
+[FIXED] Settings Storage and Defaults
+- Settings are now stored properly in the user storage and defaults now only replace values which were not available
+  before (i.e. don't override `false` anymore).
 
-You can now choose wether you like to hear sounds in these situations at once:
+[FIXED] Item Group Selections
+- The detail window besides Gather Panel (which opens when you click on an item) now shows the currently assigned group
+  for that item without overflowing the dropdown menu frame.
+- The currently selected option gets now marked as selected in the option list.
+- This behavior has been applied to the panel where you can add new items, too, and the character selection.
+- Additionally, when you reassign an item to a new group, that group's name in the dropdown menu button gets refreshed
+  immediately.
 
-- tracking an item
-- untracking an item
-- reaching the item collect goal
+[FIXED] Item Group Ordering
+- The options in the item group selection drop down are now ordered alphabetically, just as they are in the item
+  listings.
 
-### [ADDED] Quest-like Progress Notification
+[FIXED] Single Item
+- If you happen to have only one item in your list, that is now visible, even in this case.
 
-There is now a textual notification when you collect new items you are currently tracking.
-You can disable this notification in the settings.
-
-### [CHANGED] Dragonflight Support
-
-With the release of Dragonflight, the UI base changed and so Gather Panel now uses the
-brand-new UI elements.
-
-### [FIXED] Settings Storage and Defaults
-
-Settings are now stored properly in the user storage and defaults now only
-replace values which were not available before (i.e. don't override `false`
-anymore).
-
-### [FIXED] Item Group Selections
-
-The detail window besides Gather Panel (which opens when you click on an item) now shows
-the currently assigned group for that item without overflowing the dropdown menu frame.
-
-Also, the currently selected option gets now marked as selected in the option list.
-This behavior has been applied to the panel where you can add new items, too, and
-the character selection.
-
-Additionally, when you reassign an item to a new group, that group's name in the dropdown
-menu button gets refreshed immediately.
-
-### [FIXED] Item Group Ordering
-
-The options in the item group selection drop down are now ordered alphabetically, just as
-they are in the item listings.
-
-### [FIXED] Single Item
-
-If you happen to have only one item in your list, that is now visible, even in this case.
-
-### [REMOVED] Settings Tab
-
-The settings tab has moved into the game settings.
+[REMOVED] Settings Tab
+- The settings tab has moved into the game settings.
 
 ---
 
-## 2.3.0-beta0 (January 19, 2022)
+2.3.0-beta0 (January 19, 2022)
+------------------------------
 
-### [CHANGED] Alphabetical Group Sorting
-
-Groups are now ordered according to their name alphabetically.
-
----
-
-## 2.2.0 (January 16, 2022)
-
-### [ADDED] Keybinds and Minimap Button
-
-In addition to the chat commands, you can now toggle the tracker overlay and the panel frame
-via keybinds ("other" section) or the new minimap button.
-Regarding the minimap button: Use the left mouse button to toggle the panel and the right button
-to toggle the tracker overlay.
+[CHANGED] Alphabetical Group Sorting
+- Groups are now ordered according to their name alphabetically.
 
 ---
 
-## 2.1.5 (January 13, 2022)
+2.2.0 (January 16, 2022)
+------------------------
 
-### [FIXED] Item Names After Locale Change
+[ADDED] Keybinds and Minimap Button
 
-Item information are now being updated after a locale change as intended.
-
----
-
-## 2.1.4 (December 18, 2021)
-
-### [FIXED] Add Item: Minimum Amount Label
-
-This label is now properly named.
+- In addition to the chat commands, you can now toggle the tracker overlay and the panel frame via keybinds ("other"
+  section) or the new minimap button.
+- Regarding the minimap button: Use the left mouse button to toggle the panel and the right button to toggle the tracker
+  overlay.
 
 ---
 
-## 2.1.2 (December 16, 2021)
+2.1.5 (January 13, 2022)
+------------------------
 
-### [FIXED] Empty Tracker Relic
+[FIXED] Item Names After Locale Change
+- Item information are now being updated after a locale change as intended.
 
-An empty Tracker will now be removed from the HUD so it no longer prevents interactions in its invisible state.
+2.1.4 (December 18, 2021)
+-------------------------
 
----
+[FIXED] Add Item: Minimum Amount Label
+- This label is now properly named.
 
-## 2.1.0 (November 10, 2021)
+2.1.2 (December 16, 2021)
+-------------------------
 
-### [ADDED] Localization for deDE and enUS
+[FIXED] Empty Tracker Relic
+- An empty Tracker will now be removed from the HUD so it no longer prevents interactions in its invisible state.
 
-All texts are now translated according to the client's locale.
-Until now, this AddOn supports deDE and enUS.
+2.1.0 (November 10, 2021)
+-------------------------
 
-### [CHANGED] Support for WoW 9.1.5
+[ADDED] Localization for deDE and enUS
+- All texts are now translated according to the client's locale.
+- For the time being, this AddOn supports deDE and enUS.
 
-Checked support for the latest client version.
+[CHANGED] Support for WoW 9.1.5
+- Updated TOC to latest game version.
 
----
+2.1.0-beta4 (October 31, 2021)
+------------------------------
 
-## 2.1.0-beta4 (October 31, 2021)
+[FIXED] Current Character Inclusion and Tracker Toggle
+- The recently moved settings 'Include Current Character' and 'Show Tracker Overlay', as well as the `/gpt` command are
+  working once more.
 
-### [FIXED] Current Character Inclusion and Tracker Toggle
+2.1.0-beta3 (October 31, 2021)
+------------------------------
 
-The moved settings 'Include Current Character' and 'Show Tracker Overlay', as well as the `/gpt` command are working again.
+[ADDED] Link Items
+- You can now link items from the Panel as well as the Tracker to post them in chat or other inputs fields.-
 
----
+2.1.0-beta1 (October 31, 2021)
+------------------------------
 
-## 2.1.0-beta3 (October 31, 2021)
+[ADDED] Progress Type and Counter Format Options
+- There are two new options available for both the Panel and the Tracker visualization:
+- For the counter style you can now chosse between percentage, numerical or blank style (was percentage before, with
+  numerical on hover).
+- For the progress type you can choose between 'Fill to Goal', i. e. fill your bars until min reached and again until
+  maximum fill level reached, or 'Fill to Max' to fill the bar completely from zero to max once.
+- Each of these options are global and thus are shared between your characters.
 
-### [ADDED] Link Items
+[ADDED] Localization Started
+- Until now, there was no specific localization in place.
+- With the upcoming updates, several texts will be translated into German as well as English, including labels,
+  dropdowns and tooltips.
 
-You can now link items from the Panel as well as the Tracker to post them in chat or other inputs fields.
+[ADDED] Group Selection at Item Enlisting
+- You can now directly set the target group for a new item in the 'Add Item' panel.
+- No need to go back and forth to move your items from 'Uncategorized' anymore.
 
----
+[CHANGED] Instant Item Updates
+- For item updates (setting min and max values), there is no longer a need to hit the 'Update' button.
+- In fact, this button is now gone and changes are applied as soon as you leave one of the input fields, tick a checkbox
+  or choose a dropdown selection.
 
-## 2.1.0-beta1 (October 31, 2021)
+[CHANGED] Reduced Variables For Settings
+- All settings are now collected in a single variable and thus have been reset with this update. Please consult the
+  reworked Settings panel to reconfigure your settings.
+- Settings (inventory inclusions, tracker visibility) got moved to the new Settings panel and these
+  settings are now properly described in a tooltip.
 
-### [ADDED] Progress Type and Counter Format Options
+[FIXED] Item Info, Again
+- Another issue has now been addressed, so that already acquired item information from the WoW API do not get erased
+  upon relog or reload.
 
-There are two new options available for both the Panel and the Tracker visualization:
-For the counter style you can now chosse between percentage, numerical or blank style (was percentage before, with numerical on hover).
-For the progress type you can choose between 'Fill to Goal', i. e. fill your bars until min reached and again until max reached, or 'Fill to Max' to fill the bar completely from zero to max once.
-Each of these options are global and thus are shared between your characters.
+[FIXED] Negative Item Goals
+- The item goal input fields no longer accept negative values.
+- If you set a higher value for the 'Minimum' field as already in the 'Maxmimum' field, this input will become the new
+  maximum level automatically, too.
 
-### [ADDED] Localization Started
+2.1.0-alpha1 (October 29, 2021)
+-------------------------------
 
-Until now, there was no specific localization in place.
-With the upcoming updates, several texts will be translated into German as well as English, including labels, dropdowns and tooltips.
+[ADDED] Item List Persistence Between Player Sessions
+- When you have selected a character to load its corresponding item list, you'll now notice that it will stay selected
+  after a relog or reload.
 
-### [ADDED] Group Selection at Item Enlisting
+[ADDED] Quick Track in Panel
+- You can now track items without having to open the detail popup.
+- A new checkbox appears next to each item entry in the Panel.
 
-You can now directly set the target group for a new item in the 'Add Item' panel.
-No need to go back and forth to move your items from 'Uncategorized' anymore.
+[ADDED] Item Group Removal
+- The right-click menu for groups offers a new option 'Remove' to easily remove a whole group.
+- This transfers all items in that group into the default 'Uncategorized' group.
 
-### [CHANGED] Instant Item Updates
+[CHANGED] Quick Untrack via Tracker
+- Untracking an item quickly using the tracker bars can be now achieved by right clicking, followed by a confirmation
+  via a new context menu.
 
-For item updates (setting min and max values), there is no longer a need to hit the 'Update' button.
-In fact, this button is now gone and changes are applied as soon as you leave one of the input fields, tick a checkbox or choose a dropdown selection.
+[CHANGED] Group Edit Options
+- Untracking an item quickly using the tracker bars can be now achieved by right clicking, followed by a confirmation
+  via a new context menu.
 
-### [CHANGED] Reduced Variables For Settings
+[CHANGED] Item Quality in Panel
+- Items in the panel are now colored according to their quality level.
+- This may help to navigate through a big list of items.
 
-All settings are now collected in a single variable and thus have been reset with this update.
-Please consult the reworked Settings panel to reconfigure your settings.
+[CHANGED] Add Items UI
+- The UI for adding items to the list got a new item dropzone which displays the future item with its icon and
+  quality-colored name in the familiar way.
+- Also, the instruction texts and error messages are now more stable.
 
-Additionally, settings (inventory inclusions, tracker visibility) got moved to the new Settings panel and these settings are now properly described in a tooltip.
+[FIXED] Tracker Tooltip Positioning
+- Item tooltips appearing on hovering a tracker bar now are positioned properly depending on the position of the tracker
+  on the screen.
+- This should solve overlap issues.
 
-### [FIXED] Item Info, Again
+[FIXED] Tracking Status Between Player Sessions
+- Previously, having tracked items on the current active character's item list followed by a reload or relog would have
+  been resulted in a clearance of the tracking status for this character.
+- Now tracked items for the currently active character should remain tracked when reloading or relogging as intended.
 
-Another issue has now been addressed, so that already acquired item information from the WoW API do not get erased upon relog or reload.
+[FIXED] Item Info Loading
+- An issue got resolved where items periodically did lose their information (name, texture, etc.).
+- From now on, items should load their information after initialization and after a locale change.
+- You may still have to open Gather Panel a few times before the complete list gets updated after a locale change, but
+  it should not lose its information any more.
 
-### [FIXED] Negative Item Goals
+2.1.0-alpha0 (October 28, 2021)
+-------------------------------
 
-The item goal input fields no longer accept negative values.
-
-Additionally, if you set a higher value for the 'Minimum' field as already in the 'Maxmimum' field, this input will become the new Maximum automatically, too.
-
----
-
-## 2.1.0-alpha1 (October 29, 2021)
-
-### [ADDED] Item List Persistence Between Player Sessions
-
-When you have selected a character to load its corresponding item list,
-you'll now notice that it will stay selected after a relog or reload.
-
-### [ADDED] Quick Track in Panel
-
-You can now track items without having to open the detail popup.
-A new checkbox appears next to each item entry in the Panel.
-
-### [ADDED] Item Group Removal
-
-The right-click menu for groups offers a new option 'Remove' to easily
-remove a whole group.
-This transfers all items in that group into the default 'Uncategorized' group.
-
-### [CHANGED] Quick Untrack via Tracker
-
-Untracking an item quickly using the tracker bars can be now achieved by
-right clicking, followed by a confirmation via a new context menu.
-
-### [CHANGED] Group Edit Options
-
-Untracking an item quickly using the tracker bars can be now achieved by
-right clicking, followed by a confirmation via a new context menu.
-
-### [CHANGED] Item Quality in Panel
-
-Items in the panel are now colored according to their quality level.
-This may help to navigate through a big list of items.
-
-### [CHANGED] Add Items UI
-
-The UI for adding items to the list got a new item dropzone which
-displays the future item with its icon and quality-colored name in the
-familiar way.
-
-Also, the instruction texts and error messages are now more stable.
-
-### [FIXED] Tracker Tooltip Positioning
-
-Item tooltips appearing on hovering a tracker bar now are positioned
-properly depending on the position of the tracker on the screen.
-This should solve overlap issues.
-
-### [FIXED] Tracking Status Between Player Sessions
-
-Previously, having tracked items on the current active character's
-item list followed by a reload or relog would have result in a clearance of
-the tracking status for this character.
-
-Now tracked items for the currently active character should remain tracked
-when reloading or relogging as intended.
-
-### [FIXED] Item Info Loading
-
-An issue got resolved where items periodically did lose their information (name, texture, etc.).
-From now on, items should load their information after initialization and after a locale change.
-You may still have to open Gather Panel a few times before the complete list gets updated after
-a locale change, but it should not lose its information any more.
-
-## 2.1.0-alpha0 (October 28, 2021)
-
-### [ADDED] Item Groups
-
-You are now able to create groups and move items into them.
-Group up raid related items, your character's profession material
-or other context of your choosing.
-
-- Every item group is specific to the character's item list while
-  it is still supported to track and view your other character's item
-  lists, including seeing their groups.
+[ADDED] Item Groups
+- You are now able to create groups and move items into them.
+- Group up raid related items, your character's profession material or other context of your choosing.
+- Every item group is specific to the character's item list while it is still supported to track and view your other
+  character's item lists, including seeing their groups.
 - Alternate existing groups by changing group names.
 - Collapse groups in the panel to focus on specific topics on what to farm.
