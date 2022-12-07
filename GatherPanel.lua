@@ -421,15 +421,79 @@ function GatherPanel_ItemDetailDeleteButton_OnClick(frame)
 end
 
 
+local function rearrangeTrackers()
+  local newTracker = 0;
+  for i, item in pairs(getItemlist()) do
+    if (item.tracker) then
+      newTracker = newTracker + 1;
+      item.tracker = newTracker;
+      local tracker = _G["GatherPanel_Tracker" .. newTracker];
+      tracker.icon = item.itemTexture;
+      tracker.item = item;
+      tracker.AnimValue = item.progressPercentageMax * 100;
+      tracker.Bar.Icon:SetTexture(item.itemTexture);
+      if (item.goal <= item.itemCount) then
+        tracker.Bar.CheckMarkTexture:Show();
+      else
+        tracker.Bar.CheckMarkTexture:Hide();
+      end
+    end
+  end
+end
+
+
+local function entrySetTracked(entry, tracked)
+  if tracked then
+    if not entry.tracked then
+      GatherPanel_CreateTrackerForItem(entry);
+    end
+  else
+    if entry.tracked then
+      entry.tracked = false;
+      entry.tracker = nil;
+      rearrangeTrackers();
+      _G["GatherPanel_Tracker" .. GATHERPANEL_NUM_TRACKERS_ENABLED]:Hide();
+      GATHERPANEL_NUM_TRACKERS_ENABLED = GATHERPANEL_NUM_TRACKERS_ENABLED - 1;
+    end
+  end
+end
+
+
 ---@param itemKey integer
 function GatherPanel_Context_ItemDelete(_, itemKey)
   local items = getItemlist();
   items[itemKey] = nil;
-  item = nil;
   addon.Sounds:PlayCheckBoxSelect();
   GatherPanel_InitializeSortedItemList();
-  GatherPanel_UpdateItems();
+  GatherPanel_UpdateItems(false);
   GatherPanel_UpdatePanelItems();
+end
+
+
+local function trackGroup(_, itemKey, track)
+  local groupFound = false;
+  local entries = getItemlist() or {};
+
+  for i = 1, #addon.sortedHierarchy, 1 do
+    local entryKey = addon.sortedHierarchy[i].id;
+    local entry = entries[entryKey];
+
+    if addon.sortedHierarchy[i].id == itemKey then
+      groupFound = true;
+    else
+      if groupFound then
+        if entry.type == "ITEM" then
+          entrySetTracked(entry, track);
+        else
+          break;
+        end
+      end
+    end
+  end
+  GatherPanel_UpdateItems(false);
+  GatherPanel_UpdatePanel();
+  GatherPanel_ReloadTracker();
+  addon.ObjectiveTracker:FullUpdate();
 end
 
 
@@ -452,12 +516,32 @@ local function initDropdownOptions_GroupEdit(frame)
   info.arg1 = frame:GetParent().item;
   info.notCheckable = true;
   LibDD:UIDropDownMenu_AddButton(info);
+
   info = LibDD:UIDropDownMenu_CreateInfo();
   info.text = L.T["REMOVE_GROUP"];
   info.func = GatherPanel_Context_ItemDelete;
   info.notCheckable = true;
   ---@type integer
   info.arg1 = frame:GetParent().itemKey;
+  LibDD:UIDropDownMenu_AddButton(info);
+
+  info = LibDD:UIDropDownMenu_CreateInfo();
+  info.text = L.T["GROUP_TRACK"];
+  info.func = trackGroup;
+  info.notCheckable = true;
+  ---@type integer
+  info.arg1 = frame:GetParent().itemKey;
+  info.arg2 = true;
+  LibDD:UIDropDownMenu_AddButton(info);
+
+  info = LibDD:UIDropDownMenu_CreateInfo();
+  info.text = L.T["GROUP_UNTRACK"];
+  info.func = trackGroup;
+  info.notCheckable = true;
+  ---@type integer
+  info.arg1 = frame:GetParent().itemKey;
+
+  info.arg2 = false;
   LibDD:UIDropDownMenu_AddButton(info);
 end
 
@@ -779,7 +863,7 @@ function GatherPanel_UpdateItems(animate)
     local entryKey = addon.sortedHierarchy[i].id;
     local entry = entryKey == 0 and {
       type = "GROUP",
-      name = "Default Group",
+      tracked = false,
       id = 0,
     } or entries[entryKey];
 
@@ -1392,7 +1476,7 @@ function GatherPanel_Bar_OnClick(frame, button)
   elseif frame.item and frame.item.type == "GROUP" then
     if button == "RightButton" then
       if frame.itemKey ~= 0 then
-        -- ToggleDropDownMenu(1, nil, frame.Context);
+        LibDD:ToggleDropDownMenu(1, nil, frame.Context);
       end
     elseif button == "LeftButton" then
       item_ExpandOrCollapse(frame.item);
@@ -1462,36 +1546,15 @@ end
 
 
 ---@param item Item
-function GatherPanel_TrackItem(item)
+function GatherPanel_ToggleTrackItem(item)
   if (item.tracked) then
     if item.itemCount < item.max then
       addon.Sounds:PlayAbandonQuest();
     end
-    item.tracked = false;
-    item.tracker = nil;
-    -- Rearrange trackers
-    local newTracker = 0;
-    for i, item in pairs(getItemlist()) do
-      if (item.tracker) then
-        newTracker = newTracker + 1;
-        item.tracker = newTracker;
-        local tracker = _G["GatherPanel_Tracker" .. newTracker];
-        tracker.icon = item.itemTexture;
-        tracker.item = item;
-        tracker.AnimValue = item.progressPercentageMax * 100;
-        tracker.Bar.Icon:SetTexture(item.itemTexture);
-        if (item.goal <= item.itemCount) then
-          tracker.Bar.CheckMarkTexture:Show();
-        else
-          tracker.Bar.CheckMarkTexture:Hide();
-        end
-      end
-    end
-    _G["GatherPanel_Tracker" .. GATHERPANEL_NUM_TRACKERS_ENABLED]:Hide();
-    GATHERPANEL_NUM_TRACKERS_ENABLED = GATHERPANEL_NUM_TRACKERS_ENABLED - 1;
+    entrySetTracked(item, false);
   elseif item ~= nil then
+    entrySetTracked(item, true);
     addon.Sounds:PlayQuestAccepted();
-    GatherPanel_CreateTrackerForItem(item)
   end
   GatherPanel_UpdateItems(false);
   GatherPanel_UpdatePanel();
@@ -1642,7 +1705,7 @@ function GatherPanel_NewItem_CreateButton_OnClick(frame)
   local trackNewItem = frame:GetParent().TrackCheckBox:GetChecked();
 
   if trackNewItem then
-    GatherPanel_TrackItem(items[itemID]);
+    GatherPanel_Item_SetTracked(items[itemID], true);
   end
 
   frame:GetParent().CreateButton:Disable();

@@ -205,7 +205,7 @@
         </HitRectInsets>
         <Scripts>
           <OnClick>
-            GatherPanel_TrackItem(self:GetParent().item);
+            GatherPanel_ToggleTrackItem(self:GetParent().item);
             if ( self:GetChecked() ) then
               PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
             else
@@ -550,7 +550,7 @@
                 </Layers>
                 <Scripts>
                   <OnClick>
-                    GatherPanel_TrackItem(self:GetParent().item);
+                    GatherPanel_ToggleTrackItem(self:GetParent().item);
                     if ( self:GetChecked() ) then
                       PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
                     else
