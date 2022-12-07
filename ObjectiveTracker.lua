@@ -284,6 +284,11 @@ function module:UpdateItem(entry, oldCount)
       if group.id == entry.parent then
         local block = objectiveTrackerModule:GetExistingBlock(group.groupData.name);
 
+        if not block then
+          -- not ready yet. come back later.
+          return
+        end
+
         for _, groupEntry in ipairs(group.entries) do
           if groupEntry.itemCount < entry.goal then
             groupCompleted = false;

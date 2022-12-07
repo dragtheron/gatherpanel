@@ -6,6 +6,13 @@ No issues known.
 Change Log
 ==========
 
+2.5.0-beta1 (December 7, 2022)
+------------------------------
+
+[FIXED] Objective Tracker Initialization After Login
+
+Resolved an issue where the Objective Tracker was not ready at the time of its entry initialization.
+
 2.5.0-beta0 (December 7, 2022)
 -------------------------------
 
