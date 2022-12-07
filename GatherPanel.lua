@@ -696,6 +696,9 @@ function GatherPanel_InitItem(item)
     local professionQualityIcon = Professions.GetIconForQuality(item.professionQuality, true);
     local professionQualityMarkup = CreateAtlasMarkup(professionQualityIcon, 16, 16);
     item.displayName = item.name .. " " .. professionQualityMarkup;
+    if addon.Variables.user.cumulateLowerQuality then
+      item.displayName = item.displayName .. "+";
+    end
   else
     item.displayName = item.name;
   end
@@ -787,39 +790,43 @@ function GatherPanel_UpdateItems(animate)
         end
       end
 
+      local oldCount = entry.itemCount;
       GatherPanel_InitItem(entry);
 
-      if (entry.tracker) then
-        GatherPanel_Tracker_UpdateItem(entry, animate);
-        addon.ObjectiveTracker:UpdateItem(entry);
-      end
+      local quantityChanged = oldCount ~= entry.itemCount;
 
-      local collectedSomething = entry.itemCount ~= entry.itemCountTmp
-        and entry.itemCount > entry.itemCountTmp;
-
-      if collectedSomething and entry.itemCountTmp < entry.goal then
-        if entry.itemCount >= entry.goal then
-          addon.ObjectiveMessage:Add(addon.T["GATHERING_OBJECTIVE_COMPLETE"]);
+      if quantityChanged then
+        if (entry.tracker) then
+          GatherPanel_Tracker_UpdateItem(entry, animate);
         end
 
-        local displayName = entry.name;
+        if oldCount < entry.itemCount and oldCount < entry.goal then
+          addon.ObjectiveTracker:UpdateItem(entry, oldCount);
 
-        if entry.professionQuality then
-          displayName = string.format(
-            "%s (%s)",
-            displayName,
-            string.format(
-              addon.T["PROFESSION_QUALITY_MARKUP"], entry.professionQuality
-            )
+          if entry.itemCount >= entry.goal then
+            addon.ObjectiveMessage:Add(addon.T["GATHERING_OBJECTIVE_COMPLETE"]);
+          end
+
+          local displayName = entry.name;
+
+          if entry.professionQuality then
+            displayName = string.format(
+              "%s (%s)",
+              displayName,
+              string.format(
+                addon.T["PROFESSION_QUALITY_MARKUP"], entry.professionQuality
+              )
+            );
+          end
+
+          local collectedMsg = string.format(
+            "%s: %i/%i", entry.displayName, math.min(entry.goal, entry.itemCount), entry.goal
           );
+          addon.ObjectiveMessage:Add(collectedMsg);
+        else
+          addon.ObjectiveTracker:FullUpdate();
         end
-
-        local collectedMsg = string.format(
-          "%s: %i/%i", entry.displayName, math.min(entry.goal, entry.itemCount), entry.goal
-        );
-        addon.ObjectiveMessage:Add(collectedMsg);
       end
-      entry.itemCountTmp = entry.itemCount
 
       lastItem = entry;
     end
@@ -1053,6 +1060,7 @@ end
 ---@param item Item
 ---@param animate boolean
 function GatherPanel_Tracker_UpdateItem(item, animate)
+  local oldCount = item.itemCountTmp;
   local tracker = _G["GatherPanel_Tracker" .. item.tracker];
 
   local texture = tracker.Bar:GetStatusBarTexture();
@@ -1322,7 +1330,6 @@ function GatherPanel_OnEvent(event)
     -- Todo: make this more efficient (i.e. checking which item to update instead of full update)
     GatherPanel_UpdateItems(true);
     GatherPanel_UpdatePanel();
-    addon.ObjectiveTracker:FullUpdate();
   end
 end
 

@@ -31,6 +31,77 @@ function objectiveTrackerModule:SetCollapsed(collapsed)
 	end
 end
 
+function objectiveTrackerModule:SetLineInfo(block, objectiveKey, text, lineType, dashStyle, colorStyle)
+  local line = self:GetLine(block, objectiveKey, lineType);
+
+	if ( line.Dash ) then
+		if ( not dashStyle ) then
+			dashStyle = OBJECTIVE_DASH_STYLE_SHOW;
+		end
+		if ( line.dashStyle ~= dashStyle ) then
+			if ( dashStyle == OBJECTIVE_DASH_STYLE_SHOW ) then
+				line.Dash:Show();
+				line.Dash:SetText(QUEST_DASH);
+			elseif ( dashStyle == OBJECTIVE_DASH_STYLE_HIDE ) then
+				line.Dash:Hide();
+				line.Dash:SetText(QUEST_DASH);
+			elseif ( dashStyle == OBJECTIVE_DASH_STYLE_HIDE_AND_COLLAPSE ) then
+				line.Dash:Hide();
+				line.Dash:SetText(nil);
+			else
+				error("Invalid dash style: " .. tostring(dashStyle));
+			end
+			line.dashStyle = dashStyle;
+		end
+	end
+
+
+	local textHeight = self:SetStringText(line.Text, text, nil, colorStyle, block.isHighlighted);
+	line:SetHeight(textHeight);
+	return line;
+end
+
+function objectiveTrackerModule:GetBlock(id, overrideType, overrideTemplate)
+  local blockType = overrideType or self.blockType;
+	local blockTemplate = overrideTemplate or self.blockTemplate;
+
+	if not self.usedBlocks[blockTemplate] then
+		self.usedBlocks[blockTemplate] = {};
+	end
+
+	-- first try to return existing block
+	local block = self.usedBlocks[blockTemplate][id];
+
+	if not block then
+		local pool = self.poolCollection:GetOrCreatePool(blockType, self.BlocksFrame or ObjectiveTrackerFrame.BlocksFrame, blockTemplate);
+
+		local isNewBlock = nil;
+		block, isNewBlock = pool:Acquire(blockTemplate);
+
+		if isNewBlock then
+			block.blockTemplate = blockTemplate; -- stored so we can use it to free from the lookup later
+			block.lines = {};
+		end
+
+		self.usedBlocks[blockTemplate][id] = block;
+		block.id = id;
+		block.module = self;
+	end
+
+	block.used = true;
+	block.height = 0;
+	block.currentLine = nil;
+
+	-- prep lines
+	if block.lines then
+		for objectiveKey, line in pairs(block.lines) do
+			line.used = nil;
+		end
+	end
+
+	return block;
+end
+
 objectiveTrackerHeaderFrame.MinimizeButton:SetScript("OnClick", function(button)
 	PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
 	local trackerModule = button:GetParent().module;
@@ -69,6 +140,7 @@ local function getGroups()
       end
       currentGroup = {
         groupData = entry,
+        id = entryKey,
         entries = {},
       };
     elseif entry.type == "ITEM" and entry.tracked then
@@ -80,6 +152,10 @@ local function getGroups()
     table.insert(groups, currentGroup)
   end
   return groups;
+end
+
+local function getProgressText(entry)
+  return string.format("%d/%d %s", min(entry.goal, entry.itemCount), entry.goal, entry.displayName);
 end
 
 function objectiveTrackerModule:Update()
@@ -110,7 +186,6 @@ function objectiveTrackerModule:Update()
     for _, group in ipairs(groups) do
 
       if #group.entries > 0 then
-
         local block = self:GetBlock(group.groupData.name);
         self:SetBlockHeader(block, group.groupData.name);
 
@@ -128,15 +203,32 @@ function objectiveTrackerModule:Update()
           local dashStyle = OBJECTIVE_DASH_STYLE_HIDE;
           local colorStyle = OBJECTIVE_TRACKER_COLOR["Complete"];
           local line = self:AddObjective(block, 0, progressText, LINE_TYPE_ANIM, nil, dashStyle, colorStyle);
+          line.Glow.Anim:SetScript("OnFinished", function(_line)
+            if _line.state == "COMPLETING_ALL" then
+              _line.FadeOutAnim:Play();
+              _line.state = "FADING";
+            else
+              _line.state = "COMPLETED";
+            end
+          end)
+          line:Show();
           line.Check:SetShown(false);
         else
           for _, entry in ipairs(group.entries) do
             local metQuantity = entry.itemCount >= entry.goal;
             local dashStyle = metQuantity and OBJECTIVE_DASH_STYLE_HIDE or OBJECTIVE_DASH_STYLE_SHOW;
             local colorStyle = OBJECTIVE_TRACKER_COLOR[metQuantity and "Complete" or "Normal"];
-            local progressText = string.format("%d/%d %s", min(entry.goal, entry.itemCount), entry.goal, entry.displayName);
+            local progressText = getProgressText(entry);
             local line = self:AddObjective(block, entry.id, progressText, LINE_TYPE_ANIM, nil, dashStyle, colorStyle);
             line.Check:SetShown(metQuantity);
+            line.Glow.Anim:SetScript("OnFinished", function(_line)
+              if _line.state == "COMPLETING_ALL" then
+                _line.FadeOutAnim:Play();
+                _line.state = "FADING";
+              else
+                _line.state = "COMPLETED";
+              end
+            end)
           end
         end
 
@@ -175,12 +267,80 @@ function objectiveTrackerModule:IsHeaderVisible()
   return false;
 end
 
-function module:UpdateItem(item)
-  --fixme: implement
+function module:UpdateItem(entry, oldCount)
+  if oldCount == entry.itemCount then
+    return;
+  end
+
+  if oldCount >= entry.goal and oldCount > entry.itemCount then
+    return;
+  end
+
+  local groups = getGroups();
+
+  for _, group in ipairs(groups) do
+    local groupCompleted = true;
+    if #group.entries > 0 then
+      if group.id == entry.parent then
+        local block = objectiveTrackerModule:GetExistingBlock(group.groupData.name);
+
+        for _, groupEntry in ipairs(group.entries) do
+          if groupEntry.itemCount < entry.goal then
+            groupCompleted = false;
+            break;
+          end
+        end
+
+        local metQuantity = entry.itemCount >= entry.goal;
+        local dashStyle = metQuantity and OBJECTIVE_DASH_STYLE_HIDE or OBJECTIVE_DASH_STYLE_SHOW;
+        local colorStyle = OBJECTIVE_TRACKER_COLOR[metQuantity and "Complete" or "Normal"];
+        local progressText = getProgressText(entry);
+        local line = objectiveTrackerModule:GetLine(block, entry.id, LINE_TYPE_ANIM);
+
+        if line then
+          objectiveTrackerModule:SetLineInfo(block, entry.id, progressText, LINE_TYPE_ANIM, dashStyle, colorStyle);
+          if (entry.itemCount >= entry.goal) then
+            line.Glow.Anim:SetScript("OnFinished", function(glowFrame)
+              local _line = glowFrame:GetParent():GetParent();
+              if _line.state == "COMPLETING_ALL" then
+                _line.FadeOutAnim:Play();
+                _line.state = "FADING";
+              else
+                _line.state = "COMPLETED";
+              end
+            end);
+            line.FadeOutAnim:SetScript("OnFinished", function(fadeOutFrame)
+              local _line = fadeOutFrame:GetParent();
+              local block = _line.block;
+              block.module:FreeLine(block, line);
+              for _, otherLine in pairs(block.lines) do
+                if ( otherLine.state == "FADING" ) then
+                  -- some other line is still fading
+                  return;
+                end
+              end
+              module:ObjectiveTracker_Update();
+            end);
+            line.block = block;
+
+            if groupCompleted then
+              line.state = "COMPLETING_ALL";
+            else
+              line.state = "COMPLETING";
+            end
+
+            line.Check:Show();
+            line.Sheen.Anim:Play();
+            line.Glow.Anim:Play();
+            line.CheckFlash.Anim:Play();
+          end
+        end
+      end
+    end
+  end
 end
 
 function module:FullUpdate()
-  getGroups();
   module:ObjectiveTracker_Update();
 end
 

@@ -13,6 +13,10 @@ Change Log
 - You can now choose if you want items of higher qualities included in the quantity calculation.
 - There is a new setting available in the game Settings panel.
 
+[ADDED] Objective Tracker Completion Animations
+- As soon as you fulfill an entry's quantity goal, the objective gets animated.
+- If an entire group gets fulfilled, it fades/collapses to the completed note.
+
 2.5.0-alpha1 (December 6, 2022)
 -------------------------------
 

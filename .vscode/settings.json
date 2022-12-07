@@ -84,7 +84,10 @@
     "bit",
     "min",
     "GatherPanel_Panel2",
-    "GatherPanel_Panel1"
+    "GatherPanel_Panel1",
+    "QuestObjectiveTracker_FinishGlowAnim",
+    "OBJECTIVE_DASH_STYLE_HIDE_AND_COLLAPSE",
+    "QUEST_DASH"
   ],
   "Lua.runtime.version": "Lua 5.1",
   "Lua.diagnostics.disable": [
