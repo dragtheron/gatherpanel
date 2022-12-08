@@ -6,6 +6,13 @@ No issues known.
 Change Log
 ==========
 
+2.5.0-beta2 (December 8, 2022)
+------------------------------
+
+[FIXED] Adding Items
+
+There was a bug introduced in the Alpha builds which resulted in a Lua error. This has been resolved.
+
 2.5.0-beta1 (December 7, 2022)
 ------------------------------
 

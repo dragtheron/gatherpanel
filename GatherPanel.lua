@@ -874,7 +874,7 @@ function GatherPanel_UpdateItems(animate)
         end
       end
 
-      local oldCount = entry.itemCount;
+      local oldCount = entry.itemCount or 0;
       GatherPanel_InitItem(entry);
 
       local quantityChanged = oldCount ~= entry.itemCount;
