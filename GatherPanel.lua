@@ -415,6 +415,7 @@ function GatherPanel_ItemDetailDeleteButton_OnClick(frame)
       GatherPanel_UpdateItems(false);
       GatherPanel_UpdatePanelItems();
       HideParentPanel(frame);
+      addon.ObjectiveTracker:FullUpdate();
       return;
     end
   end
@@ -904,7 +905,7 @@ function GatherPanel_UpdateItems(animate)
           end
 
           local collectedMsg = string.format(
-            "%s: %i/%i", entry.displayName, math.min(entry.goal, entry.itemCount), entry.goal
+            "%s: %i/%i", displayName, math.min(entry.goal, entry.itemCount), entry.goal
           );
           addon.ObjectiveMessage:Add(collectedMsg);
         else
@@ -1421,9 +1422,9 @@ function GatherPanel_Bar_OnEnter(frame)
   -- Rollover Text
   frame.hovered = true;
   if frame.item and frame.item.type == "ITEM" then
-    GameTooltip:SetOwner(frame, "ANCHOR_RIGHT");
-    GameTooltip:SetItemByID(frame.item.id);
-    GameTooltip:Show();
+    --GameTooltip:SetOwner(frame, "ANCHOR_RIGHT");
+    --GameTooltip:SetItemByID(frame.item.id);
+    --GameTooltip:Show();
   end
   GatherPanel_UpdatePanel();
 end
@@ -1705,8 +1706,10 @@ function GatherPanel_NewItem_CreateButton_OnClick(frame)
   local trackNewItem = frame:GetParent().TrackCheckBox:GetChecked();
 
   if trackNewItem then
-    GatherPanel_Item_SetTracked(items[itemID], true);
+    entrySetTracked(items[itemID], true);
   end
+
+  addon.ObjectiveTracker:FullUpdate();
 
   frame:GetParent().CreateButton:Disable();
   frame:GetParent().ItemIdInput:SetText('');
