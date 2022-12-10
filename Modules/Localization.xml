@@ -1,0 +1,5 @@
+<Ui>
+  <Script file="Localization.lua"/>
+  <Script file="Localization\deDE.lua"/>
+  <Script file="Localization\enUS.lua"/>
+</Ui>

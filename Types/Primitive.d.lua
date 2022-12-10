@@ -1,0 +1,1 @@
+---@alias Primitive boolean | number | string

@@ -1,0 +1,2 @@
+---@class DropDownFrame: Frame
+---@field options DropDownOption[]

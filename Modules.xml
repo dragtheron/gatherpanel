@@ -1,0 +1,15 @@
+<Ui>
+  <Include file="Modules\List.xml"/>
+
+  <Script file="Modules\AccountSync.lua"/>
+  <Script file="Modules\Bindings.lua"/>
+  <Script file="Modules\Minimap.lua"/>
+  <Script file="Modules\ObjectiveNotification.lua"/>
+  <Script file="Modules\ObjectiveTracker.lua"/>
+  <Script file="Modules\OverviewPanel.lua"/>
+  <Script file="Modules\Settings.lua"/>
+  <Script file="Modules\Share.lua"/>
+  <Script file="Modules\Sounds.lua"/>
+  <Script file="Modules\Tooltip.lua"/>
+  <Script file="Modules\Tracker.lua"/>
+</Ui>

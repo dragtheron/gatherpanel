@@ -1,0 +1,8 @@
+---@class Frame
+---@field CreateFontString fun(self, Frame: string?, strata: string?, template: string?): FontString
+---@field SetScript fun(self: Frame, scriptType: string, func: function)
+---@field SetPoint fun(self: Frame, relativePoint: string, offsetX: number, offsetY: number) |
+---| fun(self: Frame, relativePoint: string, anchorFrame: Frame, offsetX: number, offsetY: number) |
+---| fun(self: Frame, relativePoint: string, anchorFrame: Frame, anchorPoint: string, offsetX: number, offsetY: number)
+---@field SetAllPoints function
+---@field SetSize fun(self: Frame, width: number, height: number)

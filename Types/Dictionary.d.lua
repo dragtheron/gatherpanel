@@ -1,0 +1,1 @@
+---@alias Dictionary table<string, string>

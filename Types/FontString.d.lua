@@ -1,0 +1,2 @@
+---@class FontString: Frame
+---@field SetText fun(text: string)

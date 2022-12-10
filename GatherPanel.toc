@@ -1,44 +1,22 @@
 ## Interface: 100002
 ## Title: Gather Panel
-## Notes: Keep track of inventory fill levels and gathering goals across multiple characters.
-## Notes-deDE: Verfolge den Bestand im Inventar und Farmziele über mehrere Charaktere.
 ## Author: Tobias Stettner (Dragtheron)
-## Version: 2.5.0
+## Version: 3.0.0
+
+## Notes: Keep track of items and quantity levels of your deposits across multiple characters. Create lists and access another character's list (from the same account). Also helps the process of acquiring these items to be a bit more immersive.
+## Notes-deDE: Verschafft Euch einen Überblick über Items und Füllstände Eurer Einlagerungen über mehrere Charaktere. Erstellt Listen und greift auf Listen anderer Charaktere Eures Accounts zu. Bietet außerdem auch beim Sammeln verschiedene Möglichkeiten für etwas mehr Immersion beim Sammeln dieser Gegenstände.
 
 ## X-License: MIT
 ## X-Website: https://git.tsno.de/dragtheron/gather-panel
 ## X-Curse-Project-ID: 428233
 
-## SavedVariables: GATHERPANEL_ITEMS, GATHERPANEL_ITEMLISTS, GATHERPANEL_VERSION, GATHERPANEL_VARIABLES_GLOBAL
-## SavedVariablesPerCharacter: GATHERPANEL_ALL_CHARACTERS, GATHERPANEL_TRACKER_VISIBLE, GATHERPANEL_ITEMS_CHARACTER, GATHERPANEL_ITEM_LIST_SELECTION, GATHERPANEL_VARIABLES_USER,
-
 ## OptionalDeps: Altoholic, DataStore, DataStore_Containers, LibStub, !LibUIDropDownMenu
 
-# Development Stuff
-helpers.lua
+## SavedVariables: GatherPanel_Account
+## SavedVariablesPerCharacter: GatherPanel_Character
 
-# Initialization
 Libs\Libs.xml
-init.lua
-Variables.lua
-
-# Localization
-localization-enUS.lua
-localization-deDE.lua
-
-# Migrations
-migrations/2-4-0.lua
-
-# Pure Modules
-ObjectiveMessage.lua
-Sounds.lua
-
-# Main
+Addon.lua
+Migrations.xml
+Modules.xml
 GatherPanel.lua
-GatherPanel.xml
-
-# Into Blizzard Stuff
-Bindings.lua
-Settings.xml
-# Settings.lua
-ObjectiveTracker.lua

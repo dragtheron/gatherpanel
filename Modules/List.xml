@@ -1,0 +1,7 @@
+<Ui>
+  <Script file="Entries.lua"/>
+  <Script file="Entries\Currency.lua"/>
+  <Script file="Entries\Item.lua"/>
+  <Script file="Entries\Reputation.lua"/>
+  <Script file="List.lua"/>
+</Ui>

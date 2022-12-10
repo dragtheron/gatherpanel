@@ -1,0 +1,48 @@
+---@class LibUIDropDownMenu.DropDownInfo
+---@field text string The text of the button
+---@field value any The value that L_UIDROPDOWNMENU_MENU_VALUE is set to when the button is clicked
+---@field func function The function that is called when you click the button
+---@field checked? boolean | fun(): boolean Check the button if true or function returns true
+---@field isNotRadio? boolean Check the button uses radial image if false check box image if true
+---@field isTitle? boolean If it's a title the button is disabled and the font color is set to yellow
+---@field disabled? boolean Disable the button and show an invisible button that still traps the mouseover event so menu doesn't time out
+---@field tooltipWhileDisabled? `1` Show the tooltip even when the button is disabled
+---@field hasArrow? boolean Show the expand arrow for multilevel menus
+---@field hasColorSwatch? boolean Show color swatch or not, for color selection
+---@field r number Red color value of the color swatch
+---@field g number Green color value of the color swatch
+---@field b number Blue color value of the color swatch
+---@field colorCode string "|cAARRGGBB" embedded hex value of the button text color. Only used when button is enabled
+---@field swatchFunc function Function called by the color picker on color change
+---@field hasOpacity? `1` Show the opacity slider on the colorpicker frame
+---@field opacity number Percentage of the opacity, 1.0 is fully shown, 0 is transparent
+---@field cancelFunc fun(previousValues) Function called by the color picker when you click the cancel button (it takes the previous values as its argument)
+---@field notClickable? `1` Disable the button and color the font white
+---@field notCheckable? `1` Shrink the size of the buttons and don't display a check box
+---@field owner Frame DropDown frame that "owns" the current DropDownList
+---@field keepShownOnClick? `1` Don't hide the DropDownList after a button is clicked
+---@field tooltipTitle? string Title of the tooltip shown on mouseover
+---@field tooltipText? string Text of the tooltip shown on mouseover
+---@field tooltipWarning? string Warning-style text of the tooltip shown on mouseover
+---@field tooltipInstruction? string Instruction-style text of the tooltip shown on mouseover
+---@field tooltipOnButton? `1` Show the tooltip attached to the button instead of as a Newbie tooltip
+---@field tooltipBackdropStyle? table Optional backdrop style of the tooltip shown on mouseover
+---@field justifyH? `"CENTER"` Ju stify button text
+---@field arg1 any This is the first argument used by @link LibUIDropDownMenu.DropDownInfo.func
+---@field arg2 any This is the second argument used by @link LibUIDropDownMenu.DropDownInfo.func
+---@field fontObject Font Font object replacement for Normal and Highlight
+---@field menuList table This contains an array of info tables to be displayed as a child menu
+---@field noClickSound? `1` Set to 1 to suppress the sound when clicking the button. The sound only plays if func is set
+---@field padding? number Number of pixels to pad the text on the right side
+---@field topPadding? number Extra spacing between buttons
+---@field leftPadding? number Number of pixels to pad the button on the left side
+---@field minWidth? number Minimum width for this line
+---@field customFrame Frame Allows this button to be a completely custom frame, should inherit from UIDropDownCustomMenuEntryTemplate and override appropriate methods
+---@field icon Texture An icon for the button
+---@field iconXOffset? number Number of pixels to shift the button's icon to the left or right (positive numbers shift right, negative numbers shift left)
+---@field iconTooltipTitle? string Title of the tooltip shown on icon mouseover
+---@field iconTooltipText? string Text of the tooltip shown on icon mouseover
+---@field iconTooltipBackdropStyle? table Optional backdrop style of the tooltip shown on icon mouseover
+---@field mouseOverIcon Texture An override icon when a button is moused over
+---@field ignoreAsMenuSelection? boolean Never set the menu text/icon to this, even when this button is checked
+---@field registerForRightClick? boolean Register dropdown buttons for right clicks

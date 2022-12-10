@@ -87,11 +87,17 @@
     "GatherPanel_Panel1",
     "QuestObjectiveTracker_FinishGlowAnim",
     "OBJECTIVE_DASH_STYLE_HIDE_AND_COLLAPSE",
-    "QUEST_DASH"
+    "QUEST_DASH",
+    "LibStub"
   ],
   "Lua.runtime.version": "Lua 5.1",
   "Lua.diagnostics.disable": [
     "unused-function",
     "empty-block"
+  ],
+  "Lua.workspace.ignoreDir": [
+    "old"
+    "Libs",
+    "Libs-release",
   ],
 }

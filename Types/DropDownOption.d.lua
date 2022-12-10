@@ -1,0 +1,3 @@
+---@class DropDownOption
+---@field value Primitive
+---@field text string
