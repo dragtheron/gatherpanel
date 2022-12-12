@@ -6,73 +6,42 @@ No issues known.
 Change Log
 ==========
 
-2.5.0-beta2 (December 8, 2022)
-------------------------------
+2.5.0 (December 12, 2022)
+-------------------------
 
-[FIXED] Adding Items
+[ADDED] Dragonflight Profession Quality
 
-There was a bug introduced in the Alpha builds which resulted in a Lua error. This has been resolved.
-
-2.5.0-beta1 (December 7, 2022)
-------------------------------
-
-[FIXED] Objective Tracker Initialization After Login
-
-Resolved an issue where the Objective Tracker was not ready at the time of its entry initialization.
-
-2.5.0-beta0 (December 7, 2022)
--------------------------------
+- The profession quality now will be displayed beneath the name using its appropriate icon you got familiar with by
+  Blizzard default.
 
 [ADDED] Cumulate Items With Higher Qualities
 
 - You can now choose if you want items of higher qualities included in the quantity calculation.
 - There is a new setting available in the game Settings panel.
+- Please note: This feature only works if you have that item of lower quality added onto your list!
 
 [ADDED] Track Group
 
 - Track or untrack an entire group by right-clicking the group name in the Panel.
 
-[ADDED] Objective Tracker Completion Animations
+[ADDED] Quest-like Objective Tracker
 
+- In addition to the movable tracker bars, tracked item now are displayed in Blizzard's objective tracker.
 - As soon as you fulfill an entry's quantity goal, the objective gets animated.
 - If an entire group gets fulfilled, it fades/collapses to the completed note.
+- You can choose wether you want your tracked entries be displayed in Blizzard's Objective Tracker or not.
 
-2.5.0-alpha1 (December 6, 2022)
--------------------------------
+[CHANGED] Item Ordering
 
-This release marks a Beta candidate.
-
-[ADDED] New Setting to Toggle Objective Tracker
-
-- You can now choose wether you want your tracked entries be displayed in Blizzard's Objective Tracker or not.
-
-[FIXED] DropDown Tainting Errors
-
-- Resolved tainting errors caused by using Blizzard's DropDown code.
+- Items in the Panel are now sorted by item quality, then by name and then by profession quality.
 
 [FIXED] Textual Progress Notifications
 
 - Textual objective notifications now occur only if the respective quantity increases.
 
-[FIXED] Quest Objective Tracker Tainting Errors
+[FIXED] DropDown Tainting Errors
 
-- Resolved tainting erros when using the new Objective Tracker display method for tracked entries.
-
-2.5.0-alpha0 (December 6, 2022)
--------------------------------
-
-[ADDED] Profession Quality
-
-- The profession quality now will be displayed beneath the name using its appropriate icon you got familiar with by
-  Blizzard default.
-
-[ADDED] Quest-like Objective Tracker
-
-- In addition to the movable tracker bars, tracked item now are displayed in Blizzard's objective tracker.
-
-[CHANGED] Item Ordering
-
-- Items in the Panel are now sorted by item quality, then by name and then by profession quality.
+- Resolved tainting errors caused by using Blizzard's DropDown code.
 
 ---
 
