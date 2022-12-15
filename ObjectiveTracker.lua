@@ -114,46 +114,6 @@ local LINE_TYPE_ANIM = { template = "QuestObjectiveAnimLineTemplate", freeLines 
 local moduleLoaded = false;
 local objectiveTrackerInitialized = false;
 
-local function getGroups()
-  local entries = GatherPanel_GetItemList();
-  local sortedEntryKeys = addon.sortedHierarchy;
-  local groups = {};
-  local currentGroup = nil;
-
-  for i = 1, #sortedEntryKeys, 1 do
-    local entryKey = sortedEntryKeys[i].id;
-    local entry;
-
-    if entryKey == 0 then
-      entry = {
-        type = "GROUP",
-        name = "Default Group",
-        id = 0,
-      };
-    else
-      entry = entries[entryKey];
-    end
-
-    if entry.type == "GROUP" then
-      if currentGroup ~= nil then
-        table.insert(groups, currentGroup);
-      end
-      currentGroup = {
-        groupData = entry,
-        id = entryKey,
-        entries = {},
-      };
-    elseif entry.type == "ITEM" and entry.tracked then
-      table.insert(currentGroup.entries, entry);
-    end
-  end
-
-  if currentGroup ~= nil then
-    table.insert(groups, currentGroup)
-  end
-  return groups;
-end
-
 local function getProgressText(entry)
   return string.format("%d/%d %s", min(entry.goal, entry.itemCount), entry.goal, entry.displayName);
 end
@@ -182,7 +142,7 @@ function objectiveTrackerModule:Update()
       return;
     end
 
-    local groups = getGroups();
+    local groups = addon.getGroups();
     for _, group in ipairs(groups) do
 
       if #group.entries > 0 then
@@ -276,7 +236,7 @@ function module:UpdateItem(entry, oldCount)
     return;
   end
 
-  local groups = getGroups();
+  local groups = addon.getGroups();
 
   for _, group in ipairs(groups) do
     local groupCompleted = true;

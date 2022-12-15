@@ -87,7 +87,11 @@
     "GatherPanel_Panel1",
     "QuestObjectiveTracker_FinishGlowAnim",
     "OBJECTIVE_DASH_STYLE_HIDE_AND_COLLAPSE",
-    "QUEST_DASH"
+    "QUEST_DASH",
+    "TradeSkillFrame",
+    "GetMouseFocus",
+    "HIGHLIGHT_FONT_COLOR",
+    "GRAY_FONT_COLOR"
   ],
   "Lua.runtime.version": "Lua 5.1",
   "Lua.diagnostics.disable": [

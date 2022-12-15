@@ -6,6 +6,36 @@ No issues known.
 Change Log
 ==========
 
+2.6.0-beta0 (December 15, 2022)
+-------------------------------
+
+[ADDED] Tooltip Text
+
+- Items you added to your list will now have their tooltips extended by their progress information.
+- It will show you the group where this item is listed in, as well as the current amount and goal for that item.
+- Additionally, if you have added the same items but with lower quality to the appropriate group, their item counts
+  will show as well, as long as they have a quantity goal.
+
+[CHANGED] Progress Notifications
+
+- Progress notifications will now appear only when the corresponding item is being tracked.
+- Untracked items will only be visible on the Panel.
+
+[CHANGED] Items Without Quantity Goals
+
+- You may add items without a minimum or maximum quantity goal set.
+- If there is no goal set, then they will appear now as "In Stock" and won't show up in tooltips at all.
+- This may be useful to add higher-quality items to your lists while you are only interested in their lower-quality
+  quantites, so that the higher-quality items can be accumulated - without the need of setting a fictional quantity
+  goal for the higher-quality items.
+
+[FIXED] Objective Tracker Update on Goal Count Change
+
+- As soon as you change the minimum or maximum quantity goal for one item in your list, the Objective Tracker gets
+  updated immediately now.
+
+---
+
 2.5.0 (December 12, 2022)
 -------------------------
 

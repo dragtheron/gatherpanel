@@ -17,6 +17,8 @@ local ITEM_TYPE = {
   group = "GROUP"
 }
 
+addon.EntryTypes = ITEM_TYPE;
+
 ---@class Item
 ---@field parent integer | nil
 ---@field type ItemType
@@ -224,7 +226,48 @@ local function getItemlist()
 end
 
 function addon.getItemlist()
-  GatherPanel_GetItemList();
+  return GatherPanel_GetItemList();
+end
+
+
+function addon.getGroups()
+  local entries = GatherPanel_GetItemList();
+  local sortedEntryKeys = addon.sortedHierarchy;
+  local groups = {};
+  local currentGroup = nil;
+
+  for i = 1, #sortedEntryKeys, 1 do
+    local entryKey = sortedEntryKeys[i].id;
+    local entry;
+
+    if entryKey == 0 then
+      entry = {
+        type = "GROUP",
+        name = "Default Group",
+        id = 0,
+      };
+    else
+      entry = entries[entryKey];
+    end
+
+    if entry.type == "GROUP" then
+      if currentGroup ~= nil then
+        table.insert(groups, currentGroup);
+      end
+      currentGroup = {
+        groupData = entry,
+        id = entryKey,
+        entries = {},
+      };
+    elseif entry.type == "ITEM" and entry.tracked then
+      table.insert(currentGroup.entries, entry);
+    end
+  end
+
+  if currentGroup ~= nil then
+    table.insert(groups, currentGroup)
+  end
+  return groups;
 end
 
 
@@ -771,19 +814,18 @@ function GatherPanel_InitItem(item)
   if item.updated == nil then
     item.updated = 0;
   end
-  if item.name == nil or item.itemTexture == nil or item.itemQuality == nil or item.locale ~= locale then
+
+  if item.name == nil or item.name == "" or item.itemTexture == nil or item.itemQuality == nil or item.locale ~= locale then
     -- retry, sometimes heavy load
     item.name, _, item.itemQuality, _, _, _, _, _, _, item.itemTexture, _ = GetItemInfo(item.id);
     item.locale = locale;
   end
+  item.name = item.name or "";
   item.professionQuality = C_TradeSkillUI.GetItemReagentQualityByItemInfo(item.id);
   if item.professionQuality then
     local professionQualityIcon = Professions.GetIconForQuality(item.professionQuality, true);
     local professionQualityMarkup = CreateAtlasMarkup(professionQualityIcon, 16, 16);
     item.displayName = item.name .. " " .. professionQualityMarkup;
-    if addon.Variables.user.cumulateLowerQuality then
-      item.displayName = item.displayName .. "+";
-    end
   else
     item.displayName = item.name;
   end
@@ -845,11 +887,11 @@ function GatherPanel_InitItem(item)
     item.goal = item.max
     item.goalType = 'max';
   end
-  item.progressPercentage = item.itemCount / item.goal;
+  item.progressPercentage = item.goal > 0 and item.itemCount / item.goal or 1;
   if item.max == nil then
     item.max = item.min;
   end
-  item.progressPercentageMax = item.itemCount / item.max;
+  item.progressPercentageMax = item.max > 0 and item.itemCount / item.max or 1;
   item.progressPercentageInteger = math.floor(item.progressPercentage * 100);
 end
 
@@ -872,6 +914,7 @@ function GatherPanel_UpdateItems(animate)
       if lastItem then
         if lastItem.name == entry.name then
           entry.betterItem = lastItem;
+          lastItem.lowerItem = entry;
         end
       end
 
@@ -880,7 +923,7 @@ function GatherPanel_UpdateItems(animate)
 
       local quantityChanged = oldCount ~= entry.itemCount;
 
-      if quantityChanged then
+      if entry.tracked and quantityChanged then
         if (entry.tracker) then
           GatherPanel_Tracker_UpdateItem(entry, animate);
         end
@@ -1633,6 +1676,7 @@ function GatherPanel_ItemDetailUpdateQuantity(frame)
   item.max = tonumber(frame:GetParent().MaxQuantityInput:GetText());
   GatherPanel_UpdateItems(false);
   GatherPanel_UpdatePanel();
+  addon.ObjectiveTracker:FullUpdate();
 end
 
 function GatherPanel_ItemDetailMin_OnEnter(frame)
