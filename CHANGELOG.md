@@ -6,7 +6,7 @@ No issues known.
 Change Log
 ==========
 
-2.6.0-beta0 (December 15, 2022)
+2.6.0 (January 7, 2023)
 -------------------------------
 
 [ADDED] Tooltip Text

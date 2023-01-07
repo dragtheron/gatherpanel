@@ -904,6 +904,17 @@ function GatherPanel_UpdateItems(animate)
 
   for i = 1, #addon.sortedHierarchy, 1 do
     local entryKey = addon.sortedHierarchy[i].id;
+    if entryKey ~= 0 then
+      local entry = entries[addon.sortedHierarchy[i].id];
+      if entry then
+        entry.betterItem = nil;
+        entry.lowerItem = nil;
+      end
+    end
+  end
+
+  for i = 1, #addon.sortedHierarchy, 1 do
+    local entryKey = addon.sortedHierarchy[i].id;
     local entry = entryKey == 0 and {
       type = "GROUP",
       tracked = false,
@@ -1035,6 +1046,10 @@ local function renderItemBar(itemRow, item, level)
     itemRow.ItemBar:SetStatusBarColor(0, 0.6, 0.1);
   end
 
+  if (not item.goal or item.goal == 0) then
+    itemRow.ItemBar:SetStatusBarColor(0.4, 0.4, 0.4);
+  end
+
   if (itemRow.hovered or item == _G['ItemDetailFrame'].item) then
     itemRow.ItemBar.Highlight1:Show();
     itemRow.ItemBar.Highlight2:Show();
@@ -1051,6 +1066,7 @@ local function renderItemBar(itemRow, item, level)
     realGoal = item.max;
     realPercentage = item.progressPercentageMax;
   end
+
   itemRow.ItemBar:SetValue(realPercentage);
 
   if (itemRow.hovered) then
@@ -1078,6 +1094,13 @@ local function renderItemBar(itemRow, item, level)
     elseif addon.Variables.const.COUNT_FORMAT.NONE == addon.Variables.global.panelCountFormat then
       itemRow.ItemBar.Percentage:SetText("");
     end
+  end
+
+  if item.goal == 0 then
+    itemRow.ItemBar.Percentage:SetText("");
+    itemRow.TrackerCheck:SetEnabled(false);
+  else
+    itemRow.TrackerCheck:SetEnabled(true);
   end
 
   itemRow.Background:Show();

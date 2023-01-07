@@ -4,7 +4,7 @@ local module = addon:RegisterModule("ObjectiveTracker");
 local objectiveTrackerHeaderFrame = CreateFrame("Frame", nil, ObjectiveTrackerBlocksFrame, "ObjectiveTrackerHeaderTemplate");
 local updateReason = 0x100000;
 
-local objectiveTrackerModule = {};
+local wantsUpdate = false;
 
 local objectiveTrackerModule = ObjectiveTracker_GetModuleInfoTable("GATHERPANEL_TRACKER_MODULE");
 objectiveTrackerModule.updateReasonModule = updateReason;
@@ -115,7 +115,7 @@ local moduleLoaded = false;
 local objectiveTrackerInitialized = false;
 
 local function getProgressText(entry)
-  return string.format("%d/%d %s", min(entry.goal, entry.itemCount), entry.goal, entry.displayName);
+  return string.format("%s: %d/%d", entry.displayName, min(entry.goal, entry.itemCount), entry.goal);
 end
 
 function objectiveTrackerModule:Update()
@@ -150,37 +150,24 @@ function objectiveTrackerModule:Update()
         self:SetBlockHeader(block, group.groupData.name);
 
         local allMet = true;
+        local hasRelevantItems = true;
 
         for _, entry in ipairs(group.entries) do
-          if entry.itemCount < entry.goal then
-            allMet = false;
-            break;
+          if entry.goal and entry.goal > 0 then
+            hasRelevantItems = true;
+            if entry.itemCount < entry.goal then
+              allMet = false;
+              break;
+            end
           end
         end
 
-        if allMet then
-          local progressText = addon.T["ALL_TRACKED_IN_GROUP_COMPLETE"];
-          local dashStyle = OBJECTIVE_DASH_STYLE_HIDE;
-          local colorStyle = OBJECTIVE_TRACKER_COLOR["Complete"];
-          local line = self:AddObjective(block, 0, progressText, LINE_TYPE_ANIM, nil, dashStyle, colorStyle);
-          line.Glow.Anim:SetScript("OnFinished", function(_line)
-            if _line.state == "COMPLETING_ALL" then
-              _line.FadeOutAnim:Play();
-              _line.state = "FADING";
-            else
-              _line.state = "COMPLETED";
-            end
-          end)
-          line:Show();
-          line.Check:SetShown(false);
-        else
-          for _, entry in ipairs(group.entries) do
-            local metQuantity = entry.itemCount >= entry.goal;
-            local dashStyle = metQuantity and OBJECTIVE_DASH_STYLE_HIDE or OBJECTIVE_DASH_STYLE_SHOW;
-            local colorStyle = OBJECTIVE_TRACKER_COLOR[metQuantity and "Complete" or "Normal"];
-            local progressText = getProgressText(entry);
-            local line = self:AddObjective(block, entry.id, progressText, LINE_TYPE_ANIM, nil, dashStyle, colorStyle);
-            line.Check:SetShown(metQuantity);
+        if hasRelevantItems then
+          if allMet then
+            local progressText = addon.T["ALL_TRACKED_IN_GROUP_COMPLETE"];
+            local dashStyle = OBJECTIVE_DASH_STYLE_HIDE;
+            local colorStyle = OBJECTIVE_TRACKER_COLOR["Complete"];
+            local line = self:AddObjective(block, 0, progressText, LINE_TYPE_ANIM, nil, dashStyle, colorStyle);
             line.Glow.Anim:SetScript("OnFinished", function(_line)
               if _line.state == "COMPLETING_ALL" then
                 _line.FadeOutAnim:Play();
@@ -189,17 +176,45 @@ function objectiveTrackerModule:Update()
                 _line.state = "COMPLETED";
               end
             end)
+            line:Show();
+            line.Check:SetShown(false);
+          else
+            for _, entry in ipairs(group.entries) do
+              if entry.goal and entry.goal > 0 then
+                local metQuantity = entry.itemCount >= entry.goal;
+                local dashStyle = metQuantity and OBJECTIVE_DASH_STYLE_HIDE or OBJECTIVE_DASH_STYLE_SHOW;
+                local colorStyle;
+                if entry.goal == entry.min then
+                  colorStyle = OBJECTIVE_TRACKER_COLOR["Failed"];
+                elseif metQuantity then
+                  colorStyle = OBJECTIVE_TRACKER_COLOR["Complete"];
+                else
+                  colorStyle = OBJECTIVE_TRACKER_COLOR["Normal"];
+                end
+                local progressText = getProgressText(entry);
+                local line = self:AddObjective(block, entry.id, progressText, LINE_TYPE_ANIM, nil, dashStyle, colorStyle);
+                line.Check:SetShown(metQuantity);
+                line.Glow.Anim:SetScript("OnFinished", function(_line)
+                  if _line.state == "COMPLETING_ALL" then
+                    _line.FadeOutAnim:Play();
+                    _line.state = "FADING";
+                  else
+                    _line.state = "COMPLETED";
+                  end
+                end)
+              end
+            end
           end
-        end
 
-        block:SetHeight(block.height);
+          block:SetHeight(block.height);
 
-        if ObjectiveTracker_AddBlock(block) then
-          block:Show();
-          self:FreeUnusedLines(block);
-        else
-          block.used = false;
-          break;
+          if ObjectiveTracker_AddBlock(block) then
+            block:Show();
+            self:FreeUnusedLines(block);
+          else
+            block.used = false;
+            break;
+          end
         end
       end
     end
@@ -311,28 +326,42 @@ end
 
 
 function module:Init()
+  self:FullUpdate();
+end
 
+local function scheduleUpdate(func, ...)
+  local args = ...;
+
+  C_Timer.After(0.5, function()
+    func(args);
+  end)
 end
 
 function module:ObjectiveTracker_Update(reason, id, moduleWhoseCollapseChanged)
   local tracker = ObjectiveTrackerFrame;
 
-  if not tracker.MODULES then
-    return;
+  local trackerModules, trackerModulesInOrder;
+
+  if tracker.MODULES then
+    trackerModules = Shallowcopy(tracker.MODULES);
+    trackerModulesInOrder = Shallowcopy(tracker.MODULES_UI_ORDER);
+  else
+    trackerModules = {};
+    trackerModulesInOrder = {};
   end
 
-  local trackerModules = Shallowcopy(tracker.MODULES);
-  local trackerModulesInOrder = Shallowcopy(tracker.MODULES_UI_ORDER);
   table.insert(trackerModules, objectiveTrackerModule);
   table.insert(trackerModulesInOrder, objectiveTrackerModule);
 
   -- tracker position handled by blizzard
 
 	if tracker.isUpdating then
+    scheduleUpdate(module.ObjectiveTracker_Update, self, reason, id, moduleWhoseCollapseChanged);
 		return;
 	end
 
 	if ( not tracker.initialized ) then
+    scheduleUpdate(module.ObjectiveTracker_Update, self, reason, id, moduleWhoseCollapseChanged);
 		return;
 	end
 
@@ -340,8 +369,6 @@ function module:ObjectiveTracker_Update(reason, id, moduleWhoseCollapseChanged)
 	if ( tracker.BlocksFrame.maxHeight == 0 ) then
 		return;
 	end
-
-	local updateReason = reason or OBJECTIVE_TRACKER_UPDATE_ALL;
 
 	tracker.BlocksFrame.currentBlock = nil;
 	tracker.BlocksFrame.contentsHeight = 0;
@@ -358,15 +385,11 @@ function module:ObjectiveTracker_Update(reason, id, moduleWhoseCollapseChanged)
     end
 	end
 
-	-- These can be nil, it's fine, trust the API.
-	local relatedModules = module:GetRelatedModulesForUpdate(moduleWhoseCollapseChanged);
-
 	-- run module updates
 	local gotMoreRoomThisPass = false;
 	for i = 1, #trackerModules do
 		local trackerModule = trackerModules[i];
-		if module:IsRelatedModuleForUpdate(moduleWhoseCollapseChanged, relatedModules)
-      or (bit.band(updateReason, trackerModule.updateReasonModule + trackerModule.updateReasonEvents) > 0) then
+		if true then
         -- run a full update on this module
         if trackerModule == objectiveTrackerModule then
           trackerModule:Update();
