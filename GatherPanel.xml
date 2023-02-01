@@ -788,7 +788,7 @@
         self.TitleContainer.TitleText:SetText("Gather Panel");
         self:RegisterForDrag("LeftButton");
         self:RegisterEvent("ADDON_LOADED");
-        self:RegisterEvent("BAG_UPDATE_DELAYED");
+        self:RegisterEvent("BAG_UPDATE");
         tinsert(UISpecialFrames, self:GetName());
         GatherPanel_OnLoad(self);
       </OnLoad>

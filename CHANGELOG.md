@@ -6,8 +6,22 @@ No issues known.
 Change Log
 ==========
 
+2.6.1 (February 1, 2023)
+------------------------
+
+[CHANGED] New Interface Version
+
+- Updated to Interface Version 10.0.5
+- Updates now trigger immediately upon item loot. The former trigger method did stop working in the latest interface
+  version.
+
+[FIXED] Objective Tracker Minimum Updates
+
+- Entries on the Objective Tracker now get colored depending on their state (missing minimum/maximum/filled) properly
+  when looting items (i.e. unfulfilled minimum entries won't lose their red colorization anymore).
+
 2.6.0 (January 7, 2023)
--------------------------------
+-----------------------
 
 [ADDED] Tooltip Text
 

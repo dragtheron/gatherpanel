@@ -162,59 +162,61 @@ function objectiveTrackerModule:Update()
           end
         end
 
-        if hasRelevantItems then
-          if allMet then
-            local progressText = addon.T["ALL_TRACKED_IN_GROUP_COMPLETE"];
-            local dashStyle = OBJECTIVE_DASH_STYLE_HIDE;
-            local colorStyle = OBJECTIVE_TRACKER_COLOR["Complete"];
-            local line = self:AddObjective(block, 0, progressText, LINE_TYPE_ANIM, nil, dashStyle, colorStyle);
-            line.Glow.Anim:SetScript("OnFinished", function(_line)
-              if _line.state == "COMPLETING_ALL" then
-                _line.FadeOutAnim:Play();
-                _line.state = "FADING";
+        if not hasRelevantItems then
+          return;
+        end
+
+        if allMet then
+          local progressText = addon.T["ALL_TRACKED_IN_GROUP_COMPLETE"];
+          local dashStyle = OBJECTIVE_DASH_STYLE_HIDE;
+          local colorStyle = OBJECTIVE_TRACKER_COLOR["Complete"];
+          local line = self:AddObjective(block, 0, progressText, LINE_TYPE_ANIM, nil, dashStyle, colorStyle);
+          line.Glow.Anim:SetScript("OnFinished", function(_line)
+            if _line.state == "COMPLETING_ALL" then
+              _line.FadeOutAnim:Play();
+              _line.state = "FADING";
+            else
+              _line.state = "COMPLETED";
+            end
+          end)
+          line:Show();
+          line.Check:SetShown(false);
+        else
+          for _, entry in ipairs(group.entries) do
+            if entry.goal and entry.goal > 0 then
+              local metQuantity = entry.itemCount >= entry.goal;
+              local dashStyle = metQuantity and OBJECTIVE_DASH_STYLE_HIDE or OBJECTIVE_DASH_STYLE_SHOW;
+              local colorStyle;
+              if entry.goal == entry.min then
+                colorStyle = OBJECTIVE_TRACKER_COLOR["Failed"];
+              elseif metQuantity then
+                colorStyle = OBJECTIVE_TRACKER_COLOR["Complete"];
               else
-                _line.state = "COMPLETED";
+                colorStyle = OBJECTIVE_TRACKER_COLOR["Normal"];
               end
-            end)
-            line:Show();
-            line.Check:SetShown(false);
-          else
-            for _, entry in ipairs(group.entries) do
-              if entry.goal and entry.goal > 0 then
-                local metQuantity = entry.itemCount >= entry.goal;
-                local dashStyle = metQuantity and OBJECTIVE_DASH_STYLE_HIDE or OBJECTIVE_DASH_STYLE_SHOW;
-                local colorStyle;
-                if entry.goal == entry.min then
-                  colorStyle = OBJECTIVE_TRACKER_COLOR["Failed"];
-                elseif metQuantity then
-                  colorStyle = OBJECTIVE_TRACKER_COLOR["Complete"];
+              local progressText = getProgressText(entry);
+              local line = self:AddObjective(block, entry.id, progressText, LINE_TYPE_ANIM, nil, dashStyle, colorStyle);
+              line.Check:SetShown(metQuantity);
+              line.Glow.Anim:SetScript("OnFinished", function(_line)
+                if _line.state == "COMPLETING_ALL" then
+                  _line.FadeOutAnim:Play();
+                  _line.state = "FADING";
                 else
-                  colorStyle = OBJECTIVE_TRACKER_COLOR["Normal"];
+                  _line.state = "COMPLETED";
                 end
-                local progressText = getProgressText(entry);
-                local line = self:AddObjective(block, entry.id, progressText, LINE_TYPE_ANIM, nil, dashStyle, colorStyle);
-                line.Check:SetShown(metQuantity);
-                line.Glow.Anim:SetScript("OnFinished", function(_line)
-                  if _line.state == "COMPLETING_ALL" then
-                    _line.FadeOutAnim:Play();
-                    _line.state = "FADING";
-                  else
-                    _line.state = "COMPLETED";
-                  end
-                end)
-              end
+              end)
             end
           end
+        end
 
-          block:SetHeight(block.height);
+        block:SetHeight(block.height);
 
-          if ObjectiveTracker_AddBlock(block) then
-            block:Show();
-            self:FreeUnusedLines(block);
-          else
-            block.used = false;
-            break;
-          end
+        if module:AddBlock(block) then
+          block:Show();
+          self:FreeUnusedLines(block);
+        else
+          block.used = false;
+          break;
         end
       end
     end
@@ -240,6 +242,66 @@ function objectiveTrackerModule:IsHeaderVisible()
     return true;
   end
   return false;
+end
+
+function module:AddBlock(block)
+  local header = block.module.Header;
+  local blockAdded = false;
+
+  -- if there's no header or it's been added, just add the block...
+  if not header or header.added then
+    blockAdded = self:InternalAddBlock(block);
+  elseif ObjectiveTracker_CanFitBlock(block, header) then
+    -- try to add header and maybe block
+    if ObjectiveTracker_AddHeader(header) then
+      blockAdded = self:InternalAddBlock(block);
+    end
+  end
+
+  if not blockAdded then
+    block.module.hasSkippedBlocks = true;
+  end
+
+  return blockAdded;
+end
+
+function module:InternalAddBlock(block)
+  local module = block.module or DEFAULT_OBJECTIVE_TRACKER_MODULE;
+	local blocksFrame = self.BlocksFrame;
+	local blocksFrame = module.BlocksFrame;
+	block.nextBlock = nil;
+
+	-- This doesn't take fit into account, it just assumes that there's content to be added, so the potential count
+	-- should increase (this is related to showing the collapse buttons on the headers, see Reorder)
+	-- NOTE: Never count headers as added blocks
+	if not block.isHeader then
+		module.potentialBlocksAddedThisLayout = (module.potentialBlocksAddedThisLayout or 0) + 1;
+	end
+
+	-- Only allow headers to be added if the module is collapsed.
+	if not block.isHeader and module:IsCollapsed() then
+		return false;
+	end
+
+	local offsetY = self:AnchorBlock(block, blocksFrame.currentBlock, not module.ignoreFit);
+	if ( not offsetY ) then
+		return false;
+	end
+
+	if ( not module.topBlock ) then
+		module.topBlock = block;
+	end
+	if ( not module.firstBlock and not block.isHeader ) then
+		module.firstBlock = block;
+	end
+	if ( blocksFrame.currentBlock ) then
+		blocksFrame.currentBlock.nextBlock = block;
+	end
+	blocksFrame.currentBlock = block;
+	blocksFrame.contentsHeight = blocksFrame.contentsHeight + block.height - offsetY;
+	module.contentsAnimHeight = module.contentsAnimHeight + block.height;
+	module.contentsHeight = module.contentsHeight + block.height - offsetY;
+	return true;
 end
 
 function module:UpdateItem(entry, oldCount)
@@ -273,7 +335,14 @@ function module:UpdateItem(entry, oldCount)
 
         local metQuantity = entry.itemCount >= entry.goal;
         local dashStyle = metQuantity and OBJECTIVE_DASH_STYLE_HIDE or OBJECTIVE_DASH_STYLE_SHOW;
-        local colorStyle = OBJECTIVE_TRACKER_COLOR[metQuantity and "Complete" or "Normal"];
+        local colorStyle;
+        if entry.goal == entry.min then
+          colorStyle = OBJECTIVE_TRACKER_COLOR["Failed"];
+        elseif metQuantity then
+          colorStyle = OBJECTIVE_TRACKER_COLOR["Complete"];
+        else
+          colorStyle = OBJECTIVE_TRACKER_COLOR["Normal"];
+        end
         local progressText = getProgressText(entry);
         local line = objectiveTrackerModule:GetLine(block, entry.id, LINE_TYPE_ANIM);
 
