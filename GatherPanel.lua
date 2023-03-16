@@ -938,7 +938,9 @@ function GatherPanel_UpdateItems(animate)
         if (entry.tracker) then
           GatherPanel_Tracker_UpdateItem(entry, animate);
         end
+      end
 
+      if quantityChanged then
         if oldCount < entry.itemCount and oldCount < entry.goal then
           addon.ObjectiveTracker:UpdateItem(entry, oldCount);
 
@@ -1445,6 +1447,19 @@ local function saveCurrentVersion()
   GATHERPANEL_VERSION = CURRENT_GATHERPANEL_VERSION;
 end
 
+local function onBagUpdate()
+  if IsAddOnLoaded("DataStore_Containers") and _G["DataStore_Containers"]:IsEnabled() then
+    -- cannot hook to datastore, but we'll do the hacky way.
+    C_Timer.After(0, function()
+      GatherPanel_UpdateItems(true);
+      GatherPanel_UpdatePanel();
+    end)
+  else
+    GatherPanel_UpdateItems(true);
+    GatherPanel_UpdatePanel();
+  end
+end
+
 function GatherPanel_OnEvent(event)
   if event == 'ADDON_LOADED' and not GATHERPANEL_LOADED then
     GATHERPANEL_LOADED = true;
@@ -1476,11 +1491,14 @@ function GatherPanel_OnEvent(event)
     GatherPanel_Panel2.Inset.CreateGroupButton:SetPoint("LEFT", GatherPanel_Panel2.Inset.ParentDropDown, "RIGHT");
   end
 
-  if GATHERPANEL_LOADED == true then
+  if not GATHERPANEL_LOADED then
+    return;
+  end
+
+  if event == "BAG_UPDATE" then
     -- Run Item and Bar Updates every event (as most commonly the character received a new item)
     -- Todo: make this more efficient (i.e. checking which item to update instead of full update)
-    GatherPanel_UpdateItems(true);
-    GatherPanel_UpdatePanel();
+    onBagUpdate();
   end
 end
 

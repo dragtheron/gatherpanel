@@ -187,10 +187,12 @@ function objectiveTrackerModule:Update()
               local metQuantity = entry.itemCount >= entry.goal;
               local dashStyle = metQuantity and OBJECTIVE_DASH_STYLE_HIDE or OBJECTIVE_DASH_STYLE_SHOW;
               local colorStyle;
-              if entry.goal == entry.min then
-                colorStyle = OBJECTIVE_TRACKER_COLOR["Failed"];
-              elseif metQuantity then
+              if metQuantity then
                 colorStyle = OBJECTIVE_TRACKER_COLOR["Complete"];
+              elseif entry.max == entry.min or entry.goal == entry.max then
+                colorStyle = OBJECTIVE_TRACKER_COLOR["Normal"];
+              elseif entry.goal == entry.min then
+                colorStyle = OBJECTIVE_TRACKER_COLOR["Failed"];
               else
                 colorStyle = OBJECTIVE_TRACKER_COLOR["Normal"];
               end

@@ -3,7 +3,7 @@
 ## Notes: Keep track of inventory fill levels and gathering goals across multiple characters.
 ## Notes-deDE: Verfolge den Bestand im Inventar und Farmziele über mehrere Charaktere.
 ## Author: Tobias Stettner (Dragtheron)
-## Version: 2.6.1
+## Version: 2.6.2
 
 ## X-License: MIT
 ## X-Website: https://git.tsno.de/dragtheron/gather-panel

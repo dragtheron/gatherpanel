@@ -6,6 +6,16 @@ No issues known.
 Change Log
 ==========
 
+2.6.2 (March 16, 2023)
+----------------------
+
+[CHANGED] Count Updates
+
+- With DataStore enabled, one now receives proper count updates.
+- Updated counts on not-fulfilled gather objective now always trigger the notification message
+  (this reverts the change in 2.6.0).
+- The coloration of the entries on the Objective Tracker now is reflecting the state (min/max/full) correctly once more.
+
 2.6.1 (February 1, 2023)
 ------------------------
 

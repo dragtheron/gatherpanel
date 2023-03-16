@@ -91,9 +91,10 @@
     "TradeSkillFrame",
     "GetMouseFocus",
     "HIGHLIGHT_FONT_COLOR",
-    "GRAY_FONT_COLOR"
+    "GRAY_FONT_COLOR",
+    "C_Timer"
   ],
-  "Lua.runtime.version": "Lua 5.1",
+  "Lua.runtime.version": "Lua 5.4",
   "Lua.diagnostics.disable": [
     "unused-function",
     "empty-block"
