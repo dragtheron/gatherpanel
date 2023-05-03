@@ -125,11 +125,7 @@ local function extendItemTooltip(tooltip)
 end
 
 local function extendTooltipFromItemData(tooltip, data)
-  for _, entry in ipairs(data.args) do
-    if entry.field == "id" and entry.intVal then
-      addObjectiveLine(tooltip, addon.EntryTypes.item, entry.intVal);
-    end
-  end
+  addObjectiveLine(tooltip, addon.EntryTypes.item, data.id);
 end
 
 hooksecurefunc(GameTooltip, "SetRecipeReagentItem", function(tooltip, itemId)

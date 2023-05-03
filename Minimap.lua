@@ -1,4 +1,4 @@
-local _, addon = ...;
+local addonName, addon = ...;
 local module = addon:RegisterModule("Minimap");
 
 local function updatePosition(button)
@@ -37,13 +37,30 @@ function GatherPanel_Minimap_ResetButtonPosition(button)
   updatePosition(button)
 end
 
-
-local frame = CreateFrame("Button", nil, nil, "GatherPanelMinimapButtonTemplate");
-
-function frame:OpenSettings()
-  addon.Settings:Open();
-end
-
-function module:Init()
-  updatePosition(frame);
-end
+AddonCompartmentFrame:RegisterAddon({
+  text = addonName,
+  icon = "Interface\\Icons\\inv_misc_treasurechest05c",
+  registerForAnyClick = true,
+  func = function(btn, arg1, arg2, checked, mouseButton)
+    if mouseButton == "LeftButton" then
+      if IsShiftKeyDown() then
+        addon.Settings:Open();
+      else
+        GatherPanel:SetShown(not GatherPanel:IsShown());
+      end
+    elseif mouseButton == "RightButton" then
+      GatherPanel_ToggleTracker();
+    end
+  end,
+  funcOnEnter = function()
+    GameTooltip:SetOwner(AddonCompartmentFrame, "ANCHOR_TOPRIGHT")
+    GameTooltip:SetText(format("GatherPanel v%i.%i.%i",
+      GATHERPANEL_VERSION.major,
+      GATHERPANEL_VERSION.minor,
+      GATHERPANEL_VERSION.patch
+    ))
+    GameTooltip:AddLine(
+    "Left Click to toggle panel.\nRight click to toggle tracker overlay.\nShift-Left Click to open settings.", 0, 1, 0)
+    GameTooltip:Show()
+  end,
+});
