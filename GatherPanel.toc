@@ -1,9 +1,9 @@
-## Interface: 100100
+## Interface: 100105
 ## Title: Gather Panel
 ## Notes: Keep track of inventory fill levels and gathering goals across multiple characters.
 ## Notes-deDE: Verfolge den Bestand im Inventar und Farmziele über mehrere Charaktere.
 ## Author: Tobias Stettner (Dragtheron)
-## Version: 2.6.3
+## Version: 2.7.0
 ## IconTexture: Interface\Icons\inv_misc_treasurechest05c
 
 ## X-License: MIT
@@ -13,6 +13,7 @@
 ## SavedVariables: GATHERPANEL_ITEMS, GATHERPANEL_ITEMLISTS, GATHERPANEL_VERSION, GATHERPANEL_VARIABLES_GLOBAL
 ## SavedVariablesPerCharacter: GATHERPANEL_ALL_CHARACTERS, GATHERPANEL_TRACKER_VISIBLE, GATHERPANEL_ITEMS_CHARACTER, GATHERPANEL_ITEM_LIST_SELECTION, GATHERPANEL_VARIABLES_USER,
 
+## Dependencies: Blizzard_Professions
 ## OptionalDeps: Altoholic, DataStore, DataStore_Containers, LibStub, !LibUIDropDownMenu
 
 # Development Stuff
@@ -29,6 +30,7 @@ localization-deDE.lua
 
 # Migrations
 migrations/2-4-0.lua
+migrations/2-7-0.lua
 
 # Pure Modules
 ObjectiveMessage.lua

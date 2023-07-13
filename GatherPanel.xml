@@ -824,5 +824,5 @@
       </OnEvent>
     </Scripts>
   </Frame>
-  <Include file="Minimap.xml"/>
+  <Script file="Minimap.lua"/>
 </Ui>

@@ -1,10 +1,36 @@
-Known Issues
-============
-
-No issues known.
-
 Change Log
 ==========
+
+2.7.0 (July 13, 2023)
+---------------------
+
+Updated for World of Warcraft Retail v10.1.5.
+
+[ADDED] Untrack Groups in Objective Tracker
+
+Untrack whole groups by Shift-Clicking a group in the Objective Tracker.
+
+[CHANGED] Minimap Button Moved to AddOn Drawer
+
+WoW v10.1.0 introduced a new AddOn Drawer in the corner of the minimap.
+You'll find GatherPanel's clickable entrypoint from there from now on.
+
+[CHANGED] Objective Tracker Heading
+
+GatherPanel gathered more confidence, hence the heading on the Objective Tracker is now more descriptive.
+
+[CHANGED] Objective Format in Objective Tracker
+
+Once again, reformatted objectives to match Blizzard's current style of tracking progress instead of the classic one.
+
+[FIXED] Untrackable Items in Objective Tracker
+
+If you set a goal of 0 (e.g. when tracking higher-quality profession items), these items
+won't show up in the trackers anymore.
+
+[FIXED] Blizzard Professions Dependency
+
+Blizzard's Professions addon is now required.
 
 2.6.3 (May 3, 2023)
 -------------------

@@ -534,11 +534,14 @@ local function trackGroup(_, itemKey, track)
       end
     end
   end
+
   GatherPanel_UpdateItems(false);
   GatherPanel_UpdatePanel();
   GatherPanel_ReloadTracker();
   addon.ObjectiveTracker:FullUpdate();
 end
+
+addon.trackGroup = trackGroup;
 
 
 local function initDropdownOptions_TrackerBarContext(frame)
@@ -1427,6 +1430,9 @@ local function doMigrations()
   if not meetsVersionRequirement(2, 4, 0) then
     GatherPanel_Migrate_2_4_0();
   end
+  if not meetsVersionRequirement(2, 7, 0) then
+    GatherPanel_Migrate_2_7_0();
+  end
 end
 
 local function loadCurrentVersion()
@@ -1450,7 +1456,7 @@ end
 local function onBagUpdate()
   if IsAddOnLoaded("DataStore_Containers") and _G["DataStore_Containers"]:IsEnabled() then
     -- cannot hook to datastore, but we'll do the hacky way.
-    C_Timer.After(0, function()
+    C_Timer.After(0.1, function()
       GatherPanel_UpdateItems(true);
       GatherPanel_UpdatePanel();
     end)
@@ -1564,7 +1570,12 @@ function GatherPanel_Bar_OnClick(frame, button)
         LibDD:ToggleDropDownMenu(1, nil, frame.Context);
       end
     elseif button == "LeftButton" then
-      item_ExpandOrCollapse(frame.item);
+      if IsModifiedClick("QUESTWATCHTOGGLE") then
+        local track = not frame.item.tracked;
+        addon.trackGroup(nil, frame.itemKey, track);
+      else
+        item_ExpandOrCollapse(frame.item);
+      end
     end
   elseif frame.itemKey == 0 then
     -- presumably the default category...
@@ -1619,7 +1630,7 @@ function GatherPanel_ReloadTracker()
   for _, itemId in ipairs(itemKeys) do
     local item = items[itemId];
     item.tracker = nil;
-    if item.tracked == true then
+    if item.tracked == true and item.goal > 0 then
       GatherPanel_InitItem(item)
       GatherPanel_CreateTrackerForItem(item)
       GatherPanel_Tracker_UpdateItem(item, false)

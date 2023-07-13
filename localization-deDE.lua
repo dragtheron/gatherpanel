@@ -12,6 +12,7 @@ L.T["CUMULATE_LOWER_QUALITIES"] = "Items höherer Qualität zusammenrechnen";
 L.T["DRAG_ITEM_OR_SET_ITEM_ID"] = "Legt einen Gegenstand in das Feld\noder tragt die Item ID ein.";
 L.T["DEFINE_STOCK_GOALS"] = "Gebt die gewünschten Lagerstände an.";
 L.T["FULLY_STOCKED"] = "Auf Lager";
+L.T["GATHERING"] = "Sammeln";
 L.T["GATHERING_OBJECTIVE_COMPLETE"] = "Sammelziel erreicht.";
 L.T["GENERAL"] = "Allgemein";
 L.T["GROUP"] = "Gruppe";

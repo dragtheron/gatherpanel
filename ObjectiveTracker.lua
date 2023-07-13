@@ -8,7 +8,7 @@ local wantsUpdate = false;
 
 local objectiveTrackerModule = ObjectiveTracker_GetModuleInfoTable("GATHERPANEL_TRACKER_MODULE");
 objectiveTrackerModule.updateReasonModule = updateReason;
-objectiveTrackerModule:SetHeader(objectiveTrackerHeaderFrame, "Gather Panel");
+objectiveTrackerModule:SetHeader(objectiveTrackerHeaderFrame, addon.T["GATHERING"]);
 
 function objectiveTrackerModule:GetRelatedModules()
   local modules = {};
@@ -115,7 +115,11 @@ local moduleLoaded = false;
 local objectiveTrackerInitialized = false;
 
 local function getProgressText(entry)
-  return string.format("%s: %d/%d", entry.displayName, min(entry.goal, entry.itemCount), entry.goal);
+  if entry.goal == entry.max then
+    return string.format("%d/%d %s", min(entry.goal, entry.itemCount), entry.goal, entry.displayName);
+  else
+    return string.format("%d/%d %s (%d)", min(entry.goal, entry.itemCount), entry.goal, entry.displayName, entry.max);
+  end
 end
 
 function objectiveTrackerModule:Update()
@@ -146,7 +150,7 @@ function objectiveTrackerModule:Update()
     for _, group in ipairs(groups) do
 
       if #group.entries > 0 then
-        local block = self:GetBlock(group.groupData.name);
+        local block = self:GetBlock(group.id);
         self:SetBlockHeader(block, group.groupData.name);
 
         local allMet = true;
@@ -166,7 +170,7 @@ function objectiveTrackerModule:Update()
           return;
         end
 
-        if allMet then
+        if allMet and addon.Variables.user.showCompleted then
           local progressText = addon.T["ALL_TRACKED_IN_GROUP_COMPLETE"];
           local dashStyle = OBJECTIVE_DASH_STYLE_HIDE;
           local colorStyle = OBJECTIVE_TRACKER_COLOR["Complete"];
@@ -196,29 +200,36 @@ function objectiveTrackerModule:Update()
               else
                 colorStyle = OBJECTIVE_TRACKER_COLOR["Normal"];
               end
+
               local progressText = getProgressText(entry);
-              local line = self:AddObjective(block, entry.id, progressText, LINE_TYPE_ANIM, nil, dashStyle, colorStyle);
-              line.Check:SetShown(metQuantity);
-              line.Glow.Anim:SetScript("OnFinished", function(_line)
-                if _line.state == "COMPLETING_ALL" then
-                  _line.FadeOutAnim:Play();
-                  _line.state = "FADING";
-                else
-                  _line.state = "COMPLETED";
-                end
-              end)
+              if (not metQuantity or addon.Variables.user.showCompleted) then
+                local line = self:AddObjective(block, entry.id, progressText, LINE_TYPE_ANIM, nil, dashStyle, colorStyle);
+                line.Check:SetShown(metQuantity);
+                line.Glow.Anim:SetScript("OnFinished", function(_line)
+                  if _line.state == "COMPLETING_ALL" then
+                    _line.FadeOutAnim:Play();
+                    _line.state = "FADING";
+                  else
+                    _line.state = "COMPLETED";
+                  end
+                end)
+              end
             end
           end
         end
 
-        block:SetHeight(block.height);
+        if (not allMet or addon.Variables.user.showCompleted) then
+          block:SetHeight(block.height);
 
-        if module:AddBlock(block) then
-          block:Show();
-          self:FreeUnusedLines(block);
+          if module:AddBlock(block) then
+            block:Show();
+            self:FreeUnusedLines(block);
+          else
+            block.used = false;
+            break;
+          end
         else
           block.used = false;
-          break;
         end
       end
     end
@@ -244,6 +255,13 @@ function objectiveTrackerModule:IsHeaderVisible()
     return true;
   end
   return false;
+end
+
+function objectiveTrackerModule:OnBlockHeaderClick(block, mousebutton)
+  if mousebutton == "LeftButton" and IsModifiedClick("QUESTWATCHTOGGLE") then
+    local track = false;
+    addon.trackGroup(nil, block.id, track);
+  end
 end
 
 function module:AddBlock(block)
@@ -321,7 +339,7 @@ function module:UpdateItem(entry, oldCount)
     local groupCompleted = true;
     if #group.entries > 0 then
       if group.id == entry.parent then
-        local block = objectiveTrackerModule:GetExistingBlock(group.groupData.name);
+        local block = objectiveTrackerModule:GetExistingBlock(group.id);
 
         if not block then
           -- not ready yet. come back later.
@@ -353,7 +371,7 @@ function module:UpdateItem(entry, oldCount)
           if (entry.itemCount >= entry.goal) then
             line.Glow.Anim:SetScript("OnFinished", function(glowFrame)
               local _line = glowFrame:GetParent():GetParent();
-              if _line.state == "COMPLETING_ALL" then
+              if not addon.Variables.user.showCompleted or _line.state == "COMPLETING_ALL" then
                 _line.FadeOutAnim:Play();
                 _line.state = "FADING";
               else
@@ -457,31 +475,12 @@ function module:ObjectiveTracker_Update(reason, id, moduleWhoseCollapseChanged)
 	end
 
 	-- run module updates
-	local gotMoreRoomThisPass = false;
 	for i = 1, #trackerModules do
 		local trackerModule = trackerModules[i];
-		if true then
-        -- run a full update on this module
-        if trackerModule == objectiveTrackerModule then
-          trackerModule:Update();
-        end
-        -- check if it's now taking up less space, using subtraction because of floats
-        if ( trackerModule.oldContentsHeight - trackerModule.contentsHeight >= 1 ) then
-          -- it is taking up less space, might have freed room for other modules
-          gotMoreRoomThisPass = true;
-        end
-      else
-        -- this module's contents have not have changed
-        -- but if we got more room and this module has unshown content, do a full update
-        -- also do a full update if the header is animating since the module does not technically have any blocks at that point
-        if trackerModule == objectiveTrackerModule then
-          if ( (trackerModule.hasSkippedBlocks and gotMoreRoomThisPass) or (trackerModule.Header and trackerModule.Header.animating) ) then
-            trackerModule:Update();
-          else
-            trackerModule:StaticReanchor();
-          end
-        end
-      end
+    -- run a full update on this module
+    if trackerModule == objectiveTrackerModule then
+      trackerModule:Update();
+    end
 	end
 
 	module:ObjectiveTracker_ReorderModules();

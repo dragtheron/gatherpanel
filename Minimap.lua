@@ -12,23 +12,6 @@ local function updatePosition(button)
   button:SetPoint("CENTER", Minimap, "CENTER", x, y);
 end
 
-function GatherPanel_Minimap_Update(button)
-  if button.dragging then
-    local minimap_x, minimap_y = Minimap:GetCenter();
-    local pointer_x, pointer_y = GetCursorPosition();
-    local scale = Minimap:GetEffectiveScale();
-    pointer_x, pointer_y = pointer_x / scale, pointer_y / scale;
-
-    local position = math.deg(
-      math.atan2(pointer_y - minimap_y, pointer_x - minimap_x)
-    ) % 360;
-
-    addon.Variables.user.minimapPosition = position;
-    updatePosition(button);
-  else
-  end
-end
-
 function GatherPanel_Minimap_ResetButtonPosition(button)
   if addon.Variables.user.minimapPosition == nil then
     addon.Variables.user.minimapPosition = 90;
@@ -41,6 +24,7 @@ AddonCompartmentFrame:RegisterAddon({
   text = addonName,
   icon = "Interface\\Icons\\inv_misc_treasurechest05c",
   registerForAnyClick = true,
+  notCheckable = true,
   func = function(btn, arg1, arg2, checked, mouseButton)
     if mouseButton == "LeftButton" then
       if IsShiftKeyDown() then

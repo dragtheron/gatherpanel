@@ -11,6 +11,7 @@ L.T["CUMULATE_LOWER_QUALITIES"] = "Cumulate Items of Higher Quality";
 L.T["DRAG_ITEM_OR_SET_ITEM_ID"] = "Place an item into the field\nor provide an item ID.";
 L.T["DEFINE_STOCK_GOALS"] = "Set your desired stock goals.";
 L.T["FULLY_STOCKED"] = "Stocked";
+L.T["GATHERING"] = "Gathering";
 L.T["GATHERING_OBJECTIVE_COMPLETE"] = "Gathering Objective Complete.";
 L.T["GENERAL"] = "General";
 L.T["GROUP"] = "Group";
