@@ -178,6 +178,25 @@
                   </OnClick>
                 </Scripts>
               </CheckButton>
+              <CheckButton parentKey="ShowCompletedButton" inherits="UICheckButtonTemplate">
+                <Anchors>
+                  <Anchor point="TOPLEFT" relativeKey="$parent.ShowObjectiveTrackerButton" relativePoint="BOTTOMLEFT" x="0" y="0" />
+                </Anchors>
+                <Scripts>
+                  <OnLoad>
+                    self.text:SetText(GATHERPANEL_T["SHOW_COMPLETED"]);
+                  </OnLoad>
+                  <OnClick>
+                    PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
+                  </OnClick>
+                  <OnEnter>
+                    GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
+                    GameTooltip:AddLine(GATHERPANEL_T["SHOW_COMPLETED_DESCRIPTION"], nil, nil, nil, true);
+                    GameTooltip:Show()
+                  </OnEnter>
+                  <OnLeave function="GameTooltip_Hide" />
+                </Scripts>
+              </CheckButton>
             </Frames>
             <Scripts>
               <OnLoad>

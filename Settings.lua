@@ -167,6 +167,7 @@ local function registerSettings(frame)
   registerCheckBoxSetting("cumulateLowerQuality", SettingScope.user, panelOptionsFrame.CumulateLowerQualities, true);
   registerCheckBoxSetting("trackerVisible", SettingScope.user, trackerOptionsFrame.ShowTrackerButton, true);
   registerCheckBoxSetting("showObjectiveTracker", SettingScope.user, trackerOptionsFrame.ShowObjectiveTrackerButton, true);
+  registerCheckBoxSetting("showCompleted", SettingScope.user, trackerOptionsFrame.ShowCompletedButton, true);
 
   registerDropDownSetting("panelCountFormat", SettingScope.global, panelOptionsFrame.CountFormat, addon.Variables.const.COUNT_FORMAT.PERCENT, countFormatOptions);
   registerDropDownSetting("trackerCountFormat", SettingScope.global, trackerOptionsFrame.CountFormat, addon.Variables.const.COUNT_FORMAT.PERCENT, countFormatOptions);
@@ -253,7 +254,7 @@ function frame:CreateTrackerOptionsDropDowns()
   local sectionFrame = self.ScrollBox.TrackerOptions;
 
   sectionFrame.CountFormat = createDropDownWithLabel(sectionFrame, addon.T["STOCK_COUNT_FORMAT"]);
-  sectionFrame.CountFormat:SetPoint("TOPLEFT", sectionFrame.ShowObjectiveTrackerButton, "BOTTOMLEFT", -12, -17);
+  sectionFrame.CountFormat:SetPoint("TOPLEFT", sectionFrame.ShowCompletedButton, "BOTTOMLEFT", -12, -17);
 
   sectionFrame.ProgressFormat = createDropDownWithLabel(sectionFrame, addon.T["PROGRESS_TYPE"]);
   sectionFrame.ProgressFormat:SetPoint("TOPLEFT", sectionFrame.CountFormat, "TOPRIGHT", 60, 0);
