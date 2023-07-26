@@ -1,676 +1,708 @@
-local _, addon = ...;
-local module = addon:RegisterModule("ObjectiveTracker");
-
-local objectiveTrackerHeaderFrame = CreateFrame("Frame", nil, ObjectiveTrackerBlocksFrame, "ObjectiveTrackerHeaderTemplate");
-local updateReason = 0x100000;
-
-local wantsUpdate = false;
-
-local objectiveTrackerModule = ObjectiveTracker_GetModuleInfoTable("GATHERPANEL_TRACKER_MODULE");
-objectiveTrackerModule.updateReasonModule = updateReason;
-objectiveTrackerModule:SetHeader(objectiveTrackerHeaderFrame, addon.T["GATHERING"]);
-
-function objectiveTrackerModule:GetRelatedModules()
-  local modules = {};
-  local header = self.Header;
-  local trackerModules = Shallowcopy(ObjectiveTrackerFrame.MODULES);
-  table.insert(trackerModules, objectiveTrackerModule);
-  for _, trackerModule in ipairs(trackerModules) do
-    if trackerModule.Header == header then
-      table.insert(modules, trackerModule);
-    end
-  end
-  return modules;
-end
-
-function objectiveTrackerModule:SetCollapsed(collapsed)
-	module:ObjectiveTracker_SetModulesCollapsed(collapsed, self:GetRelatedModules());
-
-	if self.Header and self.Header.MinimizeButton then
-		self.Header.MinimizeButton:SetCollapsed(collapsed);
-	end
-end
-
-function objectiveTrackerModule:SetLineInfo(block, objectiveKey, text, lineType, dashStyle, colorStyle)
-  local line = self:GetLine(block, objectiveKey, lineType);
-
-	if ( line.Dash ) then
-		if ( not dashStyle ) then
-			dashStyle = OBJECTIVE_DASH_STYLE_SHOW;
-		end
-		if ( line.dashStyle ~= dashStyle ) then
-			if ( dashStyle == OBJECTIVE_DASH_STYLE_SHOW ) then
-				line.Dash:Show();
-				line.Dash:SetText(QUEST_DASH);
-			elseif ( dashStyle == OBJECTIVE_DASH_STYLE_HIDE ) then
-				line.Dash:Hide();
-				line.Dash:SetText(QUEST_DASH);
-			elseif ( dashStyle == OBJECTIVE_DASH_STYLE_HIDE_AND_COLLAPSE ) then
-				line.Dash:Hide();
-				line.Dash:SetText(nil);
-			else
-				error("Invalid dash style: " .. tostring(dashStyle));
-			end
-			line.dashStyle = dashStyle;
-		end
-	end
-
-
-	local textHeight = self:SetStringText(line.Text, text, nil, colorStyle, block.isHighlighted);
-	line:SetHeight(textHeight);
-	return line;
-end
-
-function objectiveTrackerModule:GetBlock(id, overrideType, overrideTemplate)
-  local blockType = overrideType or self.blockType;
-	local blockTemplate = overrideTemplate or self.blockTemplate;
-
-	if not self.usedBlocks[blockTemplate] then
-		self.usedBlocks[blockTemplate] = {};
-	end
-
-	-- first try to return existing block
-	local block = self.usedBlocks[blockTemplate][id];
-
-	if not block then
-		local pool = self.poolCollection:GetOrCreatePool(blockType, self.BlocksFrame or ObjectiveTrackerFrame.BlocksFrame, blockTemplate);
-
-		local isNewBlock = nil;
-		block, isNewBlock = pool:Acquire(blockTemplate);
-
-		if isNewBlock then
-			block.blockTemplate = blockTemplate; -- stored so we can use it to free from the lookup later
-			block.lines = {};
-		end
-
-		self.usedBlocks[blockTemplate][id] = block;
-		block.id = id;
-		block.module = self;
-	end
-
-	block.used = true;
-	block.height = 0;
-	block.currentLine = nil;
-
-	-- prep lines
-	if block.lines then
-		for objectiveKey, line in pairs(block.lines) do
-			line.used = nil;
-		end
-	end
-
-	return block;
-end
-
-objectiveTrackerHeaderFrame.MinimizeButton:SetScript("OnClick", function(button)
-	PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
-	local trackerModule = button:GetParent().module;
-	trackerModule:SetCollapsed(not trackerModule:IsCollapsed());
-	module:ObjectiveTracker_Update(0, nil, trackerModule);
-end)
+local _, addon = ...
+local module = addon:RegisterModule("ObjectiveTracker")
 
 local LINE_TYPE_ANIM = { template = "QuestObjectiveAnimLineTemplate", freeLines = { } };
 
-local moduleLoaded = false;
-local objectiveTrackerInitialized = false;
+local function addLineGlowAnimation(frame)
+  frame:SetScript("OnFinished", function(line)
+    if line.state == "COMPLETING_ALL" then
+      line.FadeOutAnim:Play()
+      line.state = "FADING"
+    else
+      line.state = "COMPLETED"
+    end
+  end)
+end
 
-local function getProgressText(entry)
+local function blockFits(block, frame, offsetY)
+  return frame.contentsHeight + block.height - offsetY < frame.maxHeight
+end
+
+local function scheduleFunction(func, ...)
+  local args = ...
+
+  C_Timer.After(0.5, function()
+    func(args)
+  end)
+end
+
+local function isComplete(entry)
+  return entry.itemCount >= entry.goal
+end
+
+local function getObjectiveStyles(entry)
+  local metQuantity = isComplete(entry)
+  local dashStyle = metQuantity and OBJECTIVE_DASH_STYLE_HIDE or OBJECTIVE_DASH_STYLE_SHOW
+
+  if metQuantity then
+    return dashStyle, OBJECTIVE_TRACKER_COLOR["Complete"]
+  end
+
+  if entry.max == entry.min or entry.max == entry.goal then
+    return dashStyle, OBJECTIVE_TRACKER_COLOR["Normal"]
+  end
+
+  if entry.goal == entry.min then
+    return dashStyle, OBJECTIVE_TRACKER_COLOR["Failed"]
+  end
+
+  return dashStyle, OBJECTIVE_TRACKER_COLOR["Normal"]
+end
+
+local function getObjectiveText(entry)
   if entry.goal == entry.max then
-    return string.format("%d/%d %s", min(entry.goal, entry.itemCount), entry.goal, entry.displayName);
-  else
-    return string.format("%d/%d %s (%d)", min(entry.goal, entry.itemCount), entry.goal, entry.displayName, entry.max);
+    return string.format(
+      "%d/%d, %s",
+      min(entry.goal, entry.itemCount),
+      entry.goal,
+      entry.displayName)
+  end
+
+  return string.format(
+    "%d/%d %s (%d)",
+    min(entry.goal, entry.itemCount),
+    entry.goal,
+    entry.displayName,
+    entry.max)
+end
+
+local objectiveTrackerFrame = CreateFrame("Frame", nil, ObjectiveTrackerBlocksFrame, "ObjectiveTrackerHeaderTemplate")
+
+objectiveTrackerFrame.MinimizeButton:SetScript("OnClick", function(button)
+  PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
+  local trackerModule = button:GetParent().module
+  trackerModule:SetCollapsed(not trackerModule:IsCollapsed())
+  module:ObjectiveTracker_Update()
+end)
+
+local objectiveTrackerModule = ObjectiveTracker_GetModuleInfoTable("GATHERPANEL_TRACKER_MODULE")
+objectiveTrackerModule:SetHeader(objectiveTrackerFrame, addon.T["GATHERING"])
+
+function objectiveTrackerModule:SetCollapsed(collapsed)
+  module:ObjectiveTracker_SetModulesCollapsed(collapsed, self:GetRelatedModules())
+
+  if self.Header and self.Header.MinimizeButton then
+    self.Header.MinimizeButton:SetCollapsed(collapsed)
   end
 end
 
-function objectiveTrackerModule:Update()
-  self:BeginLayout();
+function objectiveTrackerModule:GetRelatedModules()
+  local modules = {}
+  local trackerModules = Shallowcopy(ObjectiveTrackerFrame.MODULES)
+  table.insert(trackerModules, objectiveTrackerModule)
 
-  if self.continuableContainer then
-    self.continuableContainer:Cancel();
+  for _, trackerModule in ipairs(trackerModules) do
+    if trackerModule.Header == self.Header then
+      table.insert(modules, trackerModule)
+    end
   end
 
-  self.continuableContainer = ContinuableContainer:Create();
+  return modules
+end
 
-  local entries = GatherPanel_GetItemList();
+function objectiveTrackerModule:SetLineInfo(block, objectiveKey, text, lineType, dashStyle, colorStyle)
+  local line = self:GetLine(block, objectiveKey, lineType)
+
+  if line.Dash then
+    if not dashStyle then
+      dashStyle = OBJECTIVE_DASH_STYLE_SHOW
+    end
+
+    if line.dashStyle ~= dashStyle then
+      if dashStyle == OBJECTIVE_DASH_STYLE_SHOW then
+        line.Dash:Show()
+        line.Dash:SetText(QUEST_DASH)
+      elseif dashStyle == OBJECTIVE_DASH_STYLE_HIDE then
+        line.Dash:Hide()
+        line.Dash:SetText(QUEST_DASH)
+      elseif dashStyle == OBJECTIVE_DASH_STYLE_HIDE_AND_COLLAPSE then
+        line.Dash:Hide()
+        line.Dash:SetText(nil)
+      else
+        error("Invalid dash style: " .. tostring(dashStyle))
+      end
+
+      line.dashStyle = dashStyle
+    end
+  end
+
+  local textHeight = self:SetStringText(line.Text, text, nil, colorStyle, block.isHighlighted)
+  line:SetHeight(textHeight)
+  return line
+end
+
+function objectiveTrackerModule:Update()
+  if self.continuableContainer then
+    self.continuableContainer:Cancel()
+  end
+
+  self.continuableContainer = ContinuableContainer:Create()
+  local entries = GatherPanel_GetItemList()
 
   for _, entry in pairs(entries) do
     if entry.type == "ITEM" then
-      local item = Item:CreateFromItemID(entry.id);
-      self.continuableContainer:AddContinuable(item);
+      local item = Item:CreateFromItemID(entry.id)
+      self.continuableContainer:AddContinuable(item)
     end
   end
 
-
-  local function Layout()
-    if not addon.Variables.user.showObjectiveTracker then
-      return;
+  self.allItemsLoaded = true
+  self.allItemsLoaded = self.continuableContainer:ContinueOnLoad(function()
+    if self.allItemsLoaded then
+      self:BeginLayout()
+      self:Layout()
+      self:EndLayout()
+    else
+      module:InitObjectiveTracker(nil, nil, true)
     end
+  end)
+end
 
-    local groups = addon.getGroups();
-    for _, group in ipairs(groups) do
+function objectiveTrackerModule:Layout()
+  if not addon.Variables.user.showObjectiveTracker then
+    return
+  end
 
-      if #group.entries > 0 then
-        local block = self:GetBlock(group.id);
-        self:SetBlockHeader(block, group.groupData.name);
+  local groups = addon.getGroups()
 
-        local allMet = true;
-        local hasRelevantItems = true;
+  for _, group in ipairs(groups) do
+    self:AddGroup(group)
+  end
+end
 
-        for _, entry in ipairs(group.entries) do
-          if entry.goal and entry.goal > 0 then
-            hasRelevantItems = true;
-            if entry.itemCount < entry.goal then
-              allMet = false;
-              break;
-            end
-          end
-        end
+function objectiveTrackerModule:AddGroup(group)
+  local block = self:GetBlock(group.id)
+  block.group = group
+  self:SetBlockHeader(block, group.groupData.name)
+  local allObjectivesComplete = true
+  local hasObjectives = false
 
-        if not hasRelevantItems then
-          return;
-        end
+  for _, entry in ipairs(group.entries) do
+    if entry.tracked and  entry.goal and entry.goal > 0
+    and (addon.Variables.user.showCompleted or entry.goal > entry.itemCount) then
+      hasObjectives = true
 
-        if allMet and addon.Variables.user.showCompleted then
-          local progressText = addon.T["ALL_TRACKED_IN_GROUP_COMPLETE"];
-          local dashStyle = OBJECTIVE_DASH_STYLE_HIDE;
-          local colorStyle = OBJECTIVE_TRACKER_COLOR["Complete"];
-          local line = self:AddObjective(block, 0, progressText, LINE_TYPE_ANIM, nil, dashStyle, colorStyle);
-          line.Glow.Anim:SetScript("OnFinished", function(_line)
-            if _line.state == "COMPLETING_ALL" then
-              _line.FadeOutAnim:Play();
-              _line.state = "FADING";
-            else
-              _line.state = "COMPLETED";
-            end
-          end)
-          line:Show();
-          line.Check:SetShown(false);
-        else
-          for _, entry in ipairs(group.entries) do
-            if entry.goal and entry.goal > 0 then
-              local metQuantity = entry.itemCount >= entry.goal;
-              local dashStyle = metQuantity and OBJECTIVE_DASH_STYLE_HIDE or OBJECTIVE_DASH_STYLE_SHOW;
-              local colorStyle;
-              if metQuantity then
-                colorStyle = OBJECTIVE_TRACKER_COLOR["Complete"];
-              elseif entry.max == entry.min or entry.goal == entry.max then
-                colorStyle = OBJECTIVE_TRACKER_COLOR["Normal"];
-              elseif entry.goal == entry.min then
-                colorStyle = OBJECTIVE_TRACKER_COLOR["Failed"];
-              else
-                colorStyle = OBJECTIVE_TRACKER_COLOR["Normal"];
-              end
-
-              local progressText = getProgressText(entry);
-              if (not metQuantity or addon.Variables.user.showCompleted) then
-                local line = self:AddObjective(block, entry.id, progressText, LINE_TYPE_ANIM, nil, dashStyle, colorStyle);
-                line.Check:SetShown(metQuantity);
-                line.Glow.Anim:SetScript("OnFinished", function(_line)
-                  if _line.state == "COMPLETING_ALL" then
-                    _line.FadeOutAnim:Play();
-                    _line.state = "FADING";
-                  else
-                    _line.state = "COMPLETED";
-                  end
-                end)
-              end
-            end
-          end
-        end
-
-        if (not allMet or addon.Variables.user.showCompleted) then
-          block:SetHeight(block.height);
-
-          if module:AddBlock(block) then
-            block:Show();
-            self:FreeUnusedLines(block);
-          else
-            block.used = false;
-            break;
-          end
-        else
-          block.used = false;
-        end
+      if entry.itemCount < entry.goal then
+        allObjectivesComplete = false
+        break
       end
     end
   end
 
-  local allLoaded = true;
+  if not hasObjectives then
+    block.used = false
+    self:FreeUnusedLines(block)
+    return
+  end
 
-  local function OnItemsLoaded()
-    if allLoaded then
-      Layout();
-    else
-      objectiveTrackerModule:Update();
+  if allObjectivesComplete and addon.Variables.user.showCompleted then
+    self:AddCompleteGroup(block)
+  else
+    self:AddObjectives(block, group.entries)
+  end
+
+  block:SetHeight(block.height)
+
+  if self:AddBlock(block) then
+    self:FreeUnusedLines(block)
+    block:Show()
+  else
+    block.used = false
+    self:FreeUnusedLines(block)
+  end
+end
+
+function objectiveTrackerModule:AddCompleteGroup(block)
+  local text = addon.T["ALL_TRACKED_IN_GROUP_COMPLETE"]
+  local dashStyle = OBJECTIVE_DASH_STYLE_HIDE
+  local colorStyle = OBJECTIVE_TRACKER_COLOR["Complete"]
+  local line = self:AddObjective(block, 0, text, LINE_TYPE_ANIM, nil, dashStyle, colorStyle)
+  line:Show()
+  line.Check:SetShown(false)
+end
+
+function objectiveTrackerModule:AddObjectives(block, entries)
+  for _, entry in ipairs(entries) do
+    self:AddObjectiveLine(block, entry)
+  end
+end
+
+function objectiveTrackerModule:AddObjectiveLine(block, entry)
+  if not entry.goal or entry.goal == 0 then
+    return
+  end
+
+  local completed = isComplete(entry)
+
+  if completed and not addon.Variables.user.showCompleted then
+    return
+  end
+
+  local dashStyle, colorStyle = getObjectiveStyles(entry)
+  local text = getObjectiveText(entry)
+  local line = self:AddObjective(block, entry.id, text, LINE_TYPE_ANIM, nil, dashStyle, colorStyle)
+  line.Check:SetShown(completed)
+  addLineGlowAnimation(line.Glow.Anim)
+end
+
+function objectiveTrackerModule:GetBlock(id, overrideType, overrideTemplate)
+  local blockType = overrideType or self.blockType
+  local blockTemplate = overrideTemplate or self.blockTemplate
+
+  if not self.usedBlocks[blockTemplate] then
+    self.usedBlocks[blockTemplate] = {}
+  end
+
+  local block = self.usedBlocks[blockTemplate][id]
+
+  if not block then
+    local pool = self.poolCollection:GetOrCreatePool(blockType, self.BlocksFrame or ObjectiveTrackerFrame.BlocksFrame, blockTemplate)
+
+    local isNewBlock = nil
+    block, isNewBlock = pool:Acquire(blockTemplate)
+
+    if isNewBlock then
+      block.blockTemplate = blockTemplate
+      block.lines = {}
+    end
+
+    self.usedBlocks[blockTemplate][id] = block
+    block.id = id
+    block.module = self
+  end
+
+  block.used = true
+  block.height = 0
+  block.currentLine = nil
+
+  if block.lines then
+    for _, line in pairs(block.lines) do
+      line.used = nil
     end
   end
 
-  allLoaded = self.continuableContainer:ContinueOnLoad(OnItemsLoaded);
-  self:EndLayout();
+  return block
 end
 
-function objectiveTrackerModule:IsHeaderVisible()
-  local header = self.Header;
-  if header.added and header:IsVisible() then
-    return true;
-  end
-  return false;
-end
+function objectiveTrackerModule:AddBlock(block)
+  local header = block.module.Header
+  local blockAdded = false
 
-function objectiveTrackerModule:OnBlockHeaderClick(block, mousebutton)
-  if mousebutton == "LeftButton" and IsModifiedClick("QUESTWATCHTOGGLE") then
-    local track = false;
-    addon.trackGroup(nil, block.id, track);
-  end
-end
-
-function module:AddBlock(block)
-  local header = block.module.Header;
-  local blockAdded = false;
-
-  -- if there's no header or it's been added, just add the block...
   if not header or header.added then
-    blockAdded = self:InternalAddBlock(block);
+    blockAdded = self:InternalAddBlock(block)
   elseif ObjectiveTracker_CanFitBlock(block, header) then
-    -- try to add header and maybe block
     if ObjectiveTracker_AddHeader(header) then
-      blockAdded = self:InternalAddBlock(block);
+      blockAdded = self:InternalAddBlock(block)
     end
   end
 
   if not blockAdded then
-    block.module.hasSkippedBlocks = true;
+    block.module.hasSkippedBlocks = true
   end
 
-  return blockAdded;
+  return blockAdded
 end
 
-function module:InternalAddBlock(block)
-  local module = block.module or DEFAULT_OBJECTIVE_TRACKER_MODULE;
-	local blocksFrame = self.BlocksFrame;
-	local blocksFrame = module.BlocksFrame;
-	block.nextBlock = nil;
+function objectiveTrackerModule:InternalAddBlock(block)
+  local trackerModule = block.module or DEFAULT_OBJECTIVE_TRACKER_MODULE
+  local blocksFrame = trackerModule.BlocksFrame
+  block.nextBlock = nil
 
-	-- This doesn't take fit into account, it just assumes that there's content to be added, so the potential count
-	-- should increase (this is related to showing the collapse buttons on the headers, see Reorder)
-	-- NOTE: Never count headers as added blocks
-	if not block.isHeader then
-		module.potentialBlocksAddedThisLayout = (module.potentialBlocksAddedThisLayout or 0) + 1;
-	end
+  if not block.isHeader then
+    trackerModule.potentialBlocksAddedThisLayout = (trackerModule.potentialBlocksAddedThisLayout or 0) + 1
+  end
 
-	-- Only allow headers to be added if the module is collapsed.
-	if not block.isHeader and module:IsCollapsed() then
-		return false;
-	end
+  if not block.isHeader and trackerModule:IsCollapsed() then
+    return false
+  end
 
-	local offsetY = self:AnchorBlock(block, blocksFrame.currentBlock, not module.ignoreFit);
-	if ( not offsetY ) then
-		return false;
-	end
+  module:AnchorBlock(block, blocksFrame.currentBlock, not trackerModule.ignoreFit)
 
-	if ( not module.topBlock ) then
-		module.topBlock = block;
-	end
-	if ( not module.firstBlock and not block.isHeader ) then
-		module.firstBlock = block;
-	end
-	if ( blocksFrame.currentBlock ) then
-		blocksFrame.currentBlock.nextBlock = block;
-	end
-	blocksFrame.currentBlock = block;
-	blocksFrame.contentsHeight = blocksFrame.contentsHeight + block.height - offsetY;
-	module.contentsAnimHeight = module.contentsAnimHeight + block.height;
-	module.contentsHeight = module.contentsHeight + block.height - offsetY;
-	return true;
+  if not block.offsetY then
+    return false
+  end
+
+  if not trackerModule.topBlock then
+    trackerModule.topBlock = block
+  end
+
+  if not trackerModule.firstBlock and not block.isHeader then
+    trackerModule.firstBlock = block
+  end
+
+  if blocksFrame.currentBlock then
+    blocksFrame.currentBlock.nextBlock = block
+  end
+
+  blocksFrame.currentBlock = block
+  blocksFrame.contentsHeight = blocksFrame.contentsHeight + block.height - block.offsetY
+  trackerModule.contentsAnimHeight = trackerModule.contentsAnimHeight + block.height
+  trackerModule.contentsHeight = trackerModule.contentsHeight + block.height - block.offsetY
+  return true
 end
 
-function module:UpdateItem(entry, oldCount)
-  if oldCount == entry.itemCount then
-    return;
+function objectiveTrackerModule:StaticReanchor()
+  if self:StaticReanchorCheckAddHeaderOnly() then
+    return
   end
 
-  if oldCount >= entry.goal and oldCount > entry.itemCount then
-    return;
-  end
+  local block = self.firstBlock
+  self:BeginLayout(true)
 
-  local groups = addon.getGroups();
+  while block do
+    if block.module == self then
+      local nextBlock = block.nextBlock
 
-  for _, group in ipairs(groups) do
-    local groupCompleted = true;
-    if #group.entries > 0 then
-      if group.id == entry.parent then
-        local block = objectiveTrackerModule:GetExistingBlock(group.id);
+      if objectiveTrackerModule:AddBlock(block) then
+        block.used = true
+        block:Show()
+        block = nextBlock
+      else
+        block.used = false
+        block:Hide()
 
-        if not block then
-          -- not ready yet. come back later.
-          return
-        end
-
-        for _, groupEntry in ipairs(group.entries) do
-          if groupEntry.itemCount < entry.goal then
-            groupCompleted = false;
-            break;
-          end
-        end
-
-        local metQuantity = entry.itemCount >= entry.goal;
-        local dashStyle = metQuantity and OBJECTIVE_DASH_STYLE_HIDE or OBJECTIVE_DASH_STYLE_SHOW;
-        local colorStyle;
-        if entry.goal == entry.min then
-          colorStyle = OBJECTIVE_TRACKER_COLOR["Failed"];
-        elseif metQuantity then
-          colorStyle = OBJECTIVE_TRACKER_COLOR["Complete"];
-        else
-          colorStyle = OBJECTIVE_TRACKER_COLOR["Normal"];
-        end
-        local progressText = getProgressText(entry);
-        local line = objectiveTrackerModule:GetLine(block, entry.id, LINE_TYPE_ANIM);
-
-        if line then
-          objectiveTrackerModule:SetLineInfo(block, entry.id, progressText, LINE_TYPE_ANIM, dashStyle, colorStyle);
-          if (entry.itemCount >= entry.goal) then
-            line.Glow.Anim:SetScript("OnFinished", function(glowFrame)
-              local _line = glowFrame:GetParent():GetParent();
-              if not addon.Variables.user.showCompleted or _line.state == "COMPLETING_ALL" then
-                _line.FadeOutAnim:Play();
-                _line.state = "FADING";
-              else
-                _line.state = "COMPLETED";
-              end
-            end);
-            line.FadeOutAnim:SetScript("OnFinished", function(fadeOutFrame)
-              local _line = fadeOutFrame:GetParent();
-              local block = _line.block;
-              block.module:FreeLine(block, line);
-              for _, otherLine in pairs(block.lines) do
-                if ( otherLine.state == "FADING" ) then
-                  -- some other line is still fading
-                  return;
-                end
-              end
-              module:ObjectiveTracker_Update();
-            end);
-            line.block = block;
-
-            if groupCompleted then
-              line.state = "COMPLETING_ALL";
-            else
-              line.state = "COMPLETING";
-            end
-
-            line.Check:Show();
-            line.Sheen.Anim:Play();
-            line.Glow.Anim:Play();
-            line.CheckFlash.Anim:Play();
-          end
-        end
+        break
       end
+    else
+      break
     end
   end
+
+  self:EndLayout()
+end
+
+function objectiveTrackerModule:StaticReanchorCheckAddHeaderOnly()
+  if self:IsCollapsed() and not self.Header.added and self:GetBlockCount() > 0 then
+    ObjectiveTracker_AddHeader(self.Header, true)
+    return true
+  end
+
+  return false
+end
+
+function objectiveTrackerModule:FreeLine(block, line)
+  block.lines[line.objectiveKey] = nil;
+	-- if the line has a type, the freeLines will be the cache for that type of line, otherwise use the module's default
+	local freeLines = (line.type and line.type.freeLines) or self.freeLines;
+	tinsert(freeLines, line);
+	-- remove timer bar
+	if ( line.TimerBar ) then
+		self:FreeTimerBar(block, line);
+	end
+	if ( line.ProgressBar ) then
+		self:FreeProgressBar(block, line);
+	end
+	if ( line.type and self.OnFreeTypedLine ) then
+		self:OnFreeTypedLine(line);
+	elseif ( self.OnFreeLine ) then
+		self:OnFreeLine(line);
+	end
+
+	line:Hide();
+end
+
+function module:AnchorBlock(block, anchorBlock, checkFit)
+  block:ClearAllPoints()
+
+  if anchorBlock then
+    self:AnchorBlockToReferenceBlock(block, anchorBlock, checkFit)
+  else
+    self:AnchorBlockToBlocksFrame(block, checkFit)
+  end
+end
+
+function module:AnchorBlockToReferenceBlock(block, anchorBlock, checkFit)
+  local trackerModule = block.module
+	local blocksFrame = trackerModule.BlocksFrame
+	block.offsetX, block.offsetY = ObjectiveTracker_GetBlockOffset(block)
+
+  if anchorBlock.isHeader then
+    block.offsetY = trackerModule.fromHeaderOffsetY
+  end
+
+  if checkFit and not blockFits(block, blocksFrame, block.offsetY) then
+    return
+  end
+
+  if block.isHeader then
+    block.offsetY = block.offsetY + anchorBlock.module.fromModuleOffsetY
+    block:SetPoint("LEFT", OBJECTIVE_TRACKER_HEADER_OFFSET_X, 0)
+  else
+    block:SetPoint("LEFT", block.offsetX, 0)
+  end
+
+  block:SetPoint("TOP", anchorBlock, "BOTTOM", 0, block.offsetY)
+end
+
+function module:AnchorBlockToBlocksFrame(block, checkFit)
+  local trackerModule = block.module
+	local blocksFrame = trackerModule.BlocksFrame
+	local offsetX = ObjectiveTracker_GetBlockOffset(block)
+  local offsetY = 0
+
+  if checkFit and not blockFits(block, blocksFrame, offsetY) then
+    return
+  end
+
+  local anchorFrame = blocksFrame.ScrollContents or blocksFrame
+
+  if block.isHeader then
+    block:SetPoint("TOPLEFT", anchorFrame, "TOPLEFT", OBJECTIVE_TRACKER_HEADER_OFFSET_X, offsetY)
+  else
+    block:SetPoint("TOPLEFT", anchorFrame, "TOPLEFT", offsetX, offsetY)
+  end
+end
+
+function module:Init()
+  module:InitObjectiveTracker(nil, nil, true)
 end
 
 function module:FullUpdate()
-  module:ObjectiveTracker_Update();
+  module:UpdateObjectiveTracker(nil, nil, true)
 end
 
+function module:InitObjectiveTracker(reason, moduleWhoseCollapseChanged, internalReason)
+  local tracker = ObjectiveTrackerFrame
 
-function module:Init()
-  self:FullUpdate();
-end
-
-local function scheduleUpdate(func, ...)
-  local args = ...;
-
-  C_Timer.After(0.5, function()
-    func(args);
-  end)
-end
-
-function module:ObjectiveTracker_Update(reason, id, moduleWhoseCollapseChanged)
-  local tracker = ObjectiveTrackerFrame;
-
-  local trackerModules, trackerModulesInOrder;
-
-  if tracker.MODULES then
-    trackerModules = Shallowcopy(tracker.MODULES);
-    trackerModulesInOrder = Shallowcopy(tracker.MODULES_UI_ORDER);
-  else
-    trackerModules = {};
-    trackerModulesInOrder = {};
+  if not tracker.initialized then
+    scheduleFunction(self.UpdateObjectiveTracker, self)
+    return
   end
 
-  table.insert(trackerModules, objectiveTrackerModule);
-  table.insert(trackerModulesInOrder, objectiveTrackerModule);
+  if module.isUpdating or tracker.isUpdating then
+    scheduleFunction(self.UpdateObjectiveTracker, self)
+    return
+  end
 
-  -- tracker position handled by blizzard
+  module.isUpdating = true
 
-	if tracker.isUpdating then
-    scheduleUpdate(module.ObjectiveTracker_Update, self, reason, id, moduleWhoseCollapseChanged);
-		return;
-	end
-
-	if ( not tracker.initialized ) then
-    scheduleUpdate(module.ObjectiveTracker_Update, self, reason, id, moduleWhoseCollapseChanged);
-		return;
-	end
-
-	tracker.BlocksFrame.maxHeight = tracker.BlocksFrame:GetHeight();
-	if ( tracker.BlocksFrame.maxHeight == 0 ) then
-		return;
-	end
-
-	tracker.BlocksFrame.currentBlock = nil;
-	tracker.BlocksFrame.contentsHeight = 0;
-
-	-- Gather existing headers, only newly added ones will animate
-	local currentHeaders = module:ObjectiveTracker_GetVisibleHeaders();
-
-	-- mark headers unused
-	for _, trackerModule in ipairs(trackerModules) do
-    if trackerModule == objectiveTrackerModule then
-      if trackerModule.Header then
-        trackerModule.Header.added = nil;
-      end
-    end
-	end
-
-	-- run module updates
-	for i = 1, #trackerModules do
-		local trackerModule = trackerModules[i];
-    -- run a full update on this module
-    if trackerModule == objectiveTrackerModule then
-      trackerModule:Update();
-    end
-	end
-
-	module:ObjectiveTracker_ReorderModules();
-	module:ObjectiveTracker_AnimateHeaders(currentHeaders);
-
-	-- hide unused headers
-	for i = 1, #trackerModules do
-		ObjectiveTracker_CheckAndHideHeader(trackerModules[i].Header);
-	end
-
-	if ( tracker.BlocksFrame.currentBlock ) then
-		tracker.HeaderMenu:Show();
-	else
-		tracker.HeaderMenu:Hide();
-	end
-
-	tracker.BlocksFrame.currentBlock = nil;
-
-	if tracker:IsInDefaultPosition() then
-		UIParent_ManageFramePositions();
-	end
+  self:UpdateObjectiveTracker(reason, moduleWhoseCollapseChanged, internalReason)
 end
 
+function module:UpdateObjectiveTracker(reason, moduleWhoseCollapseChanged, internalReason)
+  local tracker = ObjectiveTrackerFrame
+  local trackerModules, trackerModulesInOrder
 
--- yes, we have to implement each objective tracker frame method.
--- this calls for a library!
+  if tracker.MODULES then
+    trackerModules = Shallowcopy(tracker.MODULES)
+    trackerModulesInOrder = Shallowcopy(tracker.MODULES_UI_ORDER)
+  else
+    trackerModules= {}
+    trackerModulesInOrder = {}
+  end
 
-hooksecurefunc(_G, "ObjectiveTracker_Initialize", function()
-  objectiveTrackerInitialized = true;
-end);
+  table.insert(trackerModules, objectiveTrackerModule)
+  table.insert(trackerModulesInOrder, objectiveTrackerModule)
 
-hooksecurefunc(_G, "ObjectiveTracker_Update", function(reason, id, moduleWhoseCollapseChanged)
-  module:ObjectiveTracker_Update(reason, id, moduleWhoseCollapseChanged)
-end);
+  tracker.BlocksFrame.maxHeight = tracker.BlocksFrame:GetHeight()
 
--- hooksecurefunc(_G, "ObjectiveTracker_ReorderModules", function()
---   module:ObjectiveTracker_ReorderModules()
--- end);
+  if tracker.BlocksFrame.maxHeight == 0 then
+    self.isUpdating = false
+    return
+  end
 
-hooksecurefunc(_G, "ObjectiveTracker_UpdatePOIs", function() end);
+  tracker.BlocksFrame.currentBlock = nil
+  tracker.BlocksFrame.contentsHeight = 0
+
+	local currentHeaders = module:ObjectiveTracker_GetVisibleHeaders();
+
+  for _, trackerModule in ipairs(trackerModules) do
+    if trackerModule.Header then
+      trackerModule.Header.added = nil
+    end
+  end
+
+  local relatedModules = self:GetRelatedModulesForUpdate(moduleWhoseCollapseChanged)
+  local gotMoreRoomThisPass = false
+  local updateReason = reason or OBJECTIVE_TRACKER_UPDATE_ALL
+
+  for _, trackerModule in ipairs(trackerModules) do
+    if self:IsRelatedModuleForUpdate(moduleWhoseCollapseChanged, relatedModules)
+    or (
+      bit.band(
+        updateReason,
+        trackerModule.updateReasonModule + trackerModule.updateReasonEvents
+      ) > 0
+    )
+    or (
+      trackerModule == objectiveTrackerModule and (
+        internalReason or updateReason == OBJECTIVE_TRACKER_UPDATE_ALL
+      )
+    ) then
+      trackerModule:Update()
+
+      if trackerModule.oldContentsHeight - trackerModule.contentsHeight >= 1 then
+        gotMoreRoomThisPass = true
+      end
+    else
+      if (trackerModule.hasSkippedBlocks and gotMoreRoomThisPass)
+      or (trackerModule.Header and trackerModule.Header.animating) then
+        trackerModule:Update()
+      else
+        trackerModule:StaticReanchor()
+      end
+    end
+  end
+
+  self:ObjectiveTracker_ReorderModules()
+  self:ObjectiveTracker_AnimateHeaders(currentHeaders)
+
+  for _, trackerModule in ipairs(trackerModules) do
+    ObjectiveTracker_CheckAndHideHeader(trackerModule.Header)
+  end
+
+  if tracker.BlocksFrame.currentBlock then
+    tracker.HeaderMenu:Show()
+  else
+    tracker.HeaderMenu:Hide()
+  end
+
+  tracker.BlocksFrame.currentBlock = nil
+  self.isUpdating = false
+
+  if tracker:IsInDefaultPosition() then
+    UIParent_ManageFramePositions()
+  end
+end
 
 function module:GetRelatedModulesForUpdate(trackerModule)
   if trackerModule then
-    return tInvert(trackerModule:GetRelatedModules());
+    return tInvert(trackerModule:GetRelatedModules())
   end
 
-  return nil;
+  return nil
 end
 
-function module:IsRelatedModuleForUpdate(module, moduleLookup)
-	if moduleLookup then
-		return moduleLookup[module] ~= nil;
-	end
+function module:IsRelatedModuleForUpdate(trackerModule, moduleLookup)
+  if moduleLookup then
+    return moduleLookup[trackerModule] ~= nil
+  end
 
-	return false;
+  return false
+end
+
+function module:ObjectiveTracker_Initialize()
+  self:InitObjectiveTracker()
+end
+
+function module:ObjectiveTracker_Update(reason, moduleWhoseCollapseChanged)
+  self:InitObjectiveTracker(reason, moduleWhoseCollapseChanged)
 end
 
 function module:ObjectiveTracker_ReorderModules()
-  local trackerModulesInOrder = Shallowcopy(ObjectiveTrackerFrame.MODULES_UI_ORDER);
-  table.insert(trackerModulesInOrder, objectiveTrackerModule);
-	local visibleCount = module:ObjectiveTracker_CountVisibleModules();
-  local showAllModuleMinimizeButtons = visibleCount > 1;
+  local trackerModulesInOrder = Shallowcopy(ObjectiveTrackerFrame.MODULES_UI_ORDER)
+  table.insert(trackerModulesInOrder, objectiveTrackerModule)
+  local visibleCount = self:ObjectiveTracker_CountVisibleModules()
+  local showMinimizeButtons = visibleCount > 1
+  local headerMenu = ObjectiveTrackerFrame.HeaderMenu
+  headerMenu:ClearAllPoints()
+  self.lastAnchorBlock = nil
+  self.headerMenuPositioned = false
 
-  local anchorBlock = nil;
+  for _, trackerModule in ipairs(trackerModulesInOrder) do
+    local block = trackerModule.topBlock
 
-  local header = ObjectiveTrackerFrame.HeaderMenu;
-  header:ClearAllPoints();
+    if block then
+      self:PositionBlock(trackerModule, block, showMinimizeButtons)
+    end
+  end
+end
 
-  for i, trackerModule in ipairs(trackerModulesInOrder) do
-    local topBlock = trackerModule.topBlock;
-    if topBlock then
-      if trackerModule:UsesSharedHeader() then
-        module:AnchorBlock(topBlock, trackerModule.Header);
+function module:ObjectiveTracker_CountVisibleModules()
+  local trackerModules = Shallowcopy(ObjectiveTrackerFrame.MODULES)
+  table.insert(trackerModules, objectiveTrackerModule)
+  local count = 0
+  local seen = {}
 
-        local containingModule = trackerModule.Header.module;
-        if containingModule and containingModule.firstBlock then
-          containingModule.firstBlock:ClearAllPoints();
-          module:AnchorBlock(containingModule.firstBlock, trackerModule.lastBlock);
-        end
-      else
-        module:AnchorBlock(topBlock, anchorBlock);
-        anchorBlock = trackerModule.lastBlock;
-      end
+  for _, trackerModule in ipairs(trackerModules) do
+    local header = trackerModule.Header
 
-      local headerPoint = ObjectiveTrackerFrame.isOnLeftSideOfScreen and "LEFT" or "RIGHT";
-      local offsetXHeader = ObjectiveTrackerFrame.isOnLeftSideOfScreen and -10 or 0;
-      local offsetXHeaderText = ObjectiveTrackerFrame.isOnLeftSideOfScreen and 30 or 4;
-      local offsetXButton = ObjectiveTrackerFrame.isOnLeftSideOfScreen and 9 or -20;
+    if header and not seen[header] then
+      seen[header] = true
 
-      if header then
-        header:ClearAllPoints();
-        header:SetPoint(headerPoint, trackerModule.Header, headerPoint, offsetXHeader, 0);
-        header = nil;
-      end
-
-      trackerModule.Header.Text:ClearAllPoints();
-      trackerModule.Header.Text:SetPoint("LEFT", trackerModule.Header, "LEFT", offsetXHeaderText, -1);
-      local shouldShowThisModuleMinimizeButton = showAllModuleMinimizeButtons or trackerModule:IsCollapsed();
-      trackerModule.Header.MinimizeButton:SetShown(shouldShowThisModuleMinimizeButton);
-
-      if shouldShowThisModuleMinimizeButton then
-        trackerModule.Header.MinimizeButton:ClearAllPoints();
-        trackerModule.Header.MinimizeButton:SetPoint(headerPoint, trackerModule.Header, headerPoint, offsetXButton, 0);
+      if header:IsVisible() and trackerModule:GetBlockCount() > 0 then
+        count = count + 1
       end
     end
+  end
+
+  return count
+end
+
+function module:PositionBlock(trackerModule, block, showMinimizeButtons)
+  if trackerModule:UsesSharedHeader() then
+    self:AnchorBlock(block, trackerModule.Header)
+    local containingModule = trackerModule.Header.module
+
+    if containingModule and containingModule.firstBlock then
+      containingModule.firstBlock:ClearAllPoints()
+      self:AnchorBlock(containingModule.firstBlock, trackerModule.lastBlock)
+    end
+  else
+    self:AnchorBlock(block, self.lastAnchorBlock)
+    self.lastAnchorBlock = trackerModule.lastBlock
+  end
+
+  local headerPoint = ObjectiveTrackerFrame.isOnLeftSideOfScreen and "LEFT" or "RIGHT"
+  local offsetXHeader = ObjectiveTrackerFrame.isOnLeftSideOfScreen and -10 or 0
+  local offsetXHeaderText = ObjectiveTrackerFrame.isOnLeftSideOfScreen and 30 or 4
+  local offsetXButton = ObjectiveTrackerFrame.isOnLeftSideOfScreen and 9 or -20
+
+  local headerMenu = ObjectiveTrackerFrame.HeaderMenu
+
+  if not self.headerMenuPositioned and headerMenu then
+    headerMenu:ClearAllPoints()
+    headerMenu:SetPoint(headerPoint, trackerModule.Header, headerPoint, offsetXHeader, 0)
+    self.headerMenuPositioned = true
+  end
+
+  trackerModule.Header.Text:ClearAllPoints()
+  trackerModule.Header.Text:SetPoint("LEFT", trackerModule.Header, "LEFT", offsetXHeaderText, -1)
+  local shouldShowMinimizeButton = showMinimizeButtons or trackerModule:IsCollapsed()
+  trackerModule.Header.MinimizeButton:SetShown(shouldShowMinimizeButton)
+
+  if shouldShowMinimizeButton then
+    trackerModule.Header.MinimizeButton:ClearAllPoints()
+    trackerModule.Header.MinimizeButton:SetPoint(headerPoint, trackerModule.Header, headerPoint, offsetXButton, 0)
   end
 end
 
 function module:ObjectiveTracker_GetVisibleHeaders()
-	local headers = {};
-  local trackerModules = Shallowcopy(ObjectiveTrackerFrame.MODULES);
-  table.insert(trackerModules, objectiveTrackerModule);
-	for _, trackerModule in ipairs(trackerModules) do
-		local header = trackerModule.Header;
-		if header.added and header:IsVisible() then
-			headers[header] = true;
-		end
-	end
+  local headers = {}
+  local trackerModules = Shallowcopy(ObjectiveTrackerFrame.MODULES)
+  table.insert(trackerModules, objectiveTrackerModule)
 
-	return headers;
-end
+  for _, trackerModule in ipairs(trackerModules) do
+    local header = trackerModule.Header
 
-function module:ObjectiveTracker_AnimateHeaders(previouslyVisibleHeaders)
-	local currentHeaders = module:ObjectiveTracker_GetVisibleHeaders();
-	for header, isVisible in pairs(currentHeaders) do
-		if isVisible and not previouslyVisibleHeaders[header] then
-			header:PlayAddAnimation();
-		end
-	end
-end
-
-function module:ObjectiveTracker_CountVisibleModules()
-  local trackerModules = Shallowcopy(ObjectiveTrackerFrame.MODULES);
-  table.insert(trackerModules, objectiveTrackerModule);
-  local count = 0;
-  local seen = {};
-
-  for i, trackerModule in ipairs(trackerModules) do
-    local header = trackerModule.Header;
-
-    if header and not seen[header] then
-      seen[header] = true;
-      if header:IsVisible() and trackerModule:GetBlockCount() > 0 then
-        count = count + 1;
-      end
+    if header.added and header:IsVisible() then
+      headers[header] = true
     end
   end
 
-  return count;
+  return headers
 end
 
-function module:AnchorBlock(block, anchorBlock, checkFit)
-	local trackerModule = block.module;
-	local blocksFrame = trackerModule.BlocksFrame;
-	local offsetX, offsetY = ObjectiveTracker_GetBlockOffset(block);
-	block:ClearAllPoints();
-	if ( anchorBlock ) then
-		if ( anchorBlock.isHeader ) then
-			offsetY = trackerModule.fromHeaderOffsetY;
-		end
-		-- check if the block can fit
-		if ( checkFit and (blocksFrame.contentsHeight + block.height - offsetY > blocksFrame.maxHeight) ) then
-			return;
-		end
-		if ( block.isHeader ) then
-			offsetY = offsetY + anchorBlock.module.fromModuleOffsetY;
-			block:SetPoint("LEFT", OBJECTIVE_TRACKER_HEADER_OFFSET_X, 0);
-		else
-			block:SetPoint("LEFT", offsetX, 0);
-		end
-		block:SetPoint("TOP", anchorBlock, "BOTTOM", 0, offsetY);
-	else
-		offsetY = 0;
-		-- check if the block can fit
-		if ( checkFit and (blocksFrame.contentsHeight + block.height > blocksFrame.maxHeight) ) then
-			return;
-		end
-		-- if the blocks frame is a scrollframe, attach to its scrollchild
-		if ( block.isHeader ) then
-			block:SetPoint("TOPLEFT", blocksFrame.ScrollContents or blocksFrame, "TOPLEFT", OBJECTIVE_TRACKER_HEADER_OFFSET_X, offsetY);
-		else
-			block:SetPoint("TOPLEFT", blocksFrame.ScrollContents or blocksFrame, "TOPLEFT", offsetX, offsetY);
-		end
-	end
-	return offsetY;
-end
+function module:ObjectiveTracker_AnimateHeaders(previouslyVisibleHeaders)
+  local currentHeaders = module:ObjectiveTracker_GetVisibleHeaders()
 
+  for header, isVisible in pairs(currentHeaders) do
+    if isVisible and not previouslyVisibleHeaders[header] then
+      header:PlayAddAnimation()
+    end
+  end
+end
 
 function module:ObjectiveTracker_SetModulesCollapsed(collapsed, modules)
-	for index, trackerModule in ipairs(modules) do
-		trackerModule.collapsed = collapsed;
-	end
+  for _, trackerModule in ipairs(modules) do
+    trackerModule.collapsed = collapsed
+  end
 end
+
+hooksecurefunc(_G, "ObjectiveTracker_Initialize", function()
+  module:ObjectiveTracker_Initialize()
+end)
+
+hooksecurefunc(_G, "ObjectiveTracker_Update", function(reason, _, moduleWhoseCollapseChanged)
+  module:ObjectiveTracker_Update(reason, moduleWhoseCollapseChanged)
+end)

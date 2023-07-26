@@ -125,7 +125,9 @@
     "ShoppingTooltip2",
     "TooltipDataProcessor",
     "Enum",
-    "GatherPanel"
+    "GatherPanel",
+    "Object",
+    "OBJECTIVE_TRACKER_UPDATE_REASON"
   ],
   "Lua.runtime.version": "Lua 5.4",
   "Lua.diagnostics.disable": [
