@@ -275,10 +275,14 @@ function objectiveTrackerModule:InternalAddBlock(block)
 end
 
 function objectiveTrackerModule:OnBlockHeaderClick(block, mouseButton)
-  if mouseButton == "LeftButton" and IsModifiedClick("QUESTWATCHTOGGLE") then
-    local shouldTrack = false
-    local groupId = block.id
-    addon.trackGroup(nil, groupId, shouldTrack)
+  if mouseButton == "LeftButton" then
+    if IsModifiedClick("QUESTWATCHTOGGLE") then
+      local shouldTrack = false
+      local groupId = block.id
+      addon.trackGroup(nil, groupId, shouldTrack)
+    else
+      addon:ShowGroupInFrame(block.id)
+    end
   end
 end
 

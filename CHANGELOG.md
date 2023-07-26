@@ -10,6 +10,11 @@ You can now choose on how completed objectives are displayed.
 A new setting appeared (default: enabled) and when disabled, completed objectives are hidden from the Objective Tracker.
 And in the case of every objective completed, the whole "Gathering" section in the Objective Tracker disappears.
 
+[ADDED] Show Gather Panel on Objetive Tracker Click
+
+If you left-click on a group inside the Objective Tracker, the Gather Panel will now show up and scrolls to the
+corresponding group where you can adjust entry properties.
+
 [FIXED] Objective Tracker Overflow
 
 If the objective list of a group exceeds the Objective Tracker size, the group will now be hidden until there is space

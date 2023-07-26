@@ -730,6 +730,18 @@ function GatherPanel_TrackAll()
 end
 
 function GatherPanel_OnLoad(frame)
+  addon.Frame = frame
+
+  function addon.Frame:ExpandGroup(group)
+    group.isCollapsed = false
+    GatherPanel_UpdatePanelItems()
+  end
+
+  function addon.Frame:ScrollToEntry(entry)
+    FauxScrollFrame_SetOffset(_G["GatherFrameScrollFrame"], entry.scrollIndex)
+    GatherPanel_UpdatePanel()
+  end
+
   SlashCmdList["GATHERPANEL"] = function(msg)
 
     local _, _, cmd, args = string.find(msg, "%s?(%w+)%s?(.*)");
@@ -1144,6 +1156,7 @@ function GatherPanel_UpdatePanel(initDropdowns)
       if i+1 <= #sortedHierarchy then
         local nextElement = elements[sortedHierarchy[i+1].id];
         if nextElement and (nextElement.type ~= "GROUP" and nextElement.parent == 0) then
+          element.scrollIndex = processedRows
           processedRows = processedRows + 1;
           if (processedRows > itemOffset and renderedRows < GATHERPANEL_NUM_ITEMS_DISPLAYED) then
             local itemRow = _G["GatherBar" .. renderedRows+1];
@@ -1163,6 +1176,7 @@ function GatherPanel_UpdatePanel(initDropdowns)
     else
       if element.type == "GROUP" then
         if collapsedLevel >= level then
+          element.scrollIndex = processedRows
           processedRows = processedRows + 1;
           if (processedRows > itemOffset and renderedRows < GATHERPANEL_NUM_ITEMS_DISPLAYED) then
             local itemRow = _G["GatherBar" .. renderedRows+1];
@@ -2047,4 +2061,19 @@ function GatherPanel_TrackerX_OnLeave(self) local realGoal, realPercentage;
     self.Bar.Label:SetText("");
   end
   GameTooltip_Hide();
+end
+
+
+function addon:OpenFrame()
+  self.Frame:SetShown(true)
+end
+
+function addon:ShowGroupInFrame(groupId)
+  self:OpenFrame()
+  local tab = _G["GatherPanelTab1"]
+  GatherPanel_Tab_OnClick(tab)
+
+  local group = GatherPanel_GetItemList()[groupId]
+  self.Frame:ExpandGroup(group)
+  self.Frame:ScrollToEntry(group)
 end
