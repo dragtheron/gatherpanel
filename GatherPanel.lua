@@ -828,15 +828,15 @@ function GatherPanel_InitItem(item)
   if item.professionQuality then
     local professionQualityIcon = Professions.GetIconForQuality(item.professionQuality, true);
     local professionQualityMarkup = CreateAtlasMarkup(professionQualityIcon, 16, 16);
-    -- item.displayName = item.name .. " " .. professionQualityMarkup;
+    item.displayName = item.name .. " " .. professionQualityMarkup;
 
-    item.displayName = string.format(
-      "%s (%s)",
-      item.name,
-      string.format(
-        addon.T["PROFESSION_QUALITY_MARKUP"], item.professionQuality
-      )
-    );
+    -- item.displayName = string.format(
+    --   "%s (%s)",
+    --   item.name,
+    --   string.format(
+    --     addon.T["PROFESSION_QUALITY_MARKUP"], item.professionQuality
+    --   )
+    -- );
   else
     item.displayName = item.name;
   end
