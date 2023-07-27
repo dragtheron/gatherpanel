@@ -4,6 +4,8 @@ Change Log
 2.8.0 (Unreleased)
 ------------------
 
+Release Candidate.
+
 [ADDED] Show Completed Objectives Toggle
 
 You can now choose on how completed objectives are displayed.

@@ -406,15 +406,9 @@ function module:UpdateEntryInGroup(entry, group)
     block.currentLine = originalLastLine
 
     if isGroupComplete(group) then
-      if addon.Variables.user.showCompleted then
-        return objectiveTrackerModule:GlowLine(line, function()
-          objectiveTrackerModule:FadeOutAllLines(block)
-        end)
-      else
-        return objectiveTrackerModule:GlowLine(line, function()
-          objectiveTrackerModule:FreeBlock(block)
-        end)
-      end
+      return objectiveTrackerModule:GlowLine(line, function()
+        objectiveTrackerModule:FadeOutAllLines(block)
+      end)
     end
 
     if isComplete(entry) then
