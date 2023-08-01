@@ -67,9 +67,9 @@ local function addObjectiveLine(tooltip, entryType, id)
   local group = entries[entry.parent];
 
   if group then
-    tooltip:AddLine("Gather Panel: " .. group.name);
+    tooltip:AddLine(format("%s: %s", addon.T["GATHERING"], group.name));
   else
-    tooltip:AddLine("Gather Panel");
+    tooltip:AddLine(addon.T["GATHERING"]);
   end
 
   local currentEntry = entry;
