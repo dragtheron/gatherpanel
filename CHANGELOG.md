@@ -1,10 +1,13 @@
 Change Log
 ==========
 
-2.8.0 (Unreleased)
-------------------
+2.8.1 (September 6, 2023)
+-------------------------
 
-Release Candidate.
+Bumped to interface version 10.1.7.
+
+2.8.0 (August 2, 2023)
+------------------
 
 [ADDED] Show Completed Objectives Toggle
 

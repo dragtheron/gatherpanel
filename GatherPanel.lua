@@ -40,14 +40,13 @@ addon.EntryTypes = ITEM_TYPE;
 ---@field tracked boolean
 ---@field tracker integer The index of the tracker entry.
 ---@field betterItem Item
+---@field scrollIndex integer
 
 GATHERPANEL_ITEMBAR_HEIGHT = 26;
 GATHERPANEL_NUM_ITEMS_DISPLAYED = 15;
 GATHERPANEL_NUM_TRACKERS_ENABLED = 0;
 GATHERPANEL_NUM_TRACKERS_CREATED = 0;
 GATHERPANEL_LOADED = false;
-
-GATHERPANEL_DEFAULT_GROUP_COLLAPSED = false;
 
 GATHERPANEL_ITEMLISTS = {};
 GATHERPANEL_ITEM_LIST_SELECTION = nil;
@@ -68,7 +67,7 @@ local defaultGroup = {
   name = L.T["UNCATEGORIZED"],
   type = "GROUP",
   parent = nil,
-  isCollapsed = GATHERPANEL_DEFAULT_GROUP_COLLAPSED
+  isCollapsed = false,
 };
 
 ---@param realm string
@@ -243,7 +242,7 @@ function addon.getGroups()
     if entryKey == 0 then
       entry = {
         type = "GROUP",
-        name = "Default Group",
+        name = addon.T["DEFAULT_GROUP"],
         id = 0,
       };
     else
@@ -1151,29 +1150,20 @@ function GatherPanel_UpdatePanel(initDropdowns)
     local element = elements[elementKey];
 
     if elementKey == 0 then
-      defaultGroup.isCollapsed = GATHERPANEL_DEFAULT_GROUP_COLLAPSED;
-
-      if i+1 <= #sortedHierarchy then
+      local moreEntriesAvailable = i+1 <= #sortedHierarchy
+      if moreEntriesAvailable then
         local nextElement = elements[sortedHierarchy[i+1].id];
-        if nextElement and (nextElement.type ~= "GROUP" and nextElement.parent == 0) then
-          element.scrollIndex = processedRows
-          processedRows = processedRows + 1;
-          if (processedRows > itemOffset and renderedRows < GATHERPANEL_NUM_ITEMS_DISPLAYED) then
-            local itemRow = _G["GatherBar" .. renderedRows+1];
-            itemRow.item = nil;
-            itemRow.itemKey = 0;
-            renderItemGroup(itemRow, defaultGroup, level, initDropdowns);
-            renderedRows = renderedRows + 1;
-            itemRow:Show();
-          end
-          if defaultGroup.isCollapsed then
-            collapsedLevel = 0;
-          else
-            collapsedLevel = 999;
-          end
+
+        local defaultGroupGotEntries = nextElement
+          and (nextElement.type ~= "GROUP" and nextElement.parent == 0)
+
+        if defaultGroupGotEntries then
+          element = defaultGroup
         end
       end
-    else
+    end
+
+    if element then
       if element.type == "GROUP" then
         if collapsedLevel >= level then
           element.scrollIndex = processedRows
@@ -1557,7 +1547,7 @@ end
 
 
 local function expandOrCollapseDefaultGroup()
-  GATHERPANEL_DEFAULT_GROUP_COLLAPSED = not GATHERPANEL_DEFAULT_GROUP_COLLAPSED;
+  defaultGroup.isCollapsed = not defaultGroup.isCollapsed;
   GatherPanel_UpdatePanelItems();
 end
 
@@ -2073,7 +2063,13 @@ function addon:ShowGroupInFrame(groupId)
   local tab = _G["GatherPanelTab1"]
   GatherPanel_Tab_OnClick(tab)
 
-  local group = GatherPanel_GetItemList()[groupId]
+  local group
+  if groupId == 0 then
+    group = defaultGroup
+  else
+    group = GatherPanel_GetItemList()[groupId]
+  end
+
   self.Frame:ExpandGroup(group)
   self.Frame:ScrollToEntry(group)
 end
